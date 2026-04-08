@@ -1,0 +1,16 @@
+{
+  "name": "dep-fence",
+  "version": "0.1.0",
+  "description": "Dependency admission controller for npm projects",
+  "type": "module",
+  "bin": {
+    "dep-fence": "src/index.js"
+  },
+  "engines": {
+    "node": ">=18.3"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

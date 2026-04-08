@@ -13,6 +13,10 @@
    - Why it happens: Developer has multiple terminals, both running `git commit` simultaneously. Both hooks read baseline, evaluate, and try to write.
    - How to avoid it: Atomic file write (temp + rename) prevents corruption. The last writer wins, which is correct — both evaluated against the same baseline.
 
+4. `_gitAdd` injection in `writeAndStage` is synchronous-only
+   - Why it happens: The real `gitAdd` uses `execSync` (synchronous). `writeAndStage` calls `_gitAdd` without `await` and wraps it in a synchronous `try/catch`. If a future test or caller passes an async `_gitAdd` override, errors will escape the `try/catch` silently — the warning will not be logged.
+   - How to avoid it: Keep `_gitAdd` overrides synchronous (throw synchronously) in tests. If `writeAndStage` is ever refactored to accept async overrides, add `await` and use `try/catch` around the awaited call. Files: `src/baseline/manager.js:160-171`, `src/utils/git.js:44`.
+
 ## Regression Traps
 - Changing `TrustProfile` fields requires a baseline `schema_version` bump and migration logic.
 - The delta must treat "same name, different version" as a change, not as "removed + added."

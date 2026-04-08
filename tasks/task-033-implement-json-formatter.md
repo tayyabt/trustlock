@@ -18,3 +18,5 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F07-S02-approach.md
 review_artifact: docs/reviews/task-033-review.md
+source_files: src/output/json.js
+test_files: test/output/json.test.js

@@ -17,7 +17,7 @@
     "auto_squash_merge_on_review_approval": true
   },
   "autonomy": {
-    "default": "supervised",
+    "default": "autonomous",
     "overrides": {}
   },
   "last_action": null,

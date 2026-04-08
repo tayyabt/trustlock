@@ -18,3 +18,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F06-S02-approach.md
 review_artifact: docs/reviews/task-029-review.md
+source_files: src/policy/rules/provenance.js, src/policy/rules/cooldown.js, src/policy/rules/pinning.js
+test_files: test/policy/rules/provenance.test.js, test/policy/rules/cooldown.test.js, test/policy/rules/pinning.test.js
+docs_updates: docs/design-notes/F06-S02-approach.md

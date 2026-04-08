@@ -88,13 +88,17 @@ All verified 2026-04-09 via `node --test`.
 | Warnings don't block | PASS | decision.test.js: warn-only → admitted; engine.test.js: new-dep warn finding, allAdmitted=true |
 | allAdmitted semantics | PASS | engine.test.js: one-blocked+one-admitted → allAdmitted:false |
 | approvalCommand populated | PASS | engine.test.js: checks approvalCommand includes dep-fence approve + package@version + --override rule |
-| Test suite | PASS | 75 tests pass across decision, engine, CLI check, approvals |
+| Test suite | PASS | 98 tests pass across all rule, decision, engine, CLI check, and approvals suites |
+| scripts rule isolation (reviewer revision) | PASS | scripts.test.js: 11/11 — admit, block, admitted_with_approval, expired-approval, finding shape |
+| sources rule isolation (reviewer revision) | PASS | sources.test.js: 12/12 — admit, block, admitted_with_approval, expired-approval, finding shape |
 
-Commands run:
+Commands run (revision 2026-04-09):
 ```
+node --test test/policy/rules/scripts.test.js    # 11/11 PASS
+node --test test/policy/rules/sources.test.js    # 12/12 PASS
 node --test test/policy/decision.test.js         # 15/15 PASS
 node --test test/policy/engine.test.js           # 16/16 PASS
 node --test test/unit/cli/check.test.js          # 14/14 PASS (regression check)
-node --test test/approvals/validator.test.js     # pass (regression check)
-node --test test/approvals/generator.test.js     # pass (regression check)
+node --test test/approvals/validator.test.js     # 17/17 PASS (regression check)
+node --test test/approvals/generator.test.js     # 13/13 PASS (regression check)
 ```

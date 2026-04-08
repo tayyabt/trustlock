@@ -18,3 +18,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F01-S01-approach.md
 review_artifact: docs/reviews/task-013-review.md
+source_files: package.json, src/index.js, src/utils/.gitkeep, test/fixtures/.gitkeep
+test_files: test/smoke.test.js
+docs_updates: docs/design-notes/F01-S01-approach.md, docs/reviews/task-013-review.md

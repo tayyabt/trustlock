@@ -17,6 +17,10 @@
    - Why it happens: Git dependencies have `resolved` URLs like `git+https://github.com/...#commit`. File dependencies have `resolved` as `file:../path`. These need correct source classification.
    - How to avoid it: Source classification function with explicit pattern matching, tested against fixture data.
 
+5. Testing `process.exit` in async node:test functions
+   - Why it happens: If a test mocks `process.exit` without making it throw, the real `process.exit` is bypassed but the async function continues executing. The test suite may abort or give false passes.
+   - How to avoid it: Mock `process.exit` to throw (`throw Object.assign(new Error(...), { exitCode: code })`). Use `assert.rejects()` to capture the error and check `err.exitCode === 2`. Always restore both `process.exit` and `console.error` in `afterEach`.
+
 ## Regression Traps
 - Adding v2/v3 parsing must not break v1. Each version path is independent.
 - Changing `ResolvedDependency` model fields requires updating ALL parsers — the common model is a contract.

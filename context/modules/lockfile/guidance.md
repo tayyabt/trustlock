@@ -17,6 +17,11 @@
 - Receives file path, reads and parses the file, returns the common model
 - Missing fields (e.g., `hasInstallScripts` in npm v1/v2) are set to `null` — caller fetches from registry
 
+## Router Implementation Pattern
+- `detectFormat()` reads the file once and calls `_detectFromParsed(parsed, filename)` internally.
+- `parseLockfile()` also reads the file once and calls `_detectFromParsed()` on the same parsed object — avoids double file read.
+- `_detectFromParsed()` is a private helper that owns all version-check logic and exit-2 behavior. Do not duplicate this logic in `parseLockfile()`.
+
 ## Integration Guidance
 - Policy engine receives `ResolvedDependency[]` and uses it alongside baseline for delta computation
 - Baseline module receives `ResolvedDependency[]` during init to build the initial baseline

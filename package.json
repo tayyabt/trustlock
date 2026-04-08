@@ -4,7 +4,7 @@
   "description": "Dependency admission controller for npm projects",
   "type": "module",
   "bin": {
-    "dep-fence": "src/index.js"
+    "dep-fence": "src/cli/index.js"
   },
   "engines": {
     "node": ">=18.3"

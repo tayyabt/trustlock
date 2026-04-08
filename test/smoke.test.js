@@ -26,7 +26,7 @@ describe('project skeleton', () => {
 
   it('package.json has correct bin field', () => {
     const pkg = JSON.parse(readFileSync(join(rootDir, 'package.json'), 'utf8'));
-    assert.deepEqual(pkg.bin, { 'dep-fence': 'src/index.js' });
+    assert.deepEqual(pkg.bin, { 'dep-fence': 'src/cli/index.js' });
   });
 
   it('package.json has zero dependencies', () => {

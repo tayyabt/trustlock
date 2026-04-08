@@ -19,3 +19,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F08-S2-approach.md
 review_artifact: docs/reviews/task-035-review.md
+source_files: src/cli/commands/check.js, src/policy/engine.js
+test_files: test/unit/cli/check.test.js
+docs_updates: docs/design-notes/F08-S2-approach.md, docs/reviews/task-035-review.md

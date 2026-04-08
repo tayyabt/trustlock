@@ -75,6 +75,8 @@ Approved (after revision)
   evaluate and loadPolicy correctly.
 
 ## Test Results
+- `node --test test/policy/rules/scripts.test.js` → 11/11 PASS (reviewer revision)
+- `node --test test/policy/rules/sources.test.js` → 12/12 PASS (reviewer revision)
 - `node --test test/policy/decision.test.js` → 15/15 PASS
 - `node --test test/policy/engine.test.js` → 16/16 PASS
 - `node --test test/unit/cli/check.test.js` (regression) → 14/14 PASS

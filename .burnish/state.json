@@ -1,0 +1,25 @@
+{
+  "version": "0.4.0",
+  "project_name": "dep-fence",
+  "project_root": "/Users/tayyabtariq/Documents/projects/dep-fence",
+  "has_ui": false,
+  "bootstrap_complete": true,
+  "current_sprint": 0,
+  "orchestrator_mode": "manual",
+  "specs_seeded": [
+    "2026-04-07-dep-fence-full-spec"
+  ],
+  "next_task_id": 4,
+  "git_policy": {
+    "branch_mode": "per_task",
+    "branch_pattern": "burnish/{work_id}-{slug}",
+    "base_branch": "main",
+    "auto_squash_merge_on_review_approval": true
+  },
+  "autonomy": {
+    "default": "supervised",
+    "overrides": {}
+  },
+  "last_action": null,
+  "last_updated": null
+}

@@ -1,0 +1,4 @@
+id,type,subject_id,status,title,sprint,priority,depends_on,lane_kind,module_scope,branch,worktree_path,pr_url,task_file,created,updated
+task-001,PM_PRODUCT_REVIEW,2026-04-07-dep-fence-full-spec,ready,Product review: 2026-04-07-dep-fence-full-spec,0,0,,planning,,,,,tasks/task-001-product-review-2026-04-07-dep-fence-full-spec.md,2026-04-08T05:30:23Z,2026-04-08T05:30:23Z
+task-002,ARCH_FOUNDATION,2026-04-07-dep-fence-full-spec,blocked,Architecture foundation: 2026-04-07-dep-fence-full-spec,0,1,task-001,planning,,,,,tasks/task-002-architecture-foundation-2026-04-07-dep-fence-full-spec.md,2026-04-08T05:30:23Z,2026-04-08T05:30:23Z
+task-003,PM_FEATURE_BOUNDARIES,2026-04-07-dep-fence-full-spec,blocked,Feature boundaries: 2026-04-07-dep-fence-full-spec,0,3,task-002,planning,,,,,tasks/task-003-feature-boundaries-2026-04-07-dep-fence-full-spec.md,2026-04-08T05:30:23Z,2026-04-08T05:30:23Z

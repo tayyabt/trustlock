@@ -1,55 +1,79 @@
-# Review: task-029 — Implement Trust & Exposure Rules (F06-S02)
-
-## Status
-Ready for review.
+# Code Review: task-029 — Implement Trust & Exposure Rules (F06-S02)
 
 ## Summary
-Implemented three pure-function policy rules in `src/policy/rules/`:
-- `provenance.js` — `trust-continuity:provenance`: blocks provenance regression and required-but-missing attestation; skips on registry unavailability.
-- `cooldown.js` — `exposure:cooldown`: blocks versions newer than `cooldown_hours`; includes exact UTC `clears_at` timestamp in `detail` (D4); skips when `publishedAt` is unavailable.
-- `pinning.js` — `exposure:pinning`: reads `package.json` via `node:fs/promises` (not lockfile, per C2); blocks floating ranges in both `dependencies` and `devDependencies` when `pinning.required = true`.
+Three pure-function policy rules are correctly implemented, fully tested, and compliant with ADR-001 (zero runtime deps) and the global architecture. All 35 tests pass on live execution. Design note accurately maps every AC to a passing test. One suggestion-level forward-risk finding on the `models.js` severity constant.
 
-## Verification
+## Verdict
+Approved
 
-All 35 tests pass:
-```
-node --test test/policy/rules/provenance.test.js  → 12/12 PASS
-node --test test/policy/rules/cooldown.test.js    → 12/12 PASS
-node --test test/policy/rules/pinning.test.js     → 11/11 PASS
-```
+## Findings
 
-## Acceptance Criteria
+### Finding 1: `models.js` documents `severity: 'block'` but rules emit `severity: 'error'`
+- **Severity:** suggestion
+- **Finding:** `src/policy/models.js` line 57 documents the `Finding.severity` default as `'block'` and the comment states `'block' or 'warn'` as the valid values. All three rules (`provenance.js`, `cooldown.js`, `pinning.js`) emit `severity: 'error'` for blocking findings as specified by the story behavioral rules. The design note acknowledges the conflict and defers alignment to F06-S04. However, `models.js` itself is not updated, leaving the canonical contract document stale.
+- **Proposed Judgment:** Before F06-S04 lands, update `models.js` to document `'error'` (and `'skipped'`) as the correct severity values. The engine implementor will rely on `models.js` to understand the contract.
+- **Reference:** Design note § "Questions/Concerns" — severity conflict; `src/policy/models.js:57`
 
-- [x] `provenance.js` blocks regression (had attestation, lost it)
-- [x] `provenance.js` blocks required_for with no attestation (edge case #5)
-- [x] `provenance.js` admits when attestation present or never required
-- [x] `provenance.js` returns `severity: "skipped"` when registry unavailable (edge case #6)
-- [x] `cooldown.js` blocks with `detail.clears_at` ISO 8601 UTC when age < cooldown_hours (D4)
-- [x] `cooldown.js` admits when age >= cooldown_hours
-- [x] `cooldown.js` returns `severity: "skipped"` when `publishedAt` unavailable
-- [x] `pinning.js` reads `package.json` (not lockfile, C2) and blocks floating ranges when required
-- [x] `pinning.js` returns `[]` when `pinning.required = false` or all versions are exact
-- [x] All three return `Finding[]` with correct `rule`, `severity`, `message`, `detail`
-- [x] Unit tests cover: admit, block, registry-unavailable (provenance, cooldown), range detection (pinning)
+### Finding 2: Story artifact inaccessible in this worktree
+- **Severity:** warning
+- **Finding:** The task references `story: /Users/tayyabtariq/Documents/projects/.burnish-worktrees/dep-fence/task-010/docs/stories/F06-S02-trust-and-exposure-rules.md` but that file does not exist in the worktree. Review was conducted against the design note, which preserves the behavioral spec in sufficient detail.
+- **Proposed Judgment:** No action required for this review. Ensure the story artifact is preserved for the F06-S04 reviewer.
+- **Reference:** Task file inputs section; `read-input.sh` returned empty for `story` key
 
-## Notes for Reviewer
+## Checks Performed
+- [x] Correctness (each acceptance criterion verified individually)
+- [x] Workflow completeness / blocked-state guidance (N/A — no workflow integration in this story)
+- [x] Architecture compliance (follows ADR-001, respects module boundaries — callee only)
+- [x] Design compliance (N/A — no UI)
+- [x] Behavioral / interaction rule compliance (skip-don't-block edge cases honored for both provenance and cooldown)
+- [x] Integration completeness (callee-side complete; caller seam explicit and intentionally deferred)
+- [x] Pitfall avoidance (no runtime deps, no global mocking, pinning tests use real temp files)
+- [x] Convention compliance (kebab-case files, ES modules, `node:fs/promises` per conventions.md)
+- [x] Test coverage (all ACs covered; edge cases: null registry, invalid timestamp, disabled policy, missing dep)
+- [x] Code quality & documentation (design note complete, stubs section explicitly "None")
 
-- `pinning.js` is async (`Promise<Finding[]>`) because it reads `package.json` via `node:fs/promises`. F06-S04 engine must `await` this rule.
-- `severity: "error"` for blocking findings (per story behavioral rules), `severity: "skipped"` for registry-unavailable cases. F06-S04 implementor should align engine severity checks accordingly.
-- `pinning.js` accepts `packageJsonPath` as a 5th argument (not embedded in policy). Story explicitly permits this choice.
-- Engine seam (F06-S04 wiring) is intentionally deferred and kept explicit.
+## Acceptance Criteria Judgment
+- AC: provenance blocks regression (had attestation, lost it) → PASS — `provenance.test.js` "blocks on provenance regression"
+- AC: provenance blocks required_for with no attestation → PASS — 3 cases: no baseline, unverified, unknown
+- AC: provenance admits when attestation present → PASS — 2 cases (required / not required)
+- AC: provenance admits when not required and no prior attestation → PASS — 2 cases (unverified baseline, null baseline)
+- AC: provenance skips when registry unavailable → PASS — `severity: 'skipped'`, does not block
+- AC: cooldown blocks with clears_at when age < cooldown_hours → PASS — clears_at = publishedAt + cooldown_hours, ISO 8601 UTC
+- AC: cooldown admits when age >= cooldown_hours → PASS — 2 cases (100h, exactly 72h)
+- AC: cooldown skips when publishedAt unavailable → PASS — 4 cases (null registry, null publishedAt, undefined, invalid timestamp)
+- AC: pinning blocks floating ranges when required → PASS — 5 operators: `^`, `~`, `*`, `>=`, devDeps
+- AC: pinning admits exact versions → PASS — deps and devDeps
+- AC: pinning admits when disabled → PASS — no file read, immediate return
+- AC: all three return correct Finding[] fields → PASS — shape validated in dedicated tests for each rule
 
-## Files Changed
+## Deferred Verification
+none
 
-**Source:**
-- `src/policy/rules/provenance.js` (new)
-- `src/policy/rules/cooldown.js` (new)
-- `src/policy/rules/pinning.js` (new)
+## Regression Risk
+- Risk level: low
+- Why: All rules are pure functions (cooldown injects `now`, pinning injects `packageJsonPath`). No shared state, no globals mocked. Tests cover admit, block, and skip paths for each rule. The only forward risk is the severity string mismatch noted in Finding 1, which is documentation-level and does not affect this story's behavior.
 
-**Tests:**
-- `test/policy/rules/provenance.test.js` (new)
-- `test/policy/rules/cooldown.test.js` (new)
-- `test/policy/rules/pinning.test.js` (new)
+## Integration / Boundary Judgment
+- Boundary: callee-side — `evaluate(dependency, baseline, registryData, policy[, extra]) → Finding[]`
+- Judgment: complete
+- Notes: Engine wiring (F06-S04) is explicitly deferred with a design-note seam record. `pinning.js` correctly returns `Promise<Finding[]>` and documents that the engine must `await` it. No stub in `engine.js` was created.
 
-**Design:**
-- `docs/design-notes/F06-S02-approach.md` (new)
+## Test Results
+- Command run: `node --test test/policy/rules/provenance.test.js`
+- Result: 12/12 PASS
+
+- Command run: `node --test test/policy/rules/cooldown.test.js`
+- Result: 12/12 PASS
+
+- Command run: `node --test test/policy/rules/pinning.test.js`
+- Result: 11/11 PASS
+
+## Context Updates Made
+No context updates needed. No module guidance, pitfalls, or decisions files are bound to this task.
+
+## Metadata
+- Agent: reviewer
+- Date: 2026-04-09
+- Task: task-029
+- Branch: burnish/task-029-implement-trust-exposure-rules
+- Artifacts reviewed: `docs/design-notes/F06-S02-approach.md`, `src/policy/rules/provenance.js`, `src/policy/rules/cooldown.js`, `src/policy/rules/pinning.js`, `test/policy/rules/provenance.test.js`, `test/policy/rules/cooldown.test.js`, `test/policy/rules/pinning.test.js`, `src/policy/models.js`, `context/global/conventions.md`, `context/global/architecture.md`, `docs/adrs/ADR-001-zero-runtime-dependencies.md`

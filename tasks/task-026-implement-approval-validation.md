@@ -18,3 +18,5 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F05-S02-approach.md
 review_artifact: docs/reviews/task-026-review.md
+source_files: src/approvals/validator.js
+test_files: test/approvals/validator.test.js

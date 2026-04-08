@@ -22,3 +22,4 @@
 2026-04-08 21:24 | task-030 | DEV_STORY | ready_for_review | implementation ready for review
 2026-04-08 21:33 | task-036 | DEV_STORY | ready_for_review | implementation ready for review
 2026-04-08 21:49 | task-031 | DEV_STORY | ready_for_review | implementation ready for review
+2026-04-08 21:59 | task-031 | DEV_STORY | ready_for_review | Revision complete: added test/policy/rules/scripts.test.js (11/11) and test/policy/rules/sources.test.js (12/12) addressing reviewer finding. All 98 tests pass across the full suite.

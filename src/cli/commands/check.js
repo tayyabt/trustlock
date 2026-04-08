@@ -152,7 +152,9 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   );
 
   // ── 10. Evaluate policy ───────────────────────────────────────────────────
-  const results = await evaluate(delta, metadataMap, policy, approvals, { packageJsonPath });
+  const { results, allAdmitted } = await evaluate(
+    delta, policy, baseline, approvals, metadataMap, { packageJsonPath }
+  );
 
   // ── 11. Format and write output ───────────────────────────────────────────
   if (json) {
@@ -162,7 +164,7 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   }
 
   // ── 12. Determine overall admission outcome ───────────────────────────────
-  const anyBlocked = results.some((r) => r.checkResult.decision === 'blocked');
+  const anyBlocked = !allAdmitted;
 
   // ── 13. Advance baseline (D1, D10, --dry-run guards) ─────────────────────
   // D1: any blocked → do not advance for any

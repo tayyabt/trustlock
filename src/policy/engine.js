@@ -1,41 +1,41 @@
 /**
- * Policy engine — orchestrates rule evaluation and approval matching.
+ * Policy engine — orchestrates all 7 rule evaluations and approval intersection.
  *
  * Public API:
- *   evaluate(delta, metadataMap, policy, approvals, options) → DependencyCheckResult[]
+ *   evaluate(delta, policy, baseline, approvals, registryData, options?)
+ *     → Promise<{ results: DependencyCheckResult[], allAdmitted: boolean }>
  *
- * delta         {DependencyDelta}     From baseline/diff.computeDelta
- * metadataMap   {Map<name, meta>}     Pre-fetched registry data per package:
- *                 meta.publishedAt  {string|null}   ISO 8601 UTC publish timestamp
- *                 meta.hasProvenance {boolean}       True if SLSA attestation exists
- *                 meta.warnings     {string[]}       Registry degradation warnings
- * policy        {PolicyConfig}        From policy/config.loadPolicy
- * approvals     {object[]}            From approvals/store.readApprovals (includes expired)
- * options.packageJsonPath {string}    Required for pinning rule
+ * Parameters:
+ *   delta         {DependencyDelta}      From baseline/diff.computeDelta
+ *   policy        {PolicyConfig}         From policy/config.loadPolicy
+ *   baseline      {object}              Full baseline object (packages map)
+ *   approvals     {object[]}            From approvals/store.readApprovals (includes expired)
+ *   registryData  {Map<string, object>} Pre-fetched registry metadata per package:
+ *                   meta.publishedAt  {string|null}   ISO 8601 UTC publish timestamp
+ *                   meta.hasProvenance {boolean}       True if SLSA attestation exists
+ *                   meta.warnings     {string[]}       Registry degradation warnings
+ *   options.packageJsonPath {string}    Required for the pinning rule
+ *
+ * Return:
+ *   results      {DependencyCheckResult[]}  One entry per evaluated dependency
+ *   allAdmitted  {boolean}                 False if any dependency is "blocked"
  */
 
 import { evaluate as cooldownEval } from './rules/cooldown.js';
 import { evaluate as pinningEval } from './rules/pinning.js';
 import { evaluate as provenanceEval } from './rules/provenance.js';
+import { evaluate as scriptsEval } from './rules/scripts.js';
+import { evaluate as sourcesEval } from './rules/sources.js';
+import { evaluate as newDepEval } from './rules/new-dependency.js';
+import { evaluate as transitiveEval } from './rules/transitive-surprise.js';
+import { decide, uncoveredBlockingRules } from './decision.js';
 import { generateApprovalCommand } from '../approvals/generator.js';
 
 /**
- * Map a fully-qualified rule identifier to the override name used in approvals.
- * e.g. "exposure:cooldown" → "cooldown"
- *      "trust-continuity:provenance" → "provenance"
- * @param {string} ruleId
- * @returns {string}
- */
-function ruleToOverrideName(ruleId) {
-  const parts = ruleId.split(':');
-  return parts[parts.length - 1];
-}
-
-/**
  * Normalize finding severity from the historical rule convention to the model convention.
- *   'error'   → 'block'   (rules currently emit 'error' for blocking findings)
- *   'skipped' → 'warn'    (registry-unreachable findings are informational warnings)
- *   all others unchanged
+ *   'error'   → 'block'   (blocking findings)
+ *   'skipped' → 'warn'    (registry-unreachable findings are informational)
+ *   all others unchanged  ('warn' stays 'warn')
  * @param {string} severity
  * @returns {string}
  */
@@ -46,38 +46,34 @@ function normalizeSeverity(severity) {
 }
 
 /**
- * Find active (non-expired) approvals for a specific package@version.
- * @param {object[]} approvals
- * @param {string} name
- * @param {string} version
- * @param {Date} now
- * @returns {object[]}
- */
-function activeApprovalsFor(approvals, name, version, now) {
-  return approvals.filter(
-    (a) =>
-      a.package === name &&
-      a.version === version &&
-      new Date(a.expires_at) > now
-  );
-}
-
-/**
  * Evaluate all policy rules for every added and changed dependency in the delta.
  *
+ * Empty-delta short-circuit: when both delta.added and delta.changed are empty,
+ * returns { results: [], allAdmitted: true } immediately without running any rules.
+ *
  * @param {object} delta              DependencyDelta from computeDelta
- * @param {Map<string,object>} metadataMap  Registry metadata per package name
  * @param {object} policy             PolicyConfig
- * @param {object[]} approvals        Raw approvals array (may include expired — filtered here)
+ * @param {object} baseline           Full baseline object
+ * @param {object[]} approvals        Raw approvals array (may include expired)
+ * @param {Map<string,object>} registryData  Registry metadata per package name
  * @param {{ packageJsonPath?: string }} [options]
- * @returns {Promise<object[]>}       DependencyCheckResult[]
+ * @returns {Promise<{ results: object[], allAdmitted: boolean }>}
  */
-export async function evaluate(delta, metadataMap, policy, approvals, options = {}) {
+export async function evaluate(delta, policy, baseline, approvals, registryData, options = {}) {
   const { packageJsonPath } = options;
-  const now = new Date();
 
-  // Combine added and changed dependencies into a single list to evaluate.
-  // Removed packages are silently skipped (D3).
+  // Short-circuit: nothing to evaluate.
+  if (delta.added.length === 0 && delta.changed.length === 0) {
+    return { results: [], allAdmitted: true };
+  }
+
+  // Pre-compute new transitive count for the transitive-surprise rule.
+  // New transitive packages = packages in delta.added that are NOT direct dependencies.
+  const newTransitiveCount = delta.added.filter((dep) => !dep.directDependency).length;
+  const transitiveRegistryData = { newTransitiveCount };
+
+  // Combine added (previousProfile = null) and changed into a single list.
+  // Removed packages are silently skipped per product decision D3.
   const depsToEvaluate = [
     ...delta.added.map((dep) => ({ dep, previousProfile: null })),
     ...delta.changed.map(({ dep, previousProfile }) => ({ dep, previousProfile })),
@@ -86,13 +82,13 @@ export async function evaluate(delta, metadataMap, policy, approvals, options = 
   const results = [];
 
   for (const { dep, previousProfile } of depsToEvaluate) {
-    const meta = metadataMap.get(dep.name) ?? {
+    const meta = (registryData ?? new Map()).get(dep.name) ?? {
       publishedAt: null,
       hasProvenance: false,
       warnings: ['skipped: registry unreachable'],
     };
 
-    const registryUnreachable = meta.warnings.includes('skipped: registry unreachable');
+    const registryUnreachable = meta.warnings?.includes('skipped: registry unreachable');
 
     // Registry data shapes expected by each rule.
     const cooldownRegistryData = registryUnreachable
@@ -105,63 +101,45 @@ export async function evaluate(delta, metadataMap, policy, approvals, options = 
       ? null
       : { hasProvenance: meta.hasProvenance };
 
-    // Collect all findings from all rules.
+    // Collect all findings from all 7 rules.
     const rawFindings = [];
 
-    // 1. Cooldown rule (sync)
-    const cooldownFindings = cooldownEval(dep, previousProfile, cooldownRegistryData, policy, now);
-    rawFindings.push(...cooldownFindings);
+    // 1. trust-continuity:provenance (sync)
+    rawFindings.push(...provenanceEval(dep, previousProfile, provenanceRegistryData, policy));
 
-    // 2. Pinning rule (async — reads package.json)
+    // 2. exposure:cooldown (sync)
+    rawFindings.push(...cooldownEval(dep, previousProfile, cooldownRegistryData, policy));
+
+    // 3. exposure:pinning (async — reads package.json)
     if (packageJsonPath) {
-      const pinningFindings = await pinningEval(dep, previousProfile, null, policy, packageJsonPath);
-      rawFindings.push(...pinningFindings);
+      rawFindings.push(...await pinningEval(dep, previousProfile, null, policy, packageJsonPath));
     }
 
-    // 3. Provenance rule (sync)
-    const provenanceFindings = provenanceEval(dep, previousProfile, provenanceRegistryData, policy);
-    rawFindings.push(...provenanceFindings);
+    // 4. execution:scripts (sync)
+    rawFindings.push(...scriptsEval(dep, previousProfile, null, policy));
 
-    // Normalize severity to match the model contract.
+    // 5. execution:sources (sync)
+    rawFindings.push(...sourcesEval(dep, previousProfile, null, policy));
+
+    // 6. delta:new-dependency (sync) — warning only
+    rawFindings.push(...newDepEval(dep, previousProfile, null, policy));
+
+    // 7. delta:transitive-surprise (sync) — warning only
+    rawFindings.push(...transitiveEval(dep, previousProfile, transitiveRegistryData, policy));
+
+    // Normalize severity to match the model contract ('error' → 'block', 'skipped' → 'warn').
     const findings = rawFindings.map((f) => ({
       ...f,
       severity: normalizeSeverity(f.severity),
     }));
 
-    // Determine decision using approval matching.
-    const active = activeApprovalsFor(approvals, dep.name, dep.version, now);
-
-    let hasUncoveredBlock = false;
-    let hasApprovedBlock = false;
-
-    for (const finding of findings) {
-      if (finding.severity === 'block') {
-        const overrideName = ruleToOverrideName(finding.rule);
-        const covered = active.some((a) => Array.isArray(a.overrides) && a.overrides.includes(overrideName));
-        if (covered) {
-          hasApprovedBlock = true;
-        } else {
-          hasUncoveredBlock = true;
-        }
-      }
-    }
-
-    let decision;
-    if (hasUncoveredBlock) {
-      decision = 'blocked';
-    } else if (hasApprovedBlock) {
-      decision = 'admitted_with_approval';
-    } else {
-      decision = 'admitted';
-    }
+    // Determine per-dependency decision using approval intersection.
+    const decision = decide(findings, approvals, dep.name, dep.version);
 
     // Generate approval command for blocked packages.
     let approvalCommand = null;
     if (decision === 'blocked') {
-      const blockingRules = findings
-        .filter((f) => f.severity === 'block')
-        .map((f) => ruleToOverrideName(f.rule));
-
+      const blockingRules = uncoveredBlockingRules(findings, approvals, dep.name, dep.version);
       approvalCommand = generateApprovalCommand(
         { packageName: dep.name, version: dep.version, blockingRules },
         policy
@@ -179,5 +157,8 @@ export async function evaluate(delta, metadataMap, policy, approvals, options = 
     });
   }
 
-  return results;
+  // All-or-nothing (D1): allAdmitted is false when any dependency is blocked.
+  const allAdmitted = results.every((r) => r.checkResult.decision !== 'blocked');
+
+  return { results, allAdmitted };
 }

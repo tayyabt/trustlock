@@ -28,3 +28,30 @@ export function calculateAgeInHours(isoString, now = new Date()) {
   const diffMs = now.getTime() - then.getTime();
   return diffMs / (1000 * 60 * 60);
 }
+
+/**
+ * Format an ISO 8601 timestamp as a human-readable UTC string.
+ * Output example: "April 12, 2026 at 14:30 UTC"
+ * @param {string} isoString — ISO 8601 timestamp string
+ * @returns {string} Human-readable timestamp, or the original string if invalid.
+ */
+export function formatHumanReadableTimestamp(isoString) {
+  const d = parseTimestamp(isoString);
+  if (!d) return String(isoString);
+
+  const datePart = new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(d);
+
+  const timePart = new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
+  }).format(d);
+
+  return `${datePart} at ${timePart} UTC`;
+}

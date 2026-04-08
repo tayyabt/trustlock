@@ -1,0 +1,91 @@
+# Workflow: blocked-approve
+
+## Context
+- Feature: F08
+- Goal: Developer encounters a blocked dependency, understands why, records a scoped approval, and re-commits successfully
+- Actor(s)/Roles: Developer (encounters block), Code reviewer (reviews approval in PR)
+- Preview Path (if any): none
+
+## Preconditions
+- Required data/state:
+  - dep-fence initialized and working
+  - Lockfile has been modified with a dependency that violates policy
+  - Git pre-commit hook is installed (or developer runs `dep-fence check` manually)
+- Required permissions:
+  - File system write access (to write approval entry)
+  - Git write access (approval file is committed)
+- Blocked prerequisites and guidance:
+  - Same as check-admit: must be initialized with valid config and baseline
+
+## States And Steps
+- Happy path:
+  1. Developer runs `git commit` or `dep-fence check`
+  2. Tool evaluates dependency changes — one or more packages blocked
+  3. Tool prints block reasons per package with detailed findings:
+     - "axios@1.14.1: BLOCKED"
+     - "  - cooldown: Published 2 hours ago (policy: 72h minimum). Clears at 2026-04-03T00:21:00Z"
+     - "  - provenance: Previous version had SLSA provenance, this version does not"
+  4. Tool prints generated approval command:
+     - `dep-fence approve axios@1.14.1 --override cooldown,provenance --reason "..." --expires 7d`
+  5. Developer decides: wait for cooldown to clear, OR approve with justification
+  6. If approving: developer runs the generated command (editing the reason)
+  7. Tool validates inputs, writes entry to `.dep-fence/approvals.json`, prints confirmation with expiry date
+  8. Developer stages the approval file: `git add .dep-fence/approvals.json` (or it's already staged)
+  9. Developer re-commits — hook runs again
+  10. Tool evaluates: finds the same blocks but now a valid approval covers them
+  11. Decision changes to "admitted_with_approval" — baseline advances, commit succeeds
+  12. PR reviewer sees the approval entry in the diff and reviews the justification
+- Wait-for-cooldown path:
+  1. Same as above through step 4
+  2. Developer decides to wait for cooldown to clear
+  3. After cooldown period, developer re-runs `dep-fence check` — cooldown clears, package admitted
+- Partial approval path:
+  1. Package blocked for both cooldown and provenance
+  2. Developer approves only cooldown (`--override cooldown`)
+  3. Re-check: cooldown passes (approved) but provenance still blocks
+  4. Developer must also approve provenance or wait
+- Error states:
+  - `approve` for package not in lockfile: "Error: axios@1.14.1 not found in lockfile"
+  - `approve` with invalid override: "Error: 'notarule' is not a valid rule name. Valid rules: cooldown, provenance, scripts, source, pinning"
+  - `approve` with expiry > max: "Error: Maximum expiry is 30 days (configured in .depfencerc.json)"
+  - `approve` without reason when required: "Error: --reason is required (configure require_reason: false to disable)"
+- Success outcome:
+  - Blocked dependency has a scoped, time-limited, attributed approval
+  - Commit succeeds with both the lockfile change and the approval entry
+  - Approval is visible in PR diff for code review
+
+## Interaction And Messaging
+- Controls:
+  - `dep-fence check` (triggers the block)
+  - `dep-fence approve <pkg>@<ver> --override <rules> --reason <text> [--expires <duration>] [--as <name>]`
+- Feedback:
+  - Block output: red-colored per-package block reasons with finding details
+  - Approval command: ready-to-copy shell command with correct flags
+  - Approval confirmation: "Approved axios@1.14.1 (overrides: cooldown, provenance). Expires: 2026-04-14T10:30:00Z"
+  - Re-check output: "axios@1.14.1: ADMITTED (with approval, expires 2026-04-14)"
+- Next-step guidance:
+  - After block: "To approve, run the command above. To wait for cooldown, retry after [clears_at timestamp]."
+  - After approval: "Approval written. Commit both the lockfile and .dep-fence/approvals.json together."
+- Navigation/redirects: N/A (CLI)
+- Keyboard/accessibility: N/A (CLI)
+
+## Side Effects
+- Data mutations:
+  - `approve` writes to `.dep-fence/approvals.json`
+  - Successful re-check advances baseline and stages it
+- Notifications / webhooks: none
+
+## Success Criteria
+- Visible outcome: blocked packages show clear reasons and actionable approval commands; after approval, re-check admits the package
+- Metrics or acceptance signals: approval entry exists in `approvals.json` with correct scope, expiry, and attribution; commit succeeds on re-run
+
+## Shared UI
+- Shared design preview path(s): none
+- Notes on shared components: none
+
+## Notes
+- D2: The approval file is read from the working tree at commit time, so the approval and lockfile change can be in the same commit
+- D9: No wildcard approvals — developer must specify exactly which rules to override
+- D7: Approver identity from `git config user.name` unless `--as` is used
+- The approval command generated by dep-fence is intentionally complete except for the `--reason` flag, which the developer must fill in with their justification
+- Expired approvals are never used by `check` — they're silently skipped, not an error

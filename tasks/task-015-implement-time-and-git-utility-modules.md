@@ -18,3 +18,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F01-S03-approach.md
 review_artifact: docs/reviews/task-015-review.md
+source_files: src/utils/time.js, src/utils/git.js
+test_files: test/utils/time.test.js, test/utils/git.test.js
+docs_updates: docs/design-notes/F01-S03-approach.md, docs/reviews/task-015-review.md

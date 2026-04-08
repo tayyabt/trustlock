@@ -19,5 +19,5 @@ adrs: docs/adrs/ADR-*.md
 design_note: docs/design-notes/F06-S04-approach.md
 review_artifact: docs/reviews/task-031-review.md
 source_files: src/policy/decision.js, src/policy/engine.js, src/policy/index.js, src/policy/rules/scripts.js, src/policy/rules/sources.js, src/policy/rules/new-dependency.js, src/policy/rules/transitive-surprise.js, src/cli/commands/check.js
-test_files: test/policy/decision.test.js, test/policy/engine.test.js
+test_files: test/policy/decision.test.js, test/policy/engine.test.js, test/policy/rules/scripts.test.js, test/policy/rules/sources.test.js
 docs_updates: docs/design-notes/F06-S04-approach.md, docs/reviews/task-031-review.md

@@ -18,3 +18,5 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F01-S02-approach.md
 review_artifact: docs/reviews/task-014-review.md
+source_files: src/utils/semver.js
+test_files: test/utils/semver.test.js

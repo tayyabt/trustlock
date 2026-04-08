@@ -18,3 +18,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F07-S01-approach.md
 review_artifact: docs/reviews/task-032-review.md
+source_files: src/output/terminal.js, src/utils/time.js
+test_files: test/output/terminal.test.js
+docs_updates: docs/design-notes/F07-S01-approach.md, docs/reviews/task-032-review.md

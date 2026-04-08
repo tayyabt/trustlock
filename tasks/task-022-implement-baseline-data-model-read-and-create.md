@@ -18,3 +18,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F04-S01-approach.md
 review_artifact: docs/reviews/task-022-review.md
+source_files: src/baseline/manager.js
+test_files: test/baseline/manager.test.js
+docs_updates: docs/design-notes/F04-S01-approach.md, docs/reviews/task-022-review.md

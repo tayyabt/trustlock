@@ -1,0 +1,18 @@
+{
+  "cooldown_hours": 48,
+  "pinning": {
+    "required": true
+  },
+  "scripts": {
+    "allowlist": ["esbuild", "husky"]
+  },
+  "sources": {
+    "allowed": ["registry", "git"]
+  },
+  "provenance": {
+    "required_for": ["express", "lodash"]
+  },
+  "transitive": {
+    "max_new": 3
+  }
+}

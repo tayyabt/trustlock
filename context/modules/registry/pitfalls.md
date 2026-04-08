@@ -17,6 +17,10 @@
    - Why it happens: Scoped packages need URL encoding (`@scope%2fname`) in some npm API endpoints but not others.
    - How to avoid it: Test registry client with scoped package fixtures. Encode consistently.
 
+5. Double-rejection in async HTTP promise handlers
+   - Why it happens: `req.destroy()` and `res.on('error')` can both fire after a size-limit or timeout rejection. Without a guard, the promise rejects twice and the second rejection becomes an unhandled rejection.
+   - How to avoid it: Use a `settled` flag with a `done(fn, val)` closure that is a no-op after the first call. All resolution/rejection paths must go through `done`. Source: `src/registry/http.js` — replicate this pattern in any new HTTP helper.
+
 ## Regression Traps
 - Changing cache TTL changes which data is considered "fresh." Tests that depend on specific cache behavior must use controlled timestamps.
 - Adding a new registry endpoint must not affect caching behavior of existing endpoints.

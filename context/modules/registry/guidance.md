@@ -23,7 +23,14 @@
 - Cache directory (`.dep-fence/.cache/`) is gitignored and managed internally
 - To add a new registry (v0.3 PyPI): create a new adapter file following the same interface
 
+## Testing Pattern: `_https` Dependency Injection
+- Each adapter function accepts an optional `{ _https }` option that replaces the real `node:https` module.
+- Use `EventEmitter`-based mocks with `req.setTimeout`, `req.destroy`, `res.statusCode`, and `res.resume` stubs.
+- This pattern works on Node ≥ 18.3 without `mock.module()` (which requires Node ≥ 22).
+- When adding a new adapter (e.g., for a third registry endpoint), follow the same injection point — pass `opts` through to `httpGetJson`.
+- Source: F03-S02 review (task-020, 2026-04-09)
+
 ## Metadata
-- Agent: architect-foundation
-- Date: 2026-04-08
+- Agent: architect-foundation / reviewer
+- Date: 2026-04-09
 - Module: registry

@@ -1,0 +1,37 @@
+{
+  "_comment": "Relaxed policy for greenfield or experimental projects. Not recommended for production.",
+
+  "cooldown_hours": 0,
+  "_comment_cooldown_hours": "Set to 0 to disable the publication cooldown. Packages are admitted immediately after publishing. Increase this to 72 or more for production.",
+
+  "pinning": {
+    "required": false,
+    "_comment": "Pinning is disabled. package.json may use ^ or ~ ranges. Enable for production to prevent silent upgrades."
+  },
+
+  "scripts": {
+    "allowlist": [],
+    "_comment": "Empty allowlist with no install-script blocking policy. dep-fence does not block install scripts unless the allowlist policy is activated via the scripts rule. This relaxed config leaves the default behavior in place."
+  },
+
+  "sources": {
+    "allowed": ["registry", "git", "file"],
+    "_comment": "Allows packages installed from the npm registry, git URLs, and local file paths. Remove 'git' and 'file' in production to restrict to registry-only sources."
+  },
+
+  "provenance": {
+    "required_for": [],
+    "_comment": "Provenance attestation is not required for any package. Set to ['*'] in production to require SLSA provenance for all packages."
+  },
+
+  "transitive": {
+    "max_new": 20,
+    "_comment": "High threshold for transitive dependency surprise. Greenfield projects often pull in large dependency trees. Lower to 3-5 in production to surface unexpected bloat."
+  },
+
+  "require_reason": false,
+  "_comment_require_reason": "Approval reasons are not required. This makes approvals faster in development but reduces auditability. Set to true in production.",
+
+  "max_expiry_days": 90,
+  "_comment_max_expiry_days": "Approvals may last up to 90 days. Use 14-30 days in production to ensure regular review of policy overrides."
+}

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Husky pre-commit hook — dep-fence dependency admission check
+#
+# Advisory mode: warns on blocked packages but does not block the commit.
+# To enforce strict mode (block commits on violations), add --enforce:
+#   dep-fence check --enforce
+
+dep-fence check

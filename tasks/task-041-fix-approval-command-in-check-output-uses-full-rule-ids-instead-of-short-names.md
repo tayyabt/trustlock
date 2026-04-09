@@ -19,3 +19,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/task-041-approach.md
 review_artifact: docs/reviews/task-041-review.md
+source_files: src/approvals/models.js, src/output/terminal.js
+test_files: test/output/terminal.test.js
+docs_updates: docs/design-notes/task-041-approach.md

@@ -24,3 +24,4 @@
 2026-04-08 21:55 | task-031 | DEV_STORY | revision_requested | changes requested: add test/policy/rules/scripts.test.js and sources.test.js with admit/block/admitted_with_approval/expired-approval coverage per global conventions
 2026-04-08 22:03 | task-031 | DEV_STORY | done | review approved
 2026-04-08 22:16 | task-037 | DEV_STORY | done | review approved
+2026-04-09 04:45 | task-038 | DEV_STORY | done | review approved

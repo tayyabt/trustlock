@@ -9,7 +9,7 @@
   "specs_seeded": [
     "2026-04-07-dep-fence-full-spec"
   ],
-  "next_task_id": 41,
+  "next_task_id": 42,
   "git_policy": {
     "branch_mode": "per_task",
     "branch_pattern": "burnish/{work_id}-{slug}",

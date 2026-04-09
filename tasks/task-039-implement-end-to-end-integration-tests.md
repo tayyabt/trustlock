@@ -19,3 +19,4 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F08-S6-approach.md
 review_artifact: docs/reviews/task-039-review.md
+test_files: test/integration/cli-e2e.test.js

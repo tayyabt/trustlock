@@ -229,8 +229,8 @@ test('evaluate: blocked result includes approvalCommand with correct package and
     'approvalCommand should not be null for blocked package'
   );
   assert.ok(
-    results[0].checkResult.approvalCommand.includes('dep-fence approve'),
-    `expected dep-fence approve in: ${results[0].checkResult.approvalCommand}`
+    results[0].checkResult.approvalCommand.includes('trustlock approve'),
+    `expected trustlock approve in: ${results[0].checkResult.approvalCommand}`
   );
   assert.ok(
     results[0].checkResult.approvalCommand.includes('lodash@4.17.21'),

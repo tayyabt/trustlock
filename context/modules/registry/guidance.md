@@ -20,7 +20,7 @@
 ## Integration Guidance
 - Policy engine calls registry functions and receives metadata + quality status
 - Registry module never evaluates policy — just provides data
-- Cache directory (`.dep-fence/.cache/`) is gitignored and managed internally
+- Cache directory (`.trustlock/.cache/`) is gitignored and managed internally
 - To add a new registry (v0.3 PyPI): create a new adapter file following the same interface
 
 ## Testing Pattern: `_https` Dependency Injection

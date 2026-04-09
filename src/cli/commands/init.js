@@ -1,7 +1,7 @@
 /**
- * `dep-fence init` command — one-time project initialization.
+ * `trustlock init` command — one-time project initialization.
  *
- * Creates .depfencerc.json, .dep-fence/ scaffold (approvals.json, .cache/, .gitignore),
+ * Creates .trustlockrc.json, .trustlock/ scaffold (approvals.json, .cache/, .gitignore),
  * and optionally the initial trust baseline from the current lockfile.
  *
  * Flags:
@@ -10,7 +10,7 @@
  *
  * Exit codes:
  *   0  Success
- *   2  Fatal: .dep-fence/ already exists (D6), no lockfile, unknown lockfile version (Q1)
+ *   2  Fatal: .trustlock/ already exists (D6), no lockfile, unknown lockfile version (Q1)
  */
 
 import { mkdir, writeFile, readFile, stat } from 'node:fs/promises';
@@ -41,7 +41,7 @@ const STRICT_POLICY = {
 };
 
 /**
- * Run the `dep-fence init` command.
+ * Run the `trustlock init` command.
  *
  * @param {{ values: object, positionals: string[] }} args  Parsed CLI arguments
  * @param {object} [_opts]  Dependency injection for tests
@@ -53,20 +53,20 @@ export async function run(args, { _registryClient, _cwd } = {}) {
   const noBaseline = args.values['no-baseline'] ?? false;
   const cwd = _cwd ?? process.cwd();
 
-  const depFenceDir = join(cwd, '.dep-fence');
-  const configPath = join(cwd, '.depfencerc.json');
+  const trustlockDir = join(cwd, '.trustlock');
+  const configPath = join(cwd, '.trustlockrc.json');
   const lockfilePath = join(cwd, 'package-lock.json');
   const packageJsonPath = join(cwd, 'package.json');
-  const approvalsPath = join(depFenceDir, 'approvals.json');
-  const cachePath = join(depFenceDir, '.cache');
-  const gitignorePath = join(depFenceDir, '.gitignore');
-  const baselinePath = join(depFenceDir, 'baseline.json');
+  const approvalsPath = join(trustlockDir, 'approvals.json');
+  const cachePath = join(trustlockDir, '.cache');
+  const gitignorePath = join(trustlockDir, '.gitignore');
+  const baselinePath = join(trustlockDir, 'baseline.json');
 
-  // ── Guard: D6 — fail if .dep-fence/ already exists ──────────────────────────
+  // ── Guard: D6 — fail if .trustlock/ already exists ──────────────────────────
   try {
-    await stat(depFenceDir);
+    await stat(trustlockDir);
     process.stderr.write(
-      'dep-fence is already initialized. Delete `.dep-fence/` to reinitialize.\n'
+      'trustlock is already initialized. Delete `.trustlock/` to reinitialize.\n'
     );
     process.exitCode = 2;
     return;
@@ -104,7 +104,7 @@ export async function run(args, { _registryClient, _cwd } = {}) {
     lockfileVersion = parsed.lockfileVersion;
     if (lockfileVersion == null || !SUPPORTED_NPM_VERSIONS.has(lockfileVersion)) {
       process.stderr.write(
-        `Unsupported npm lockfile version ${lockfileVersion}. dep-fence supports v1, v2, v3.\n`
+        `Unsupported npm lockfile version ${lockfileVersion}. trustlock supports v1, v2, v3.\n`
       );
       process.exitCode = 2;
       return;
@@ -113,12 +113,12 @@ export async function run(args, { _registryClient, _cwd } = {}) {
 
   // ── All guards passed; begin writing ────────────────────────────────────────
 
-  // Write .depfencerc.json
+  // Write .trustlockrc.json
   const policy = strict ? STRICT_POLICY : DEFAULT_POLICY;
   await writeFile(configPath, JSON.stringify(policy, null, 2) + '\n', 'utf8');
 
-  // Create .dep-fence/ scaffold
-  // mkdir with recursive:true creates both .dep-fence/ and .dep-fence/.cache/
+  // Create .trustlock/ scaffold
+  // mkdir with recursive:true creates both .trustlock/ and .trustlock/.cache/
   await mkdir(cachePath, { recursive: true });
   await writeFile(approvalsPath, '[]\n', 'utf8');
   await writeFile(gitignorePath, '.cache/\n', 'utf8'); // D8: gitignore the cache dir
@@ -126,7 +126,7 @@ export async function run(args, { _registryClient, _cwd } = {}) {
   // ── --no-baseline: scaffold only ────────────────────────────────────────────
   if (noBaseline) {
     process.stdout.write(
-      'Skipped baseline creation. Run `dep-fence audit` to review your dependency posture before running `dep-fence check`.\n'
+      'Skipped baseline creation. Run `trustlock audit` to review your dependency posture before running `trustlock check`.\n'
     );
     return;
   }
@@ -164,6 +164,6 @@ export async function run(args, { _registryClient, _cwd } = {}) {
 
   process.stdout.write(
     `Baselined ${deps.length} packages. Detected npm lockfile v${lockfileVersion}. ` +
-    `Next: run 'dep-fence install-hook' to enable the pre-commit hook.\n`
+    `Next: run 'trustlock install-hook' to enable the pre-commit hook.\n`
   );
 }

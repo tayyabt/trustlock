@@ -1,5 +1,5 @@
 /**
- * JSON formatter for dep-fence.
+ * JSON formatter for trustlock.
  *
  * Serializes CheckResult[] and audit report objects to JSON strings for
  * machine consumption (CI integration). Pure serialization: no business

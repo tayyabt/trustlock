@@ -5,7 +5,7 @@ Implements `src/policy/models.js` (shape definitions) and `src/policy/config.js`
 
 `models.js` defines plain-object shapes documented in JSDoc comments: `PolicyConfig`, `Finding`, `CheckResult`, and `DependencyCheckResult`. No validation logic — shapes exist purely as documentation contracts.
 
-`config.js` reads `.depfencerc.json` via `node:fs/promises`, merges the file contents over a `DEFAULTS` constant, drops unknown top-level keys (forward-compat), and throws structured errors with `.exitCode = 2` for missing-file and malformed-JSON cases.
+`config.js` reads `.trustlockrc.json` via `node:fs/promises`, merges the file contents over a `DEFAULTS` constant, drops unknown top-level keys (forward-compat), and throws structured errors with `.exitCode = 2` for missing-file and malformed-JSON cases.
 
 ## Key Design Decisions
 1. **Plain objects, no classes** — follows global conventions (camelCase functions, PascalCase names in docs). `models.js` documents each field in JSDoc comments; the exported values are the default-shape objects.
@@ -55,8 +55,8 @@ Command: `node --test test/policy/config.test.js` — 9 pass, 0 fail, 0 skipped
 
 Manual verification:
 ```
-node -e "import('./src/policy/config.js').then(m => m.loadPolicy('.depfencerc.json'))..."
-# Output: Policy file not found: .depfencerc.json exit: 2  ✓ expected
+node -e "import('./src/policy/config.js').then(m => m.loadPolicy('.trustlockrc.json'))..."
+# Output: Policy file not found: .trustlockrc.json exit: 2  ✓ expected
 ```
 
 ## Story Run Log Update

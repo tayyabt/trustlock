@@ -1,5 +1,5 @@
 /**
- * Time utilities for dep-fence.
+ * Time utilities for trustlock.
  * ISO 8601 timestamp parsing and age calculation.
  */
 

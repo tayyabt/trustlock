@@ -15,12 +15,12 @@ matching. It introduces no new product decisions.
 ### check.js pipeline
 
 ```
-1. Load policy (.depfencerc.json) — exit 2 on missing/malformed
-2. Load baseline (.dep-fence/baseline.json) — exit 2 on missing/corrupt
+1. Load policy (.trustlockrc.json) — exit 2 on missing/malformed
+2. Load baseline (.trustlock/baseline.json) — exit 2 on missing/corrupt
 3. Resolve lockfile path (--lockfile arg or auto-detect package-lock.json) — exit 2 if none
 4. parseLockfile(lockfilePath, packageJsonPath) — exits internally on parse failure
 5. SHA-256 lockfile content → lockfileHash
-6. readApprovals(.dep-fence/approvals.json) — returns [] if missing (Q2)
+6. readApprovals(.trustlock/approvals.json) — returns [] if missing (Q2)
 7. computeDelta(baseline, currentDeps, lockfileHash) → DependencyDelta
 8. If no changes: print "No dependency changes" + exit 0 (no baseline write)
 9. createRegistryClient({ cacheDir, noCache }) and fetch metadata for added+changed deps
@@ -84,7 +84,7 @@ and return skipped findings (which become `warn` findings in output).
 | `--json`: valid JSON output | unit test: parse stdout as JSON |
 | Block output includes per-pkg reasons, clears_at, approval cmd | unit test: blocked fixture with cooldown, check finding.detail.clears_at present |
 | No lockfile: exit 2 with expected filenames | unit test: empty dir, exit code 2 |
-| No .depfencerc.json: exit 2 with "run dep-fence init" | unit test: missing config, exit code 2 |
+| No .trustlockrc.json: exit 2 with "run trustlock init" | unit test: missing config, exit code 2 |
 | No dep changes: exit 0 + "No dependency changes" | unit test: same lockfile hash |
 | Registry unreachable: exit 0, per-check warnings, local rules evaluated | unit test: registry returns null |
 | `git diff --staged` shows baseline after advisory admit | unit test: writeAndStage called with correct path |
@@ -122,7 +122,7 @@ Run: `node --test` (full suite) — **434/434 tests pass, 0 failures**
 | `--json`: valid JSON | PASS | AC5 test: JSON.parse succeeds, array with decision |
 | Block output: clears_at + approval cmd | PASS | AC6 test: clears/UTC in stdout; AC6 JSON: finding.detail.clears_at present, approvalCommand set |
 | No lockfile: exit 2 | PASS | AC7 test: exitCode === 2, stderr includes package-lock.json |
-| No config: exit 2 | PASS | AC8 test: exitCode === 2, stderr includes dep-fence init |
+| No config: exit 2 | PASS | AC8 test: exitCode === 2, stderr includes trustlock init |
 | No dep changes: exit 0 | PASS | AC9 test: exitCode === 0, stdout includes "No dependency changes" |
 | Registry unreachable: exit 0, warnings | PASS | AC10 test: exitCode === 0, output includes evaluation result |
 | git staged baseline after admit | PASS | AC1 test: writeAndStage called with correct baselinePath (advisory, non-dry-run) |

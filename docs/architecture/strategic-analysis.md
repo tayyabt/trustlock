@@ -1,8 +1,8 @@
-# Strategic Analysis: dep-fence v0.1
+# Strategic Analysis: trustlock v0.1
 
 ## Product Thesis
 
-dep-fence is a dependency admission controller — not a scanner, not a vulnerability database. It makes binary admit/block decisions on dependency changes based on trust continuity, release age, install-time behavior, and declared policy. It runs as a Git pre-commit hook (advisory) and CI check (enforced).
+trustlock is a dependency admission controller — not a scanner, not a vulnerability database. It makes binary admit/block decisions on dependency changes based on trust continuity, release age, install-time behavior, and declared policy. It runs as a Git pre-commit hook (advisory) and CI check (enforced).
 
 The core value: close the gap between "a package was published" and "a team installs it" by requiring that dependency changes pass a declared trust policy before they enter the codebase.
 
@@ -83,4 +83,4 @@ Lockfile parser → baseline diff → policy engine → terminal output. This is
 ## Metadata
 - Agent: architect-foundation
 - Date: 2026-04-08
-- Spec: 2026-04-07-dep-fence-full-spec
+- Spec: 2026-04-07-trustlock-full-spec

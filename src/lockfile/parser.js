@@ -25,7 +25,7 @@ function _detectFromParsed(parsed, filename) {
     const version = parsed.lockfileVersion;
     if (version == null || !SUPPORTED_NPM_VERSIONS.has(version)) {
       console.error(
-        `Unsupported npm lockfile version ${version}. dep-fence supports v1, v2, v3.`
+        `Unsupported npm lockfile version ${version}. trustlock supports v1, v2, v3.`
       );
       process.exit(2);
     }

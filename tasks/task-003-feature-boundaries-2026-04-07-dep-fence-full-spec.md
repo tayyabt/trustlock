@@ -1,4 +1,4 @@
-# Feature boundaries: 2026-04-07-dep-fence-full-spec
+# Feature boundaries: 2026-04-07-trustlock-full-spec
 
 ## Description
 Break the reviewed spec into concrete features, workflows, sprint placement, and any required preview tasks.
@@ -9,11 +9,11 @@ Break the reviewed spec into concrete features, workflows, sprint placement, and
 - Preview-required UI features have downstream preview tasks seeded by PM.
 
 ## Inputs
-spec: specs/2026-04-07-dep-fence-full-spec.md
+spec: specs/2026-04-07-trustlock-full-spec.md
 project_brief: docs/project-brief.md
-product_review: docs/product-review/2026-04-07-dep-fence-full-spec.md
+product_review: docs/product-review/2026-04-07-trustlock-full-spec.md
 system_overview: docs/architecture/system-overview.md
-spec_review: docs/architecture/spec-reviews/2026-04-07-dep-fence-full-spec.md
+spec_review: docs/architecture/spec-reviews/2026-04-07-trustlock-full-spec.md
 adrs: docs/adrs/ADR-*.md
 module_arch: docs/architecture/modules/*.md
 design_foundation: design/brand/DESIGN.md

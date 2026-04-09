@@ -38,7 +38,7 @@ const sampleResults = [
           detail: { clears_at: '2026-04-10T12:00:00.000Z' },
         },
       ],
-      approvalCommand: "dep-fence approve 'express@4.18.2' --override 'cooldown'",
+      approvalCommand: "trustlock approve 'express@4.18.2' --override 'cooldown'",
     },
   },
 ];

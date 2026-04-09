@@ -7,7 +7,7 @@ Accepted
 N/A
 
 ## Context
-dep-fence must parse npm lockfiles (v1, v2, v3 in v0.1) and later pnpm and yarn lockfiles (v0.2). Each format has a significantly different structure. The tool needs a common dependency model that normalizes across formats. Unknown lockfile format versions must fail hard (exit 2) per Q1 resolution.
+trustlock must parse npm lockfiles (v1, v2, v3 in v0.1) and later pnpm and yarn lockfiles (v0.2). Each format has a significantly different structure. The tool needs a common dependency model that normalizes across formats. Unknown lockfile format versions must fail hard (exit 2) per Q1 resolution.
 
 ## Options Considered
 
@@ -35,7 +35,7 @@ Option 1: Router with format-specific parsers.
 ## Consequences
 - Implementation: `src/lockfile/parser.js` (router), `src/lockfile/npm.js` (handles v1/v2/v3), `src/lockfile/models.js` (common model definition/validation). Each parser is a pure function: `(fileContent: string) => ResolvedDependency[]`.
 - Testing: Each parser tested against fixture lockfiles. Fixtures in `test/fixtures/lockfiles/` cover v1, v2, v3, edge cases (scoped packages, git deps, file deps).
-- Operations: Unknown lockfile version fails with a clear error message: "Unsupported npm lockfile version X. dep-fence supports v1, v2, v3."
+- Operations: Unknown lockfile version fails with a clear error message: "Unsupported npm lockfile version X. trustlock supports v1, v2, v3."
 - Future: v0.2 adds `pnpm.js` and `yarn.js` as new files. Router gains new detection branches. Common model unchanged.
 
 ## Deployment Architecture

@@ -14,7 +14,7 @@
 
 /**
  * Maps finding rule IDs (category:name format used by policy rules) to the short
- * approval names accepted by `dep-fence approve --override`.
+ * approval names accepted by `trustlock approve --override`.
  *
  * The terminal formatter uses this to translate findings into a copy-pasteable command.
  */

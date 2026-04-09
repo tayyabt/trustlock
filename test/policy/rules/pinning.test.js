@@ -35,7 +35,7 @@ test('pinning: admits all deps when pinning.required = false (no file read)', as
 // ---------------------------------------------------------------------------
 
 test('pinning: blocks caret range in dependencies', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-pin-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-pin-'));
   const pkgPath = await writePkgJson(dir, {
     dependencies: { lodash: '^4.17.0' },
   });
@@ -56,7 +56,7 @@ test('pinning: blocks caret range in dependencies', async () => {
 });
 
 test('pinning: blocks tilde range in dependencies', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-pin-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-pin-'));
   const pkgPath = await writePkgJson(dir, {
     dependencies: { express: '~4.18.0' },
   });
@@ -70,7 +70,7 @@ test('pinning: blocks tilde range in dependencies', async () => {
 });
 
 test('pinning: blocks wildcard (*) in dependencies', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-pin-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-pin-'));
   const pkgPath = await writePkgJson(dir, {
     dependencies: { chalk: '*' },
   });
@@ -84,7 +84,7 @@ test('pinning: blocks wildcard (*) in dependencies', async () => {
 });
 
 test('pinning: blocks range in devDependencies', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-pin-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-pin-'));
   const pkgPath = await writePkgJson(dir, {
     devDependencies: { vitest: '^1.0.0' },
   });
@@ -98,7 +98,7 @@ test('pinning: blocks range in devDependencies', async () => {
 });
 
 test('pinning: blocks >= range operator', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-pin-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-pin-'));
   const pkgPath = await writePkgJson(dir, {
     dependencies: { semver: '>=7.0.0' },
   });
@@ -115,7 +115,7 @@ test('pinning: blocks >= range operator', async () => {
 // ---------------------------------------------------------------------------
 
 test('pinning: admits exact version in dependencies', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-pin-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-pin-'));
   const pkgPath = await writePkgJson(dir, {
     dependencies: { lodash: '4.17.21' },
   });
@@ -128,7 +128,7 @@ test('pinning: admits exact version in dependencies', async () => {
 });
 
 test('pinning: admits exact version in devDependencies', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-pin-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-pin-'));
   const pkgPath = await writePkgJson(dir, {
     devDependencies: { vitest: '1.2.0' },
   });
@@ -141,7 +141,7 @@ test('pinning: admits exact version in devDependencies', async () => {
 });
 
 test('pinning: admits when dependency is not listed in package.json', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-pin-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-pin-'));
   const pkgPath = await writePkgJson(dir, {
     dependencies: { lodash: '^4.17.0' },
   });
@@ -169,7 +169,7 @@ test('pinning: admits (does not block) when package.json is missing', async () =
 // ---------------------------------------------------------------------------
 
 test('pinning: all Finding fields present on block finding', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-pin-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-pin-'));
   const pkgPath = await writePkgJson(dir, {
     dependencies: { lodash: '^4.17.0' },
   });

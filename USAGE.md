@@ -1,25 +1,25 @@
-# dep-fence — Usage Reference
+# trustlock — Usage Reference
 
-Full reference for all dep-fence commands, flags, exit codes, and error messages.
+Full reference for all trustlock commands, flags, exit codes, and error messages.
 
 ## Contents
 
 - [Global behavior](#global-behavior)
 - [Exit codes](#exit-codes)
 - [Commands](#commands)
-  - [init](#dep-fence-init)
-  - [check](#dep-fence-check)
-  - [approve](#dep-fence-approve)
-  - [audit](#dep-fence-audit)
-  - [clean-approvals](#dep-fence-clean-approvals)
-  - [install-hook](#dep-fence-install-hook)
+  - [init](#trustlock-init)
+  - [check](#trustlock-check)
+  - [approve](#trustlock-approve)
+  - [audit](#trustlock-audit)
+  - [clean-approvals](#trustlock-clean-approvals)
+  - [install-hook](#trustlock-install-hook)
 - [Error messages](#error-messages)
 
 ---
 
 ## Global behavior
 
-dep-fence reads configuration from `.depfencerc.json` in the current working directory. All commands that require a policy file (`check`, `approve`, `audit`) will exit 2 if `.depfencerc.json` is missing.
+trustlock reads configuration from `.trustlockrc.json` in the current working directory. All commands that require a policy file (`check`, `approve`, `audit`) will exit 2 if `.trustlockrc.json` is missing.
 
 All output goes to **stdout**. Error messages and warnings go to **stderr**.
 
@@ -33,18 +33,18 @@ All output goes to **stdout**. Error messages and warnings go to **stderr**.
 | `1`  | Blocked — one or more packages blocked **and** `--enforce` was passed to `check` |
 | `2`  | Fatal error — missing config, malformed lockfile, unknown lockfile version, invalid arguments |
 
-Advisory mode (`dep-fence check` without `--enforce`) always exits 0, even when packages are blocked. This is intentional: the pre-commit hook warns but does not block commits.
+Advisory mode (`trustlock check` without `--enforce`) always exits 0, even when packages are blocked. This is intentional: the pre-commit hook warns but does not block commits.
 
 ---
 
 ## Commands
 
-### dep-fence init
+### trustlock init
 
-Initialize dep-fence in the current project. Creates `.depfencerc.json`, the `.dep-fence/` directory scaffold, and optionally the initial trusted baseline from the current lockfile.
+Initialize trustlock in the current project. Creates `.trustlockrc.json`, the `.trustlock/` directory scaffold, and optionally the initial trusted baseline from the current lockfile.
 
 ```
-dep-fence init [--strict] [--no-baseline]
+trustlock init [--strict] [--no-baseline]
 ```
 
 **Flags:**
@@ -56,53 +56,53 @@ dep-fence init [--strict] [--no-baseline]
 
 **What it creates:**
 
-- `.depfencerc.json` — policy configuration with defaults (or strict defaults with `--strict`)
-- `.dep-fence/baseline.json` — trusted snapshot of all packages in the current lockfile (unless `--no-baseline`)
-- `.dep-fence/approvals.json` — empty approvals store
-- `.dep-fence/.cache/` — registry response cache directory
-- `.dep-fence/.gitignore` — gitignores the `.cache/` directory (D8)
+- `.trustlockrc.json` — policy configuration with defaults (or strict defaults with `--strict`)
+- `.trustlock/baseline.json` — trusted snapshot of all packages in the current lockfile (unless `--no-baseline`)
+- `.trustlock/approvals.json` — empty approvals store
+- `.trustlock/.cache/` — registry response cache directory
+- `.trustlock/.gitignore` — gitignores the `.cache/` directory (D8)
 
 **Requirements:**
 
 - `package-lock.json` must exist in the current directory.
-- `.dep-fence/` must not already exist (D6). Delete it first or use manual cleanup; see error messages below.
+- `.trustlock/` must not already exist (D6). Delete it first or use manual cleanup; see error messages below.
 
 **Exit codes:**
 
 - `0` — Initialization completed successfully.
-- `2` — `.dep-fence/` already exists, no lockfile found, lockfile JSON is malformed, or unsupported lockfile version.
+- `2` — `.trustlock/` already exists, no lockfile found, lockfile JSON is malformed, or unsupported lockfile version.
 
 **Examples:**
 
 ```bash
 # Standard initialization
-dep-fence init
+trustlock init
 
 # Initialize with strict policy thresholds
-dep-fence init --strict
+trustlock init --strict
 
 # Scaffold only — skip baseline creation (useful when lockfile is very large or offline)
-dep-fence init --no-baseline
+trustlock init --no-baseline
 ```
 
 **Output:**
 ```
-Baselined 142 packages. Detected npm lockfile v3. Next: run 'dep-fence install-hook' to enable the pre-commit hook.
+Baselined 142 packages. Detected npm lockfile v3. Next: run 'trustlock install-hook' to enable the pre-commit hook.
 ```
 
 With `--no-baseline`:
 ```
-Skipped baseline creation. Run `dep-fence audit` to review your dependency posture before running `dep-fence check`.
+Skipped baseline creation. Run `trustlock audit` to review your dependency posture before running `trustlock check`.
 ```
 
 ---
 
-### dep-fence check
+### trustlock check
 
 Evaluate dependency changes against the policy. Computes the delta between the current lockfile and the trusted baseline, fetches registry metadata, runs all policy rules, and reports admission decisions.
 
 ```
-dep-fence check [--enforce] [--json] [--dry-run] [--lockfile <path>] [--no-cache]
+trustlock check [--enforce] [--json] [--dry-run] [--lockfile <path>] [--no-cache]
 ```
 
 **Flags:**
@@ -117,13 +117,13 @@ dep-fence check [--enforce] [--json] [--dry-run] [--lockfile <path>] [--no-cache
 
 **Behavior:**
 
-1. Loads `.depfencerc.json` and `.dep-fence/baseline.json`.
+1. Loads `.trustlockrc.json` and `.trustlock/baseline.json`.
 2. Auto-detects `package-lock.json` (or uses `--lockfile`).
 3. Computes delta: packages added or changed since the baseline.
 4. If no changes detected: prints `No dependency changes` and exits 0.
 5. For each changed/added package: fetches npm registry metadata, evaluates all policy rules, checks for valid approvals.
 6. Prints results (terminal or JSON).
-7. If all packages admitted and not `--enforce` and not `--dry-run`: advances baseline and git-stages `.dep-fence/baseline.json`.
+7. If all packages admitted and not `--enforce` and not `--dry-run`: advances baseline and git-stages `.trustlock/baseline.json`.
 8. Exits per exit code table above.
 
 **Advisory vs enforce:**
@@ -135,22 +135,22 @@ dep-fence check [--enforce] [--json] [--dry-run] [--lockfile <path>] [--no-cache
 
 ```bash
 # Advisory check (pre-commit default)
-dep-fence check
+trustlock check
 
 # CI enforcement
-dep-fence check --enforce
+trustlock check --enforce
 
 # Dry run — evaluate without writing baseline
-dep-fence check --dry-run
+trustlock check --dry-run
 
 # Machine-readable output
-dep-fence check --json
+trustlock check --json
 
 # Explicit lockfile path
-dep-fence check --lockfile path/to/package-lock.json
+trustlock check --lockfile path/to/package-lock.json
 
 # Bypass registry cache
-dep-fence check --no-cache
+trustlock check --no-cache
 ```
 
 **Output (terminal):**
@@ -158,7 +158,7 @@ dep-fence check --no-cache
 ✔ express@4.18.2 — admitted
 ✖ new-package@1.0.0 — blocked
   exposure:cooldown  Published 2h ago (policy requires 72h)
-  Run to approve: dep-fence approve new-package@1.0.0 --override cooldown --reason "..." --expires 7d
+  Run to approve: trustlock approve new-package@1.0.0 --override cooldown --reason "..." --expires 7d
 ```
 
 **Output (--json):**
@@ -178,12 +178,12 @@ dep-fence check --no-cache
 
 ---
 
-### dep-fence approve
+### trustlock approve
 
 Write an approval entry for a blocked package. Approval overrides are scoped to specific policy rules, have a mandatory reason (by default), and expire after a configurable duration.
 
 ```
-dep-fence approve <pkg>@<ver> --override <rules> [--reason <text>] [--expires <duration>] [--as <name>]
+trustlock approve <pkg>@<ver> --override <rules> [--reason <text>] [--expires <duration>] [--as <name>]
 ```
 
 **Arguments:**
@@ -217,29 +217,29 @@ dep-fence approve <pkg>@<ver> --override <rules> [--reason <text>] [--expires <d
 
 ```bash
 # Basic approval with reason
-dep-fence approve express@5.0.0 \
+trustlock approve express@5.0.0 \
   --override cooldown \
   --reason "Reviewed changelog; no breaking changes for our use case"
 
 # Override multiple rules with one flag (comma-separated)
-dep-fence approve risky-pkg@2.1.0 \
+trustlock approve risky-pkg@2.1.0 \
   --override cooldown,provenance \
   --reason "Approved by security team in ticket SEC-123"
 
 # Override multiple rules with repeated flags
-dep-fence approve risky-pkg@2.1.0 \
+trustlock approve risky-pkg@2.1.0 \
   --override cooldown \
   --override provenance \
   --reason "Approved by security team"
 
 # Set a shorter expiry
-dep-fence approve temp-tool@1.0.0 \
+trustlock approve temp-tool@1.0.0 \
   --override new-dep \
   --reason "One-time build script" \
   --expires 7d
 
 # Set approver identity explicitly (useful in CI)
-dep-fence approve some-pkg@1.0.0 \
+trustlock approve some-pkg@1.0.0 \
   --override cooldown \
   --reason "CI-triggered approval" \
   --as "ci-bot"
@@ -260,17 +260,17 @@ Approved new-package@1.0.0 (overrides: cooldown). Expires: 2026-05-09T14:22:00.0
 
 ---
 
-### dep-fence audit
+### trustlock audit
 
 Scan the full dependency tree for trust posture. Evaluates every package in the lockfile (not just recent changes) and prints aggregate statistics with heuristic suggestions.
 
 ```
-dep-fence audit
+trustlock audit
 ```
 
 **No flags.** Always exits 0 (informational command; no enforcement).
 
-**Requires:** `.depfencerc.json` and `package-lock.json`.
+**Requires:** `.trustlockrc.json` and `package-lock.json`.
 
 **Output includes:**
 - Total package count
@@ -285,12 +285,12 @@ dep-fence audit
 
 ```bash
 # Review full tree posture
-dep-fence audit
+trustlock audit
 ```
 
 **Sample output:**
 ```
-dep-fence audit — 142 packages
+trustlock audit — 142 packages
 
 Provenance:      23% (33 packages have SLSA attestations)
 Install scripts: 4 packages (acorn, esbuild, fsevents, node-gyp)
@@ -300,27 +300,27 @@ Cooldown:        2 packages violate current policy (72h cooldown)
 
 Currently blocked packages:
   some-new-pkg@1.0.0
-    Run to approve: dep-fence approve some-new-pkg@1.0.0 --override cooldown --reason "..." --expires 7d
+    Run to approve: trustlock approve some-new-pkg@1.0.0 --override cooldown --reason "..." --expires 7d
 ```
 
 ---
 
-### dep-fence clean-approvals
+### trustlock clean-approvals
 
-Remove expired approval entries from `.dep-fence/approvals.json`. Prints counts of removed and remaining approvals.
+Remove expired approval entries from `.trustlock/approvals.json`. Prints counts of removed and remaining approvals.
 
 ```
-dep-fence clean-approvals
+trustlock clean-approvals
 ```
 
 **No flags.** Always exits 0 (informational command).
 
-**Note:** `dep-fence check` automatically skips expired approvals when evaluating policy but does not delete them (Q2). Use `clean-approvals` to prune the file.
+**Note:** `trustlock check` automatically skips expired approvals when evaluating policy but does not delete them (Q2). Use `clean-approvals` to prune the file.
 
 **Examples:**
 
 ```bash
-dep-fence clean-approvals
+trustlock clean-approvals
 ```
 
 **Output (when expired entries are found):**
@@ -335,47 +335,47 @@ No expired approvals found.
 
 ---
 
-### dep-fence install-hook
+### trustlock install-hook
 
-Install `dep-fence check` as a Git pre-commit hook. Creates or appends to `.git/hooks/pre-commit` and makes it executable.
+Install `trustlock check` as a Git pre-commit hook. Creates or appends to `.git/hooks/pre-commit` and makes it executable.
 
 ```
-dep-fence install-hook [--force]
+trustlock install-hook [--force]
 ```
 
 **Flags:**
 
 | Flag | Type | Description |
 |------|------|-------------|
-| `--force` | boolean | Overwrite an existing hook that does not already contain `dep-fence check` |
+| `--force` | boolean | Overwrite an existing hook that does not already contain `trustlock check` |
 
 **Behavior:**
 
 | State | Behavior |
 |-------|----------|
-| Hook does not exist | Creates `/.git/hooks/pre-commit` with shebang + `dep-fence check`, sets executable |
-| Hook exists and already contains `dep-fence check` | Prints `Hook already installed.` — no changes |
-| Hook exists without `dep-fence check`, no `--force` | Appends `dep-fence check` on a new line |
-| Hook exists without `dep-fence check`, `--force` | Overwrites with fresh hook after printing a warning |
+| Hook does not exist | Creates `/.git/hooks/pre-commit` with shebang + `trustlock check`, sets executable |
+| Hook exists and already contains `trustlock check` | Prints `Hook already installed.` — no changes |
+| Hook exists without `trustlock check`, no `--force` | Appends `trustlock check` on a new line |
+| Hook exists without `trustlock check`, `--force` | Overwrites with fresh hook after printing a warning |
 
 **Examples:**
 
 ```bash
 # Install (or append to existing hook)
-dep-fence install-hook
+trustlock install-hook
 
 # Overwrite an existing hook
-dep-fence install-hook --force
+trustlock install-hook --force
 ```
 
 **Output (new install):**
 ```
-Installed dep-fence pre-commit hook at /path/to/.git/hooks/pre-commit
+Installed trustlock pre-commit hook at /path/to/.git/hooks/pre-commit
 ```
 
 **Output (append):**
 ```
-Appended dep-fence check to existing pre-commit hook at /path/to/.git/hooks/pre-commit
+Appended trustlock check to existing pre-commit hook at /path/to/.git/hooks/pre-commit
 ```
 
 **Output (already installed):**
@@ -393,11 +393,11 @@ Hook already installed.
 
 | Error | Command | Exit | Meaning |
 |-------|---------|------|---------|
-| `dep-fence is already initialized. Delete .dep-fence/ to reinitialize.` | init | 2 | D6: `.dep-fence/` already exists |
+| `trustlock is already initialized. Delete .trustlock/ to reinitialize.` | init | 2 | D6: `.trustlock/` already exists |
 | `No lockfile found. Run npm install first to generate package-lock.json.` | init | 2 | `package-lock.json` absent |
-| `Unsupported npm lockfile version X. dep-fence supports v1, v2, v3.` | init, check | 2 | Q1: unknown lockfile version |
-| `No .depfencerc.json found. Run dep-fence init first.` | check, audit | 2 | Policy file absent |
-| `No baseline found. Run dep-fence init first.` | check | 2 | Baseline absent |
+| `Unsupported npm lockfile version X. trustlock supports v1, v2, v3.` | init, check | 2 | Q1: unknown lockfile version |
+| `No .trustlockrc.json found. Run trustlock init first.` | check, audit | 2 | Policy file absent |
+| `No baseline found. Run trustlock init first.` | check | 2 | Baseline absent |
 | `Baseline is corrupted or uses an unsupported schema version.` | check | 2 | Baseline file malformed |
 | `No lockfile found. Expected: package-lock.json` | check, audit | 2 | Lockfile absent |
 | `Error: Invalid package spec "<spec>". Expected format: <name>@<version>` | approve | 2 | Malformed `<pkg>@<ver>` argument |
@@ -408,5 +408,5 @@ Hook already installed.
 | `Error: Cannot determine approver identity. Set git config user.name or use --as` | approve | 2 | No git user identity and no `--as` |
 | `Error: <pkg>@<ver> not found in lockfile` | approve | 2 | Package not in current lockfile |
 | `Not a git repository (no .git directory found)` | install-hook | 2 | Must be inside a git repo |
-| `Usage: dep-fence <command> [options]\nAvailable commands: ...` | (no command) | 2 | No command provided |
+| `Usage: trustlock <command> [options]\nAvailable commands: ...` | (no command) | 2 | No command provided |
 | `Unknown command: <cmd>. Available commands: ...` | (unknown cmd) | 2 | Unrecognized command |

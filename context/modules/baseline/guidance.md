@@ -1,7 +1,7 @@
 # Module Guidance: Baseline
 
 ## Responsibilities
-- Read/write `.dep-fence/baseline.json`
+- Read/write `.trustlock/baseline.json`
 - Create initial baseline during `init`
 - Compute dependency delta (added, removed, changed, unchanged)
 - Advance baseline on full admission with auto-staging

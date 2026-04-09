@@ -1,5 +1,5 @@
 /**
- * `dep-fence approve` command.
+ * `trustlock approve` command.
  *
  * Parses <pkg>@<ver>, validates inputs against policy config and lockfile,
  * resolves approver identity, and writes an approval entry to approvals.json.
@@ -44,7 +44,7 @@ function parsePackageSpec(spec) {
 }
 
 /**
- * Load approval-specific fields from .depfencerc.json.
+ * Load approval-specific fields from .trustlockrc.json.
  * Returns defaults when fields are absent.
  *
  * @param {string} configPath
@@ -58,7 +58,7 @@ async function loadApprovalConfig(configPath) {
   } catch (err) {
     if (err.code === 'ENOENT') {
       throw Object.assign(
-        new Error('No .depfencerc.json found. Run `dep-fence init` first.'),
+        new Error('No .trustlockrc.json found. Run `trustlock init` first.'),
         { exitCode: 2 }
       );
     }
@@ -70,7 +70,7 @@ async function loadApprovalConfig(configPath) {
     parsed = JSON.parse(raw);
   } catch (err) {
     throw Object.assign(
-      new Error(`Failed to parse .depfencerc.json: ${err.message}`),
+      new Error(`Failed to parse .trustlockrc.json: ${err.message}`),
       { exitCode: 2 }
     );
   }
@@ -98,7 +98,7 @@ export async function run(args, { _cwd } = {}) {
   const pkgSpec = positionals[1];
   if (!pkgSpec) {
     process.stderr.write(
-      'Usage: dep-fence approve <pkg>@<ver> --override <rules> --reason <text>' +
+      'Usage: trustlock approve <pkg>@<ver> --override <rules> --reason <text>' +
       ' [--expires <duration>] [--as <name>]\n'
     );
     process.exitCode = 2;
@@ -130,7 +130,7 @@ export async function run(args, { _cwd } = {}) {
     .filter(Boolean);
 
   // ── 3. Load approval-specific config ─────────────────────────────────────
-  const configPath = join(cwd, '.depfencerc.json');
+  const configPath = join(cwd, '.trustlockrc.json');
   let approvalConfig;
   try {
     approvalConfig = await loadApprovalConfig(configPath);
@@ -164,7 +164,7 @@ export async function run(args, { _cwd } = {}) {
   }
   if (expiresMs > max_expiry_days * MS_PER_DAY) {
     process.stderr.write(
-      `Error: Maximum expiry is ${max_expiry_days} days (configured in .depfencerc.json)\n`
+      `Error: Maximum expiry is ${max_expiry_days} days (configured in .trustlockrc.json)\n`
     );
     process.exitCode = 2;
     return;
@@ -213,7 +213,7 @@ export async function run(args, { _cwd } = {}) {
   }
 
   // ── 10. Write approval entry ──────────────────────────────────────────────
-  const approvalsPath = join(cwd, '.dep-fence', 'approvals.json');
+  const approvalsPath = join(cwd, '.trustlock', 'approvals.json');
   let approval;
   try {
     approval = await writeApproval(

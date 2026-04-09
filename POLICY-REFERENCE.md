@@ -1,10 +1,10 @@
-# dep-fence — Policy Reference
+# trustlock — Policy Reference
 
-Complete reference for every configurable field in `.depfencerc.json`.
+Complete reference for every configurable field in `.trustlockrc.json`.
 
 ## Overview
 
-`.depfencerc.json` is a JSON file in your project root created by `dep-fence init`. It controls which policy rules run and at what thresholds. All fields are optional; unset fields use their documented defaults.
+`.trustlockrc.json` is a JSON file in your project root created by `trustlock init`. It controls which policy rules run and at what thresholds. All fields are optional; unset fields use their documented defaults.
 
 Unknown top-level keys are silently ignored (forward compatibility).
 
@@ -18,7 +18,7 @@ Unknown top-level keys are silently ignored (forward compatibility).
 | Default | `72` |
 | Unit | Hours |
 
-How many hours must pass after a package version is published to npm before dep-fence will admit it. Packages published within the cooldown window are blocked with the `exposure:cooldown` finding.
+How many hours must pass after a package version is published to npm before trustlock will admit it. Packages published within the cooldown window are blocked with the `exposure:cooldown` finding.
 
 The cooldown window protects against [protestware](https://en.wikipedia.org/wiki/Protestware) and supply-chain attacks that rely on brief publication windows before the community detects the malicious version.
 
@@ -40,9 +40,9 @@ Set to `0` to disable cooldown enforcement entirely.
 | Type | `boolean` |
 | Default | `false` |
 
-When `true`, dep-fence blocks any package whose corresponding entry in `package.json` uses a floating semver range (`^`, `~`, `*`, `x`, or range syntax). Exact pinning (`"4.17.21"`) is required.
+When `true`, trustlock blocks any package whose corresponding entry in `package.json` uses a floating semver range (`^`, `~`, `*`, `x`, or range syntax). Exact pinning (`"4.17.21"`) is required.
 
-Floating ranges allow `npm install` to silently upgrade to a newer patch or minor version, bypassing dep-fence review. Enabling `pinning.required` enforces that every direct dependency version is locked.
+Floating ranges allow `npm install` to silently upgrade to a newer patch or minor version, bypassing trustlock review. Enabling `pinning.required` enforces that every direct dependency version is locked.
 
 **Example:**
 ```json
@@ -147,7 +147,7 @@ Use `"*"` to require provenance for all packages. This is a strict setting appro
 | Type | `number` |
 | Default | `5` |
 
-Maximum number of new transitive dependencies that a single direct dependency upgrade may introduce before dep-fence emits a `trust:transitive-surprise` finding. This is a warning-level finding (does not block by itself) that surfaces unexpected dependency bloat.
+Maximum number of new transitive dependencies that a single direct dependency upgrade may introduce before trustlock emits a `trust:transitive-surprise` finding. This is a warning-level finding (does not block by itself) that surfaces unexpected dependency bloat.
 
 **Example:**
 ```json
@@ -169,7 +169,7 @@ Set to a high number (e.g. `1000`) to effectively disable transitive surprise wa
 | Type | `boolean` |
 | Default | `true` |
 
-When `true`, the `--reason` flag is required for every `dep-fence approve` invocation. A missing or empty reason causes the command to exit 2.
+When `true`, the `--reason` flag is required for every `trustlock approve` invocation. A missing or empty reason causes the command to exit 2.
 
 Set to `false` to allow silent approvals (not recommended for team environments).
 
@@ -190,7 +190,7 @@ Set to `false` to allow silent approvals (not recommended for team environments)
 | Default | `30` |
 | Unit | Days |
 
-Maximum allowed approval expiry in days. If `dep-fence approve --expires` specifies a duration longer than `max_expiry_days`, the command exits 2 with an error. This prevents indefinite approvals from accumulating.
+Maximum allowed approval expiry in days. If `trustlock approve --expires` specifies a duration longer than `max_expiry_days`, the command exits 2 with an error. This prevents indefinite approvals from accumulating.
 
 **Example:**
 ```json
@@ -226,11 +226,11 @@ Maximum allowed approval expiry in days. If `dep-fence approve --expires` specif
 }
 ```
 
-This is the exact policy written by `dep-fence init` (no flags). See [`examples/configs/production.depfencerc.json`](examples/configs/production.depfencerc.json) for a strict production policy and [`examples/configs/relaxed.depfencerc.json`](examples/configs/relaxed.depfencerc.json) for a permissive greenfield policy.
+This is the exact policy written by `trustlock init` (no flags). See [`examples/configs/production.trustlockrc.json`](examples/configs/production.trustlockrc.json) for a strict production policy and [`examples/configs/relaxed.trustlockrc.json`](examples/configs/relaxed.trustlockrc.json) for a permissive greenfield policy.
 
 ## Policy rule names
 
-These names are used in `--override` flags for `dep-fence approve`:
+These names are used in `--override` flags for `trustlock approve`:
 
 | Rule name | Dimension |
 |-----------|-----------|

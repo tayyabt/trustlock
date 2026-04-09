@@ -96,7 +96,7 @@ None — no new env vars, interfaces, or operator-facing changes.
 
 ## Deployment Impact
 
-None. The `bin` field update makes `dep-fence` CLI callable after `npm link` or global install.
+None. The `bin` field update makes `trustlock` CLI callable after `npm link` or global install.
 
 ## Questions/Concerns
 

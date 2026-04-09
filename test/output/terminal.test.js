@@ -153,7 +153,7 @@ describe('formatCheckResults — admitted result', () => {
   it('does not include "blocked" or approval command', () => {
     const out = strip(formatCheckResults([makeResult({ decision: 'admitted' })]));
     assert.ok(!out.includes('blocked'));
-    assert.ok(!out.includes('dep-fence approve'));
+    assert.ok(!out.includes('trustlock approve'));
   });
 });
 
@@ -195,11 +195,11 @@ describe('formatCheckResults — blocked result', () => {
     }
   });
 
-  it('includes a dep-fence approve command', () => {
+  it('includes a trustlock approve command', () => {
     const out = strip(formatCheckResults([
       makeResult({ decision: 'blocked', findings: [makeFinding({ rule: 'exposure:cooldown' })] }),
     ]));
-    assert.ok(out.includes('dep-fence approve'));
+    assert.ok(out.includes('trustlock approve'));
     assert.ok(out.includes('cooldown'));
   });
 
@@ -327,7 +327,7 @@ describe('formatCheckResults — approval command shell escaping', () => {
       }),
     ]));
     assert.ok(out.includes('@anthropic/very-long-scoped-package-name@1.2.3'));
-    assert.ok(out.includes('dep-fence approve'));
+    assert.ok(out.includes('trustlock approve'));
   });
 
   it('package name with single quote is shell-escaped in approval command', () => {
@@ -341,7 +341,7 @@ describe('formatCheckResults — approval command shell escaping', () => {
       }),
     ]));
     // Should be present and not break the line
-    assert.ok(out.includes('dep-fence approve'));
+    assert.ok(out.includes('trustlock approve'));
     // The escaped form avoids a bare single quote ending the shell argument
     assert.ok(!out.includes("'pkg-with-'quote@"), 'unescaped single quote should not appear');
   });

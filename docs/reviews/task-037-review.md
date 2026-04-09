@@ -1,7 +1,7 @@
-# Code Review: task-037 — Implement `dep-fence init` Command
+# Code Review: task-037 — Implement `trustlock init` Command
 
 ## Summary
-Full implementation of `dep-fence init` replacing the F08-S1 stub. All 10 acceptance criteria are concretely satisfied by 16 unit tests (all pass). Sprint 1 module wiring is real, behavioral rules D6/D8/Q1 are correctly implemented, and no stubs or placeholders exist in any critical path.
+Full implementation of `trustlock init` replacing the F08-S1 stub. All 10 acceptance criteria are concretely satisfied by 16 unit tests (all pass). Sprint 1 module wiring is real, behavioral rules D6/D8/Q1 are correctly implemented, and no stubs or placeholders exist in any critical path.
 
 ## Verdict
 Approved
@@ -10,8 +10,8 @@ Approved
 
 ### Minor: non-atomic writes for config and scaffold files
 - **Severity:** suggestion
-- **Finding:** `init.js` lines 118, 123, 124 write `.depfencerc.json`, `approvals.json`, and `.gitignore` using plain `writeFile` (not write-to-temp + rename). Only `writeAndStage` (baseline.json) is atomic.
-- **Proposed Judgment:** For init, these are always new-file creates (D6 guard at line 65 ensures `.dep-fence/` doesn't exist). The risk of partial corruption is negligible on new-file creation. Track as a suggestion for a future cleanup pass — no change required for approval.
+- **Finding:** `init.js` lines 118, 123, 124 write `.trustlockrc.json`, `approvals.json`, and `.gitignore` using plain `writeFile` (not write-to-temp + rename). Only `writeAndStage` (baseline.json) is atomic.
+- **Proposed Judgment:** For init, these are always new-file creates (D6 guard at line 65 ensures `.trustlock/` doesn't exist). The risk of partial corruption is negligible on new-file creation. Track as a suggestion for a future cleanup pass — no change required for approval.
 - **Reference:** `context/global/conventions.md` — "File writes are atomic: write to temp file, rename"
 
 ### Note: `--no-baseline` still reads lockfile for existence check
@@ -33,14 +33,14 @@ Approved
 - [x] Code quality & documentation (design note complete with full AC→test mapping, stubs section, known side-effects documented; no dead code; no stubs/TODOs in critical paths)
 
 ## Acceptance Criteria Judgment
-- AC1: creates `.depfencerc.json` with valid default policy → **PASS** — `test: creates .depfencerc.json with default policy` reads and asserts all 6 policy fields
-- AC2: creates `.dep-fence/` with `approvals.json` (`[]`), `.cache/`, `.gitignore` (D8) → **PASS** — `test: creates .dep-fence/ scaffold` verifies all three; `.gitignore` contains `.cache/`
+- AC1: creates `.trustlockrc.json` with valid default policy → **PASS** — `test: creates .trustlockrc.json with default policy` reads and asserts all 6 policy fields
+- AC2: creates `.trustlock/` with `approvals.json` (`[]`), `.cache/`, `.gitignore` (D8) → **PASS** — `test: creates .trustlock/ scaffold` verifies all three; `.gitignore` contains `.cache/`
 - AC3: creates `baseline.json` with all current packages trusted → **PASS** — `test: creates baseline.json with all current packages` verifies schema_version, lockfile_hash, and both package entries
 - AC4: prints "Baselined N packages. Detected npm lockfile vX." → **PASS** — `test: prints summary with correct package count and lockfile version` captures stdout
-- AC5: `.dep-fence/` already exists → exit 2 + D6 message → **PASS** — `test: exits 2 with "already initialized" message` + `does not write .depfencerc.json` (guards-before-writes confirmed)
+- AC5: `.trustlock/` already exists → exit 2 + D6 message → **PASS** — `test: exits 2 with "already initialized" message` + `does not write .trustlockrc.json` (guards-before-writes confirmed)
 - AC6: no lockfile → exit 2 + "No lockfile found" → **PASS** — `test: exits 2 with "No lockfile found"`
 - AC7: unknown lockfile version → exit 2 (Q1) → **PASS** — `test: exits 2 on unknown lockfile version (Q1)` + `exits 2 when lockfileVersion field is missing`
-- AC8: `--strict` creates stricter policy → **PASS** — `test: --strict creates .depfencerc.json with stricter policy thresholds` checks cooldown < 72, pinning.required=true, provenance non-empty, transitive.max_new < 5
+- AC8: `--strict` creates stricter policy → **PASS** — `test: --strict creates .trustlockrc.json with stricter policy thresholds` checks cooldown < 72, pinning.required=true, provenance non-empty, transitive.max_new < 5
 - AC9: `--no-baseline` creates scaffold but not `baseline.json` → **PASS** — `test: --no-baseline creates scaffold and config but not baseline.json` + `--no-baseline does not validate lockfile version`
 - AC10: registry unreachable → null provenance + warning per package → **PASS** — `test: registry unreachable sets provenanceStatus to null and prints warning per package`
 

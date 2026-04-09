@@ -47,7 +47,7 @@ Implement the policy engine: `src/policy/engine.js` (orchestrates all 7 rules pe
 - Rule evaluation order is intentionally arbitrary — all 7 rules run independently; findings are collected, then decisions are made. No short-circuit on first block.
 - `admitted_with_approval` requires: at least one blocking finding AND a valid approval covering every blocking rule name for that package.
 - `allAdmitted` is `true` only when every dependency's result is `"admitted"` or `"admitted_with_approval"`. One `"blocked"` result sets `allAdmitted = false`.
-- The `approvalCommand` field on each blocked `CheckResult` must be a ready-to-run `dep-fence approve` command string. It lists the exact package, version, and `--override` flags for all blocking rule names. This is a string the output module renders verbatim.
+- The `approvalCommand` field on each blocked `CheckResult` must be a ready-to-run `trustlock approve` command string. It lists the exact package, version, and `--override` flags for all blocking rule names. This is a string the output module renders verbatim.
 - Registry-unreachable skipped findings do NOT cause a block — they contribute only informational detail to the result.
 
 ## Acceptance Criteria

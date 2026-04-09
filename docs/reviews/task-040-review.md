@@ -12,9 +12,9 @@ Approved
 
 No blocking findings. One informational observation recorded below.
 
-### [Observation] `relaxed.depfencerc.json` `_comment` fields are safe but reliant on silently-ignored-key behavior
+### [Observation] `relaxed.trustlockrc.json` `_comment` fields are safe but reliant on silently-ignored-key behavior
 - **Severity:** suggestion
-- **Finding:** `examples/configs/relaxed.depfencerc.json` uses `_comment` and `_comment_*` keys as JSON annotation fields. This works because `loadPolicy`'s `mergeNested` only copies known-key set fields, and `loadApprovalConfig` in `approve.js` checks specific field names with `typeof` guards. Any future refactor that adds strict schema validation to `.depfencerc.json` parsing could cause these comment fields to raise parse errors.
+- **Finding:** `examples/configs/relaxed.trustlockrc.json` uses `_comment` and `_comment_*` keys as JSON annotation fields. This works because `loadPolicy`'s `mergeNested` only copies known-key set fields, and `loadApprovalConfig` in `approve.js` checks specific field names with `typeof` guards. Any future refactor that adds strict schema validation to `.trustlockrc.json` parsing could cause these comment fields to raise parse errors.
 - **Proposed Judgment:** No change required for v0.1. The pattern is explicitly documented in the design note and is safe given the current parser. Worth noting if a JSON Schema or strict-parse step is added in v0.2.
 - **Reference:** `src/policy/config.js:42-51` (mergeNested), `src/cli/commands/approve.js:78-83` (loadApprovalConfig)
 
@@ -34,14 +34,14 @@ No blocking findings. One informational observation recorded below.
 
 - AC: README.md exists with project overview, installation, quick start for all three workflows, links → PASS — file present; all three workflows (onboarding, check-admit, blocked-approve) documented; links to USAGE.md, POLICY-REFERENCE.md, ARCHITECTURE.md, examples/
 - AC: USAGE.md exists with all 6 commands, all flags, exit codes (0/1/2), key error messages → PASS — all six commands (init, check, approve, audit, clean-approvals, install-hook) documented; all flags match `src/cli/args.js`; exit code table present; error messages table matches actual stderr strings in source
-- AC: POLICY-REFERENCE.md exists with complete table of all `.depfencerc.json` options (no TBD entries) → PASS — all 8 fields documented including `require_reason` and `max_expiry_days`; defaults match `config.js:DEFAULTS` and `approve.js:loadApprovalConfig` exactly; no TBD entries
-- AC: ARCHITECTURE.md exists with module map, data flow for `dep-fence check` and `dep-fence init` → PASS — ASCII module diagram present; module file table with key files; numbered data flows for check (8 steps) and init (10 steps); approve flow also included
-- AC: `examples/configs/production.depfencerc.json` is valid JSON and represents a strict policy → PASS — `node -e "JSON.parse(...)"` returned `valid`; strictest settings: `cooldown_hours: 24`, `pinning.required: true`, `provenance.required_for: ["*"]`, `max_expiry_days: 14`
-- AC: `examples/configs/relaxed.depfencerc.json` is valid JSON with annotated permissive settings → PASS — `node -e "JSON.parse(...)"` returned `valid`; `_comment` fields annotate every relaxed setting with production guidance
-- AC: `examples/ci/github-actions.yml` is valid YAML and runs `dep-fence check --enforce` with Node.js >=18.3 → PASS — `yaml.safe_load()` succeeded; uses `node-version: '18.x'` and `run: dep-fence check --enforce`
+- AC: POLICY-REFERENCE.md exists with complete table of all `.trustlockrc.json` options (no TBD entries) → PASS — all 8 fields documented including `require_reason` and `max_expiry_days`; defaults match `config.js:DEFAULTS` and `approve.js:loadApprovalConfig` exactly; no TBD entries
+- AC: ARCHITECTURE.md exists with module map, data flow for `trustlock check` and `trustlock init` → PASS — ASCII module diagram present; module file table with key files; numbered data flows for check (8 steps) and init (10 steps); approve flow also included
+- AC: `examples/configs/production.trustlockrc.json` is valid JSON and represents a strict policy → PASS — `node -e "JSON.parse(...)"` returned `valid`; strictest settings: `cooldown_hours: 24`, `pinning.required: true`, `provenance.required_for: ["*"]`, `max_expiry_days: 14`
+- AC: `examples/configs/relaxed.trustlockrc.json` is valid JSON with annotated permissive settings → PASS — `node -e "JSON.parse(...)"` returned `valid`; `_comment` fields annotate every relaxed setting with production guidance
+- AC: `examples/ci/github-actions.yml` is valid YAML and runs `trustlock check --enforce` with Node.js >=18.3 → PASS — `yaml.safe_load()` succeeded; uses `node-version: '18.x'` and `run: trustlock check --enforce`
 - AC: `examples/ci/lefthook.yml` is valid YAML → PASS — `yaml.safe_load()` succeeded
 - AC: `examples/ci/husky/.husky/pre-commit` is a valid shell script → PASS — `bash -n` returned exit 0
-- AC: All `dep-fence` command examples run against real implementation → PASS — `node src/cli/index.js` responds with usage text (exit 2 without command, as expected); all flags in USAGE.md verified against `src/cli/args.js`
+- AC: All `trustlock` command examples run against real implementation → PASS — `node src/cli/index.js` responds with usage text (exit 2 without command, as expected); all flags in USAGE.md verified against `src/cli/args.js`
 
 ## Deferred Verification
 - Follow-up Verification Task: none
@@ -57,9 +57,9 @@ No blocking findings. One informational observation recorded below.
 - Notes: All flags in USAGE.md (`--enforce`, `--json`, `--dry-run`, `--lockfile`, `--no-cache`, `--no-baseline`, `--strict`, `--override`, `--reason`, `--expires`, `--as`, `--force`) are present in `src/cli/args.js:10-29`. No flag is documented that does not exist; no implemented flag is absent from documentation.
 
 ## Test Results
-- Command run: `node -e "JSON.parse(require('fs').readFileSync('examples/configs/production.depfencerc.json', 'utf8'))"`
+- Command run: `node -e "JSON.parse(require('fs').readFileSync('examples/configs/production.trustlockrc.json', 'utf8'))"`
 - Result: `production valid`
-- Command run: `node -e "JSON.parse(require('fs').readFileSync('examples/configs/relaxed.depfencerc.json', 'utf8'))"`
+- Command run: `node -e "JSON.parse(require('fs').readFileSync('examples/configs/relaxed.trustlockrc.json', 'utf8'))"`
 - Result: `relaxed valid`
 - Command run: `python3 -c "import yaml; yaml.safe_load(open('examples/ci/github-actions.yml'))"`
 - Result: `github-actions valid`

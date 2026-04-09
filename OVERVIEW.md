@@ -1,16 +1,16 @@
-# dep-fence — Project Overview
+# trustlock — Project Overview
 
 ## What it is
 
-dep-fence is a dependency admission controller for npm projects. It evaluates trust signals on dependency changes and makes binary admit/block decisions based on a declared policy — before those changes land in CI or are committed to the repository.
+trustlock is a dependency admission controller for npm projects. It evaluates trust signals on dependency changes and makes binary admit/block decisions based on a declared policy — before those changes land in CI or are committed to the repository.
 
 ## Why it exists
 
-Most supply chain attacks exploit a narrow window: a malicious version is published, then pulled within hours before the community detects it. Standard dependency management (`npm install`, lockfile commits) offers no controls on *what* you're pulling in — only *that* you're pulling in a fixed version. dep-fence fills that gap by requiring that each new or changed dependency pass explicit trust checks before it is admitted into the baseline.
+Most supply chain attacks exploit a narrow window: a malicious version is published, then pulled within hours before the community detects it. Standard dependency management (`npm install`, lockfile commits) offers no controls on *what* you're pulling in — only *that* you're pulling in a fixed version. trustlock fills that gap by requiring that each new or changed dependency pass explicit trust checks before it is admitted into the baseline.
 
 ## How it works
 
-dep-fence tracks a **trusted baseline** — a snapshot of all known-good package versions. When the lockfile changes, dep-fence computes the delta, fetches trust signals from the npm registry, runs policy rules, and produces an **admit** or **block** decision per package.
+trustlock tracks a **trusted baseline** — a snapshot of all known-good package versions. When the lockfile changes, trustlock computes the delta, fetches trust signals from the npm registry, runs policy rules, and produces an **admit** or **block** decision per package.
 
 Trust signals evaluated per package:
 
@@ -30,15 +30,15 @@ Trust signals evaluated per package:
 
 | Mode | How to invoke | Exit code on block | Advances baseline? |
 |------|--------------|-------------------|-------------------|
-| Advisory (pre-commit hook) | `dep-fence check` | `0` — warns but allows commit | Yes, on full admission |
-| Enforce (CI) | `dep-fence check --enforce` | `1` — hard block | Never |
+| Advisory (pre-commit hook) | `trustlock check` | `0` — warns but allows commit | Yes, on full admission |
+| Enforce (CI) | `trustlock check --enforce` | `1` — hard block | Never |
 
 ## The approval workflow
 
 When a package is blocked, the operator approves the specific rule override with an audit trail:
 
 ```
-dep-fence approve new-hotness@1.0.0 \
+trustlock approve new-hotness@1.0.0 \
   --override cooldown \
   --reason "Verified safe by team review" \
   --expires 7d
@@ -50,14 +50,14 @@ Approvals are scoped to specific rules, require a reason by default, and expire 
 
 | File | Committed? | Purpose |
 |------|-----------|---------|
-| `.depfencerc.json` | Yes | Policy configuration — the rules and thresholds |
-| `.dep-fence/baseline.json` | Yes | Trusted package snapshot — auto-staged on admission |
-| `.dep-fence/approvals.json` | Yes | Approval audit trail |
-| `.dep-fence/.cache/` | No (gitignored) | Registry response cache — performance optimization only |
+| `.trustlockrc.json` | Yes | Policy configuration — the rules and thresholds |
+| `.trustlock/baseline.json` | Yes | Trusted package snapshot — auto-staged on admission |
+| `.trustlock/approvals.json` | Yes | Approval audit trail |
+| `.trustlock/.cache/` | No (gitignored) | Registry response cache — performance optimization only |
 
 ## Key design constraints
 
-- **Zero runtime dependencies (ADR-001):** dep-fence uses only Node.js built-ins. A supply chain security tool should not itself be a supply chain risk.
+- **Zero runtime dependencies (ADR-001):** trustlock uses only Node.js built-ins. A supply chain security tool should not itself be a supply chain risk.
 - **Node.js >= 18.3:** Required for `node:util.parseArgs`.
 - **npm lockfile only (v0.1):** Only `package-lock.json` (v1/v2/v3) is supported. pnpm and yarn are deferred to v0.2.
 - **No build step:** Source files are the distribution.
@@ -66,6 +66,6 @@ Approvals are scoped to specific rules, require a reason by default, and expire 
 
 - [README.md](README.md) — Installation, quick start, and command overview
 - [USAGE.md](USAGE.md) — Full command reference, all flags, exit codes, error messages
-- [POLICY-REFERENCE.md](POLICY-REFERENCE.md) — Every `.depfencerc.json` option
+- [POLICY-REFERENCE.md](POLICY-REFERENCE.md) — Every `.trustlockrc.json` option
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Module map, data flows, and design decisions
 - [docs/adrs/](docs/adrs/) — Architecture decision records

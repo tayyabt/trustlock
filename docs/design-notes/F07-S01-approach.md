@@ -1,7 +1,7 @@
 # Design Approach: F07-S01 — Terminal Formatter
 
 ## Summary
-Implements `src/output/terminal.js` — the ANSI-colored terminal formatter for dep-fence. The module is a pure leaf: no business logic, no I/O, accepts plain data objects and returns formatted strings. It also adds `formatHumanReadableTimestamp` to `src/utils/time.js` so that cooldown `clears_at` values render as "April 12, 2026 at 14:30 UTC" rather than raw ISO 8601 (D4 requirement).
+Implements `src/output/terminal.js` — the ANSI-colored terminal formatter for trustlock. The module is a pure leaf: no business logic, no I/O, accepts plain data objects and returns formatted strings. It also adds `formatHumanReadableTimestamp` to `src/utils/time.js` so that cooldown `clears_at` values render as "April 12, 2026 at 14:30 UTC" rather than raw ISO 8601 (D4 requirement).
 
 The module exports three public functions: `formatCheckResults(results)`, `formatAuditReport(report)`, and `formatStatusMessage(message)`. All return plain strings; the caller (CLI, F08) writes them to stdout/stderr. Colors are real ANSI escape constants (ADR-001, no library). `NO_COLOR` and `TERM=dumb` suppress all ANSI output.
 
@@ -11,7 +11,7 @@ The module exports three public functions: `formatCheckResults(results)`, `forma
 
 2. **Color suppression captured once per call**: `isColorDisabled()` reads `process.env.NO_COLOR` and `process.env.TERM` at the top of each public function to avoid mid-call env inconsistency and keep helper functions pure.
 
-3. **Approval command generated from findings**: The terminal formatter generates the `dep-fence approve` command from the `DependencyCheckResult`'s `name`, `version`, and the block-severity findings. Shell-escaping uses single-quote wrapping for the `pkg@version` argument.
+3. **Approval command generated from findings**: The terminal formatter generates the `trustlock approve` command from the `DependencyCheckResult`'s `name`, `version`, and the block-severity findings. Shell-escaping uses single-quote wrapping for the `pkg@version` argument.
 
 4. **`DependencyCheckResult[]` as input shape**: `formatCheckResults` accepts the `DependencyCheckResult` model (from `src/policy/models.js`) — objects with `name`, `version`, `checkResult: { decision, findings, approvalCommand }`.
 
@@ -38,7 +38,7 @@ Unit tests using Node.js built-in test runner (`node:test`). Each test calls the
 - AC: `formatCheckResults(results)` returns colored per-package sections → test: admit, blocked, warn result types
 - AC: `formatCheckResults([])` returns "No dependency changes" → test: empty results case
 - AC: Cooldown findings include human-readable `clears_at` via `time.js` → test: finding with `detail.clears_at` ISO string
-- AC: Generated approval commands are real shell-escaped `dep-fence approve ...` strings → test: blocked result, multi-rule blocked, special chars
+- AC: Generated approval commands are real shell-escaped `trustlock approve ...` strings → test: blocked result, multi-rule blocked, special chars
 - AC: `formatAuditReport(report)` returns stats + conditional heuristics → test: 0% provenance, high violation rate
 - AC: `formatStatusMessage(message)` returns dim-styled plain text → test: basic message
 - AC: `NO_COLOR` suppresses ANSI → test: set NO_COLOR=1, assert no `\x1b[` in output
@@ -59,7 +59,7 @@ Result: **22 tests, 22 pass, 0 fail** (confirming `formatHumanReadableTimestamp`
 - AC: `formatCheckResults(results)` colored sections → **PASS** — "applies green color to admitted line", "applies red color to blocked decision line", all finding/approval tests pass
 - AC: `formatCheckResults([])` "No dependency changes" → **PASS** — "returns 'No dependency changes' for an empty array"
 - AC: Cooldown `clears_at` human-readable → **PASS** — "includes human-readable clears_at when present in finding detail" (verifies "April", "2026", "UTC" present; raw ISO absent)
-- AC: Approval commands real + shell-escaped → **PASS** — "includes a dep-fence approve command", "multiple blocking rules each get --override flag", "package name with single quote is shell-escaped"
+- AC: Approval commands real + shell-escaped → **PASS** — "includes a trustlock approve command", "multiple blocking rules each get --override flag", "package name with single quote is shell-escaped"
 - AC: `formatAuditReport` stats + heuristics → **PASS** — all summary stats tests + heuristic suggestion tests pass
 - AC: `formatStatusMessage` dim styling → **PASS** — "applies dim styling when colors are enabled"
 - AC: NO_COLOR suppresses ANSI → **PASS** — 4 tests covering NO_COLOR=1, NO_COLOR=true; zero ANSI bytes confirmed

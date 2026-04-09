@@ -4,7 +4,7 @@
 F06: Policy Engine & Rules
 
 ## Description
-Implement `src/policy/config.js` and `src/policy/models.js`. Config loads and validates `.depfencerc.json`, merging caller-provided values with hardcoded defaults. Models defines the `PolicyConfig`, `Finding`, and `CheckResult` shapes that every other F06 story imports — this file must land before any rule or engine work begins.
+Implement `src/policy/config.js` and `src/policy/models.js`. Config loads and validates `.trustlockrc.json`, merging caller-provided values with hardcoded defaults. Models defines the `PolicyConfig`, `Finding`, and `CheckResult` shapes that every other F06 story imports — this file must land before any rule or engine work begins.
 
 ## Scope
 **In scope:**
@@ -38,13 +38,13 @@ Implement `src/policy/config.js` and `src/policy/models.js`. Config loads and va
 - `models.js` must export real shape definitions (not empty objects) because F06-S02 and F06-S03 import them on day one.
 
 ## Behavioral / Interaction Rules
-- Unknown rule names in `.depfencerc.json` are silently ignored (forward-compat for v0.2 rules); do not throw.
+- Unknown rule names in `.trustlockrc.json` are silently ignored (forward-compat for v0.2 rules); do not throw.
 - All fields that are absent in the file must be filled in from defaults (the spec defines `cooldown_hours`, `pinning.required`, `scripts.allowlist`, `sources.allowed`, `provenance.required_for`, and transitive threshold).
 - Policy file missing → throw `{ message: "Policy file not found: <path>", exitCode: 2 }`.
 - Policy file malformed JSON → throw `{ message: "Failed to parse policy file: <parse error>", exitCode: 2 }`.
 
 ## Acceptance Criteria
-- [ ] `loadPolicy(configPath)` reads `.depfencerc.json` at the given path and returns a complete `PolicyConfig` with all fields populated (either from file or from defaults).
+- [ ] `loadPolicy(configPath)` reads `.trustlockrc.json` at the given path and returns a complete `PolicyConfig` with all fields populated (either from file or from defaults).
 - [ ] Missing file throws with `.exitCode = 2` and a message naming the path.
 - [ ] Malformed JSON throws with `.exitCode = 2` and includes the parse error detail.
 - [ ] Unknown rule names in the config are ignored — no error, no crash.
@@ -61,7 +61,7 @@ Implement `src/policy/config.js` and `src/policy/models.js`. Config loads and va
 node --test test/policy/config.test.js
 # Expected: all tests pass, no errors
 
-node -e "import('./src/policy/config.js').then(m => m.loadPolicy('.depfencerc.json')).then(c => console.log(JSON.stringify(c, null, 2))).catch(e => console.error(e.message, 'exit:', e.exitCode))"
+node -e "import('./src/policy/config.js').then(m => m.loadPolicy('.trustlockrc.json')).then(c => console.log(JSON.stringify(c, null, 2))).catch(e => console.error(e.message, 'exit:', e.exitCode))"
 # Expected: prints full merged PolicyConfig or structured error with exitCode: 2
 ```
 

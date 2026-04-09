@@ -22,7 +22,7 @@ None.
 - [x] Code quality & documentation (JSDoc present, no dead code, no TODOs)
 
 ## Acceptance Criteria Judgment
-- AC: `generateApprovalCommand(checkResult, policyConfig)` returns a valid command string → **PASS** — test `returns a string starting with "dep-fence approve"` confirms type and prefix
+- AC: `generateApprovalCommand(checkResult, policyConfig)` returns a valid command string → **PASS** — test `returns a string starting with "trustlock approve"` confirms type and prefix
 - AC: Generated command includes correct `package@version` (handles scoped packages) → **PASS** — `@scope/pkg@1.0.0` test and `@babel/core@7.24.0` integration test both pass
 - AC: One `--override <rule>` per blocking rule → **PASS** — regex match count verified for 1, 2, and 3 rules
 - AC: `--expires <duration>` when `policyConfig.default_expiry` is set → **PASS** — `7d` and `24h` cases

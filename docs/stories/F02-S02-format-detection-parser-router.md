@@ -33,7 +33,7 @@ Implement the lockfile format detection and parser router in `src/lockfile/parse
 
 ## Not Allowed To Stub
 - `detectFormat()` — must read the actual lockfile, parse `lockfileVersion`, and return real results
-- Fail-hard on unknown versions — must call `process.exit(2)` with descriptive error message "Unsupported npm lockfile version X. dep-fence supports v1, v2, v3."
+- Fail-hard on unknown versions — must call `process.exit(2)` with descriptive error message "Unsupported npm lockfile version X. trustlock supports v1, v2, v3."
 - File reading — must use `node:fs/promises` to read the lockfile, not a stub
 
 ## Behavioral / Interaction Rules
@@ -42,7 +42,7 @@ Implement the lockfile format detection and parser router in `src/lockfile/parse
 
 ## Acceptance Criteria
 - [ ] `detectFormat(lockfilePath)` returns `{ format: "npm", version: 1 }` for v1 lockfiles, `{ format: "npm", version: 2 }` for v2, `{ format: "npm", version: 3 }` for v3
-- [ ] Unknown lockfile version (e.g., `lockfileVersion: 4`) causes `process.exit(2)` with message "Unsupported npm lockfile version 4. dep-fence supports v1, v2, v3."
+- [ ] Unknown lockfile version (e.g., `lockfileVersion: 4`) causes `process.exit(2)` with message "Unsupported npm lockfile version 4. trustlock supports v1, v2, v3."
 - [ ] `parseLockfile(lockfilePath, packageJsonPath)` reads the lockfile, detects format, and delegates to the npm parser
 - [ ] Missing lockfile causes `process.exit(2)` with descriptive error
 - [ ] Router imports and calls the npm parser module (wired end-to-end in F02-S03)

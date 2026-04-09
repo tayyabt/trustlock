@@ -1,4 +1,4 @@
-# Feature Validation: 2026-04-07-dep-fence-full-spec
+# Feature Validation: 2026-04-07-trustlock-full-spec
 
 ## Verdict
 
@@ -84,4 +84,4 @@ None.
 - Agent: architect
 - Date: 2026-04-08
 - Task: task-004
-- Spec: 2026-04-07-dep-fence-full-spec
+- Spec: 2026-04-07-trustlock-full-spec

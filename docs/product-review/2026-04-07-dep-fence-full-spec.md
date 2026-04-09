@@ -1,6 +1,6 @@
-# Product Review: dep-fence Full Spec
+# Product Review: trustlock Full Spec
 
-**Spec:** `specs/2026-04-07-dep-fence-full-spec.md`
+**Spec:** `specs/2026-04-07-trustlock-full-spec.md`
 **Reviewed:** 2026-04-08
 **Status:** Approved with binding decisions
 
@@ -13,13 +13,13 @@
 | User type | Goal | Sees | Does |
 |---|---|---|---|
 | **Developer** | Ship code without supply chain friction | Advisory check results on commit; block reasons; generated approval commands | Updates dependencies, runs `approve` when blocked, commits approval entries |
-| **Policy owner** | Balance supply chain security with developer velocity | Audit reports, policy compliance summaries, baseline state | Runs `init`, edits `.depfencerc.json`, manages allowlists, adjusts thresholds |
-| **CI pipeline** (non-human) | Enforce policy as a hard merge gate | JSON/SARIF output, exit codes | Runs `dep-fence check --enforce`; never approves; never writes approvals |
-| **Code reviewer** | Verify dependency changes and approvals are justified | Approval entries in PR diff, CI check status | Reviews approvals during normal PR review; no direct dep-fence commands |
+| **Policy owner** | Balance supply chain security with developer velocity | Audit reports, policy compliance summaries, baseline state | Runs `init`, edits `.trustlockrc.json`, manages allowlists, adjusts thresholds |
+| **CI pipeline** (non-human) | Enforce policy as a hard merge gate | JSON/SARIF output, exit codes | Runs `trustlock check --enforce`; never approves; never writes approvals |
+| **Code reviewer** | Verify dependency changes and approvals are justified | Approval entries in PR diff, CI check status | Reviews approvals during normal PR review; no direct trustlock commands |
 
 ### Permissions
 
-dep-fence has no access control. Any developer can run `approve`. Enforcement of "who may approve" is delegated entirely to Git code review — approvals are committed files subject to PR review like any other change.
+trustlock has no access control. Any developer can run `approve`. Enforcement of "who may approve" is delegated entirely to Git code review — approvals are committed files subject to PR review like any other change.
 
 ---
 
@@ -99,9 +99,9 @@ When cooldown blocks a package, the output must include the exact UTC timestamp 
 
 `--lockfile` accepts exactly one path or auto-detects one. Monorepo / multiple lockfile support deferred to v0.2.
 
-### D6. init fails if .dep-fence/ exists
+### D6. init fails if .trustlock/ exists
 
-`init` errors if `.dep-fence/` already exists. The user must delete the directory first to reset. A `--force` flag on `init` may override this.
+`init` errors if `.trustlock/` already exists. The user must delete the directory first to reset. A `--force` flag on `init` may override this.
 
 ### D7. Approver identity from git config
 
@@ -109,7 +109,7 @@ Approval attribution uses `git config user.name` (or `--as` flag). Not `$USER` o
 
 ### D8. Cache is gitignored
 
-`.dep-fence/.cache/` is created during `init` and added to `.dep-fence/.gitignore`. Cache is local, ephemeral, and never committed.
+`.trustlock/.cache/` is created during `init` and added to `.trustlock/.gitignore`. Cache is local, ephemeral, and never committed.
 
 ### D9. No wildcard approvals
 
@@ -117,7 +117,7 @@ An approval must specify which rules it overrides via `--override`. There is no 
 
 ### D10. CI is read-only — no baseline advance in enforce mode
 
-`check --enforce` never advances the baseline. Baseline advancement happens only in the local pre-commit hook flow. If a team wants CI to advance the baseline, they configure an explicit step (future `dep-fence advance-baseline` or equivalent). CI that silently writes and pushes is out of scope.
+`check --enforce` never advances the baseline. Baseline advancement happens only in the local pre-commit hook flow. If a team wants CI to advance the baseline, they configure an explicit step (future `trustlock advance-baseline` or equivalent). CI that silently writes and pushes is out of scope.
 
 ---
 
@@ -127,7 +127,7 @@ These must be resolved before architecture begins.
 
 ### Q1. Unrecognized lockfile format version
 
-If an npm lockfile v4 (or other unrecognized version) appears, should dep-fence fail hard (exit 2) or attempt best-effort parsing with a warning? Affects forward-compatibility design of the parser.
+If an npm lockfile v4 (or other unrecognized version) appears, should trustlock fail hard (exit 2) or attempt best-effort parsing with a warning? Affects forward-compatibility design of the parser.
 
 ### Q2. Approval cleanup trigger
 
@@ -152,7 +152,7 @@ The spec defines `clean-approvals` but not when it runs. Options: (a) manual onl
 
 - Malware detection, CVE tracking, license compliance (spec section 10)
 - Dependency recommendations
-- Access control within dep-fence (delegated to git/PR review)
+- Access control within trustlock (delegated to git/PR review)
 - Publisher change detection (v0.2)
 - SARIF output (v0.2)
 - pnpm/yarn parsers (v0.2)

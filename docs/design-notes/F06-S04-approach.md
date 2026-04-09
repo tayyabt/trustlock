@@ -87,7 +87,7 @@ All verified 2026-04-09 via `node --test`.
 | decide() blocked | PASS | decision.test.js: 5 tests for no approval, wrong package/version, expired, partial |
 | Warnings don't block | PASS | decision.test.js: warn-only → admitted; engine.test.js: new-dep warn finding, allAdmitted=true |
 | allAdmitted semantics | PASS | engine.test.js: one-blocked+one-admitted → allAdmitted:false |
-| approvalCommand populated | PASS | engine.test.js: checks approvalCommand includes dep-fence approve + package@version + --override rule |
+| approvalCommand populated | PASS | engine.test.js: checks approvalCommand includes trustlock approve + package@version + --override rule |
 | Test suite | PASS | 98 tests pass across all rule, decision, engine, CLI check, and approvals suites |
 | scripts rule isolation (reviewer revision) | PASS | scripts.test.js: 11/11 — admit, block, admitted_with_approval, expired-approval, finding shape |
 | sources rule isolation (reviewer revision) | PASS | sources.test.js: 12/12 — admit, block, admitted_with_approval, expired-approval, finding shape |

@@ -19,13 +19,13 @@ function makeCheckResult(overrides = {}) {
 // AC: returns a valid command string
 // ---------------------------------------------------------------------------
 
-test('returns a string starting with "dep-fence approve"', () => {
+test('returns a string starting with "trustlock approve"', () => {
   const result = generateApprovalCommand(
     makeCheckResult(),
     {}
   );
   assert.ok(typeof result === 'string', 'result is a string');
-  assert.ok(result.startsWith('dep-fence approve '), 'starts with dep-fence approve');
+  assert.ok(result.startsWith('trustlock approve '), 'starts with trustlock approve');
 });
 
 // ---------------------------------------------------------------------------
@@ -151,7 +151,7 @@ test('generates correct full command for a real-world scenario', () => {
 
   assert.equal(
     result,
-    'dep-fence approve @babel/core@7.24.0 --override cooldown --override provenance --expires 30d'
+    'trustlock approve @babel/core@7.24.0 --override cooldown --override provenance --expires 30d'
   );
 });
 
@@ -164,5 +164,5 @@ test('generates correct command without --expires', () => {
 
   const result = generateApprovalCommand(checkResult, {});
 
-  assert.equal(result, 'dep-fence approve express@4.18.2 --override new-dep');
+  assert.equal(result, 'trustlock approve express@4.18.2 --override new-dep');
 });

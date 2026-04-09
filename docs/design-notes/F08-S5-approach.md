@@ -46,7 +46,7 @@ All tests use `node:test` and `node:assert`. Dependency injection (`_cwd`, `_reg
 - AC: `clean-approvals` no expired → prints "No expired approvals found." → test `clean.test.js`
 - AC: `install-hook` creates hook + makes executable → test `install-hook.test.js` + `ls -la .git/hooks/pre-commit`
 - AC: `install-hook` when already installed → "Hook already installed." → test `install-hook.test.js`
-- AC: `install-hook` when hook exists without dep-fence → appends → test `install-hook.test.js`
+- AC: `install-hook` when hook exists without trustlock → appends → test `install-hook.test.js`
 - AC: `install-hook --force` with custom content → warns + overwrites → test `install-hook.test.js`
 
 ## Verification Results

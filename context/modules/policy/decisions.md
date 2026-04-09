@@ -14,7 +14,7 @@
    - Consequence: Engine returns `CheckResult[]`. All side effects happen in CLI command handlers.
 
 4. Ignore packages skip all evaluation
-   - Why: `ignore_packages` in config means "dep-fence has no opinion on these." They don't appear in results.
+   - Why: `ignore_packages` in config means "trustlock has no opinion on these." They don't appear in results.
    - Consequence: Ignored packages are filtered out before rule evaluation, not after.
 
 ## Deferred Decisions

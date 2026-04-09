@@ -1,12 +1,12 @@
 /**
- * Unit tests for `dep-fence audit` command.
+ * Unit tests for `trustlock audit` command.
  *
  * Coverage:
  *   AC1  - prints audit stats: total packages, provenance %, install scripts, source types, age
  *   AC2  - exits 0 always (even with cooldown violations)
  *   AC3  - registry-degraded path: warns per package to stderr, still exits 0
  *   AC4  - blocked packages with approval commands are listed in output
- *   AC5  - missing .depfencerc.json → exit 2
+ *   AC5  - missing .trustlockrc.json → exit 2
  *   AC6  - missing lockfile → exit 2
  */
 
@@ -102,19 +102,19 @@ const DEFAULT_CONFIG = {
  * Set up a minimal project in testDir.
  * @param {object} opts
  * @param {Array}    opts.packages    Packages for the lockfile
- * @param {object}   [opts.config]   .depfencerc.json content
+ * @param {object}   [opts.config]   .trustlockrc.json content
  * @param {object[]} [opts.approvals] approvals.json content
  */
 async function setupProject({ packages, config = DEFAULT_CONFIG, approvals = [] } = {}) {
-  await writeFile(join(testDir, '.depfencerc.json'), JSON.stringify(config));
+  await writeFile(join(testDir, '.trustlockrc.json'), JSON.stringify(config));
   await writeFile(join(testDir, 'package.json'), JSON.stringify({
     name: 'test-project',
     version: '1.0.0',
     dependencies: Object.fromEntries(packages.map((p) => [p.name, p.version])),
   }));
   await writeFile(join(testDir, 'package-lock.json'), makeLockfile(packages));
-  await mkdir(join(testDir, '.dep-fence', '.cache'), { recursive: true });
-  await writeFile(join(testDir, '.dep-fence', 'approvals.json'), JSON.stringify(approvals));
+  await mkdir(join(testDir, '.trustlock', '.cache'), { recursive: true });
+  await writeFile(join(testDir, '.trustlock', 'approvals.json'), JSON.stringify(approvals));
 }
 
 /**
@@ -151,7 +151,7 @@ function makeArgs() {
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
-  testDir = join(tmpdir(), `dep-fence-audit-test-${process.pid}-${Date.now()}`);
+  testDir = join(tmpdir(), `trustlock-audit-test-${process.pid}-${Date.now()}`);
   await mkdir(testDir, { recursive: true });
   captureOutput();
   process.exitCode = 0;
@@ -311,29 +311,29 @@ test('AC4: blocked packages listed with approval commands', async () => {
   );
 });
 
-test('AC5: missing .depfencerc.json → exit 2', async () => {
+test('AC5: missing .trustlockrc.json → exit 2', async () => {
   // Write lockfile and package.json but no config
   await writeFile(join(testDir, 'package.json'), JSON.stringify({ name: 'test', version: '1.0.0' }));
   await writeFile(join(testDir, 'package-lock.json'), makeLockfile([{ name: 'pkg', version: '1.0.0' }]));
-  await mkdir(join(testDir, '.dep-fence', '.cache'), { recursive: true });
-  await writeFile(join(testDir, '.dep-fence', 'approvals.json'), '[]');
+  await mkdir(join(testDir, '.trustlock', '.cache'), { recursive: true });
+  await writeFile(join(testDir, '.trustlock', 'approvals.json'), '[]');
 
   await run(makeArgs(), { _cwd: testDir });
 
   assert.equal(process.exitCode, 2);
   const errOut = stderrLines.join('');
   assert.ok(
-    errOut.includes('.depfencerc.json'),
+    errOut.includes('.trustlockrc.json'),
     `Expected config missing error, got: ${errOut}`
   );
 });
 
 test('AC6: missing lockfile → exit 2', async () => {
   // Write config but no lockfile
-  await writeFile(join(testDir, '.depfencerc.json'), JSON.stringify(DEFAULT_CONFIG));
+  await writeFile(join(testDir, '.trustlockrc.json'), JSON.stringify(DEFAULT_CONFIG));
   await writeFile(join(testDir, 'package.json'), JSON.stringify({ name: 'test', version: '1.0.0' }));
-  await mkdir(join(testDir, '.dep-fence', '.cache'), { recursive: true });
-  await writeFile(join(testDir, '.dep-fence', 'approvals.json'), '[]');
+  await mkdir(join(testDir, '.trustlock', '.cache'), { recursive: true });
+  await writeFile(join(testDir, '.trustlock', 'approvals.json'), '[]');
 
   await run(makeArgs(), { _cwd: testDir });
 

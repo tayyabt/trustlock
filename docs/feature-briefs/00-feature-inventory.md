@@ -1,4 +1,4 @@
-# Feature Inventory — dep-fence v0.1
+# Feature Inventory — trustlock v0.1
 
 This is the planning index for the current feature set.
 

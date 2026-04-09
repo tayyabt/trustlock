@@ -4,7 +4,7 @@
 Core evaluation engine. Loads policy configuration, orchestrates rule evaluation against dependency changes, integrates with approvals, and produces admit/block decisions.
 
 ## Responsibilities
-- Load and validate `.depfencerc.json` configuration
+- Load and validate `.trustlockrc.json` configuration
 - Evaluate all applicable policy rules against each changed dependency
 - Intersect findings with valid approvals to determine final decision
 - Produce `CheckResult[]` with decisions, findings, and generated approval commands

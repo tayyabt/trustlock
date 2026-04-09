@@ -2,7 +2,7 @@
 
 ## Summary
 
-Sprint 2 ships dep-fence v0.1.0 — the complete, end-to-end implementation of the policy engine, all six CLI commands, both output formatters, the full integration test suite, and all user-facing documentation. All sprint-2 delivery tasks are marked `done`. One maintenance task (BUG-001 / task-041) remains in `ready` state and is carried into v0.1.1.
+Sprint 2 ships trustlock v0.1.0 — the complete, end-to-end implementation of the policy engine, all six CLI commands, both output formatters, the full integration test suite, and all user-facing documentation. All sprint-2 delivery tasks are marked `done`. One maintenance task (BUG-001 / task-041) remains in `ready` state and is carried into v0.1.1.
 
 ## Sprint 2 Delivered (task-028 – task-040)
 
@@ -39,15 +39,15 @@ Sprint 2 ships dep-fence v0.1.0 — the complete, end-to-end implementation of t
 - **`USAGE.md`** — All flags verified against `src/cli/args.js`; error messages verified against source. Accurate.
 - **`POLICY-REFERENCE.md`** — All 8 fields verified against `src/policy/config.js:DEFAULTS` and `src/cli/commands/approve.js:loadApprovalConfig`. Accurate.
 - **`ARCHITECTURE.md`** — Module map, data flows, and data format examples all verified. Accurate.
-- **`examples/configs/production.depfencerc.json`** — Valid JSON, strict policy settings. Accurate.
-- **`examples/configs/relaxed.depfencerc.json`** — Valid JSON, annotated permissive settings. Accurate.
-- **`examples/ci/github-actions.yml`** — Valid YAML, runs `dep-fence check --enforce` with Node >=18. Accurate.
+- **`examples/configs/production.trustlockrc.json`** — Valid JSON, strict policy settings. Accurate.
+- **`examples/configs/relaxed.trustlockrc.json`** — Valid JSON, annotated permissive settings. Accurate.
+- **`examples/ci/github-actions.yml`** — Valid YAML, runs `trustlock check --enforce` with Node >=18. Accurate.
 - **`examples/ci/lefthook.yml`** — Valid YAML. Accurate.
 - **`examples/ci/husky/.husky/pre-commit`** — Valid shell script (`bash -n` passes). Accurate.
 
 ## Known Issue Documented
 
-**BUG-001** (`docs/bugs/BUG-001-approval-command-uses-full-rule-ids.md`): The terminal formatter uses `f.rule` directly (e.g. `execution:scripts`, `exposure:cooldown`, `trust:provenance`) when building the generated approval command, but `dep-fence approve --override` accepts only the short names (`scripts`, `cooldown`, `provenance`). Documented in `CHANGELOG.md` with workaround. Fix scheduled as task-041 (v0.1.1).
+**BUG-001** (`docs/bugs/BUG-001-approval-command-uses-full-rule-ids.md`): The terminal formatter uses `f.rule` directly (e.g. `execution:scripts`, `exposure:cooldown`, `trust:provenance`) when building the generated approval command, but `trustlock approve --override` accepts only the short names (`scripts`, `cooldown`, `provenance`). Documented in `CHANGELOG.md` with workaround. Fix scheduled as task-041 (v0.1.1).
 
 ## Verification Basis
 

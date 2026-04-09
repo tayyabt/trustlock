@@ -1,5 +1,5 @@
 /**
- * `dep-fence check` — core command.
+ * `trustlock check` — core command.
  *
  * Orchestrates: lockfile parsing, delta computation, registry metadata,
  * policy evaluation, output formatting, and baseline advancement.
@@ -45,10 +45,10 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   const noCache = values['no-cache'] ?? false;
 
   const cwd            = _cwd ?? process.cwd();
-  const configPath     = join(cwd, '.depfencerc.json');
-  const baselinePath   = join(cwd, '.dep-fence', 'baseline.json');
-  const approvalsPath  = join(cwd, '.dep-fence', 'approvals.json');
-  const cacheDir       = join(cwd, '.dep-fence', '.cache');
+  const configPath     = join(cwd, '.trustlockrc.json');
+  const baselinePath   = join(cwd, '.trustlock', 'baseline.json');
+  const approvalsPath  = join(cwd, '.trustlock', 'approvals.json');
+  const cacheDir       = join(cwd, '.trustlock', '.cache');
   const packageJsonPath = join(cwd, 'package.json');
 
   // ── 1. Load policy ─────────────────────────────────────────────────────────
@@ -58,7 +58,7 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   } catch (err) {
     const isMissing = err.exitCode === 2 && err.cause?.code === 'ENOENT';
     if (isMissing) {
-      process.stderr.write('No .depfencerc.json found. Run `dep-fence init` first.\n');
+      process.stderr.write('No .trustlockrc.json found. Run `trustlock init` first.\n');
     } else {
       process.stderr.write(`${err.message}\n`);
     }
@@ -69,13 +69,13 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   // ── 2. Load baseline ───────────────────────────────────────────────────────
   const baseline = await readBaseline(baselinePath);
   if (baseline.error === 'not_initialized') {
-    process.stderr.write('No baseline found. Run `dep-fence init` first.\n');
+    process.stderr.write('No baseline found. Run `trustlock init` first.\n');
     process.exitCode = 2;
     return;
   }
   if (baseline.error) {
     process.stderr.write(
-      `Baseline is corrupted or uses an unsupported schema version. Run \`dep-fence init\` first.\n`
+      `Baseline is corrupted or uses an unsupported schema version. Run \`trustlock init\` first.\n`
     );
     process.exitCode = 2;
     return;

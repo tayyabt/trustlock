@@ -9,10 +9,10 @@ Core evaluation engine that loads policy configuration, orchestrates all 7 polic
 - Workflow Coverage: not required
 - Workflow Rationale: Business logic engine — evaluation pipeline is deterministic and tested via unit tests with fixture data; the user-facing workflow coverage lives in F08 (CLI Commands)
 - Target Sprint: 2
-- Sprint Rationale: Depends on all four data modules (F02-F05) from sprint 1; this is the core business logic that makes dep-fence useful
+- Sprint Rationale: Depends on all four data modules (F02-F05) from sprint 1; this is the core business logic that makes trustlock useful
 
 ## Description
-This feature implements the policy module. The engine loads `.depfencerc.json`, validates it against defaults, then evaluates each changed dependency against all applicable rules. Each rule is a pure function that produces findings. Findings are intersected with valid approvals to produce a final decision: admitted, admitted_with_approval, or blocked.
+This feature implements the policy module. The engine loads `.trustlockrc.json`, validates it against defaults, then evaluates each changed dependency against all applicable rules. Each rule is a pure function that produces findings. Findings are intersected with valid approvals to produce a final decision: admitted, admitted_with_approval, or blocked.
 
 The seven rules implemented:
 1. **trust-continuity:provenance** — blocks on provenance regression (had attestation, lost it)
@@ -47,7 +47,7 @@ N/A — CLI tool, no UI.
 10. Transitive surprise threshold (default 5) — configurable in future but hardcoded for v0.1
 
 ## Acceptance Criteria
-- [ ] `loadPolicy()` reads `.depfencerc.json` and merges with defaults for missing fields
+- [ ] `loadPolicy()` reads `.trustlockrc.json` and merges with defaults for missing fields
 - [ ] `evaluate()` runs all applicable rules against each changed dependency and returns `CheckResult[]`
 - [ ] trust-continuity:provenance correctly detects provenance regression between baseline and current
 - [ ] exposure:cooldown calculates age from publish time and includes `clears_at` timestamp in finding detail
@@ -86,5 +86,5 @@ N/A — CLI tool, no UI.
 ## Metadata
 - Agent: pm
 - Date: 2026-04-08
-- Spec source: specs/2026-04-07-dep-fence-full-spec.md
+- Spec source: specs/2026-04-07-trustlock-full-spec.md
 - Sprint: 2

@@ -9,8 +9,8 @@ Implement the story exactly as specified and prepare it for review.
 - The design note records the implementation and verification mapping.
 
 ## Inputs
-story: /Users/tayyabtariq/Documents/projects/.burnish-worktrees/dep-fence/task-010/docs/stories/F06-S02-trust-and-exposure-rules.md
-feature_brief: /Users/tayyabtariq/Documents/projects/.burnish-worktrees/dep-fence/task-010/docs/feature-briefs/F06-policy-engine.md
+story: /Users/tayyabtariq/Documents/projects/.burnish-worktrees/trustlock/task-010/docs/stories/F06-S02-trust-and-exposure-rules.md
+feature_brief: /Users/tayyabtariq/Documents/projects/.burnish-worktrees/trustlock/task-010/docs/feature-briefs/F06-policy-engine.md
 system_overview: docs/architecture/system-overview.md
 global_conventions: context/global/conventions.md
 global_architecture: context/global/architecture.md

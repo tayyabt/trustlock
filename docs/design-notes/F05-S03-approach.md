@@ -1,7 +1,7 @@
 # Design Note: F05-S03 — Approval Command Generator
 
 ## Summary
-Implement `generateApprovalCommand(checkResult, policyConfig)` in `src/approvals/generator.js`. This is a pure string-formatting function — no I/O, no imports from other internal modules. It produces a copy-pasteable `dep-fence approve` CLI invocation for a blocked package.
+Implement `generateApprovalCommand(checkResult, policyConfig)` in `src/approvals/generator.js`. This is a pure string-formatting function — no I/O, no imports from other internal modules. It produces a copy-pasteable `trustlock approve` CLI invocation for a blocked package.
 
 ## Approach
 Single exported function that:
@@ -24,7 +24,7 @@ Scoped package handling: a scoped name begins with `@`. The `@version` suffix mu
 
 | AC | Verification |
 |----|--------------|
-| `generateApprovalCommand(checkResult, policyConfig)` returns a valid command string | Test: basic invocation returns string starting with `dep-fence approve` |
+| `generateApprovalCommand(checkResult, policyConfig)` returns a valid command string | Test: basic invocation returns string starting with `trustlock approve` |
 | Correct `package@version` (handles scoped packages) | Test: scoped package `@scope/pkg@1.0.0` in output |
 | One `--override <rule>` per blocking rule | Test: single-rule and multi-rule cases |
 | `--expires <duration>` when `policyConfig.default_expiry` is set | Test: with default_expiry present |

@@ -1,7 +1,7 @@
 # Module Guidance: Policy
 
 ## Responsibilities
-- Load and validate policy configuration from `.depfencerc.json`
+- Load and validate policy configuration from `.trustlockrc.json`
 - Evaluate all policy rules against each changed dependency
 - Intersect findings with valid approvals to determine final decision
 - Produce `CheckResult[]` with decisions, findings, and generated approval commands

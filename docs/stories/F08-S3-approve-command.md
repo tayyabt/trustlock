@@ -4,7 +4,7 @@
 F08: CLI Commands, Integration & Documentation
 
 ## Description
-Implement `dep-fence approve <pkg>@<ver>` — the command a developer runs after being blocked by `check`. This story wires the CLI approve handler to the approvals store and validator, completing the callee side of the blocked-approve workflow.
+Implement `trustlock approve <pkg>@<ver>` — the command a developer runs after being blocked by `check`. This story wires the CLI approve handler to the approvals store and validator, completing the callee side of the blocked-approve workflow.
 
 ## Scope
 **In scope:**
@@ -22,8 +22,8 @@ Implement `dep-fence approve <pkg>@<ver>` — the command a developer runs after
 - Generating the approval command (that is F05-S03, consumed by check output)
 
 ## Entry Points
-- Route / page / screen: `dep-fence approve <pkg>@<ver> --override <rules> --reason <text> [--expires <dur>] [--as <name>]`
-- Trigger / navigation path: Developer manually runs after seeing a block from `dep-fence check`
+- Route / page / screen: `trustlock approve <pkg>@<ver> --override <rules> --reason <text> [--expires <dur>] [--as <name>]`
+- Trigger / navigation path: Developer manually runs after seeing a block from `trustlock check`
 - Starting surface: `src/cli/index.js` routes `approve` → `commands/approve.js`
 
 ## Wiring / Integration Points
@@ -41,7 +41,7 @@ Implement `dep-fence approve <pkg>@<ver>` — the command a developer runs after
 
 ## Not Allowed To Stub
 - Lockfile parser call — must be real; package existence check must be live against the actual lockfile
-- Approvals store `appendApproval` — must be real; must write to `.dep-fence/approvals.json`
+- Approvals store `appendApproval` — must be real; must write to `.trustlock/approvals.json`
 - Approvals validator — must be real; invalid inputs must be rejected before writing
 - Git user name resolution — must call real `git config user.name` (not hardcoded)
 
@@ -54,11 +54,11 @@ Implement `dep-fence approve <pkg>@<ver>` — the command a developer runs after
 - Error messages must be specific (see error states in blocked-approve workflow):
   - Package not in lockfile: `"Error: <pkg>@<ver> not found in lockfile"`
   - Invalid override: `"Error: '<name>' is not a valid rule name. Valid rules: cooldown, provenance, scripts, source, pinning"`
-  - Expiry exceeds max: `"Error: Maximum expiry is <N> days (configured in .depfencerc.json)"`
+  - Expiry exceeds max: `"Error: Maximum expiry is <N> days (configured in .trustlockrc.json)"`
   - Missing reason: `"Error: --reason is required (configure require_reason: false to disable)"`
 
 ## Acceptance Criteria
-- [ ] `dep-fence approve axios@1.14.1 --override cooldown --reason "ok"` writes a valid approval entry to `.dep-fence/approvals.json`
+- [ ] `trustlock approve axios@1.14.1 --override cooldown --reason "ok"` writes a valid approval entry to `.trustlock/approvals.json`
 - [ ] Approval entry has: `package`, `version`, `overrides` (array), `reason`, `approvedAt` (ISO), `expiresAt` (ISO), `approvedBy` (from git config)
 - [ ] `--as <name>` overrides `git config user.name` for `approvedBy`
 - [ ] Package not in lockfile exits with error message (exit 2)
@@ -79,11 +79,11 @@ Implement `dep-fence approve <pkg>@<ver>` — the command a developer runs after
 
 ## Verification
 ```bash
-# Setup: dep-fence initialized project with a lockfile containing axios@1.14.1
+# Setup: trustlock initialized project with a lockfile containing axios@1.14.1
 node src/cli/index.js approve axios@1.14.1 --override cooldown --reason "testing"
 # Expected: "Approved axios@1.14.1 (overrides: cooldown). Expires: <date>Z"
 
-node -e "const a = JSON.parse(require('fs').readFileSync('.dep-fence/approvals.json')); console.log(a.slice(-1)[0])"
+node -e "const a = JSON.parse(require('fs').readFileSync('.trustlock/approvals.json')); console.log(a.slice(-1)[0])"
 # Expected: last approval entry has correct shape
 
 node src/cli/index.js approve notreal@0.0.1 --override cooldown --reason "x"; echo $?

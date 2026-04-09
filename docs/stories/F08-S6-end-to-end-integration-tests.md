@@ -10,7 +10,7 @@ Write integration tests that exercise the complete CLI pipeline end-to-end again
 **In scope:**
 - `test/integration/cli-e2e.test.js` — the integration test suite using `node --test`
 - Fixture npm projects in `test/fixtures/` (lockfile + policy + baseline snapshots)
-- Spawning `dep-fence` as a child process to test real exit codes and stdout/stderr
+- Spawning `trustlock` as a child process to test real exit codes and stdout/stderr
 - Testing the three primary workflows: init-onboarding, check-admit, blocked-approve
 - Testing CI enforce mode: `check --enforce` exits 1 on block, never advances baseline
 - Testing `clean-approvals` removes expired entries
@@ -50,21 +50,21 @@ Write integration tests that exercise the complete CLI pipeline end-to-end again
 - D10 (CI read-only): at least one test must verify that `--enforce` mode never writes `baseline.json`
 
 ## Acceptance Criteria
-- [ ] `init` test: runs `dep-fence init`, asserts `.depfencerc.json`, `baseline.json`, `approvals.json`, `.cache/`, `.gitignore` all exist with correct content
-- [ ] `check` admit test: modifies a fixture lockfile, runs `dep-fence check`, asserts "admitted" in output, asserts baseline is updated and staged
-- [ ] `check` block test: introduces a policy-violating dependency, runs `dep-fence check`, asserts block output with reasons and generated approval command, asserts baseline NOT advanced
-- [ ] `approve` + re-check test: runs `dep-fence approve` after block, then `dep-fence check`, asserts "admitted with approval" in output, asserts commit would succeed
+- [ ] `init` test: runs `trustlock init`, asserts `.trustlockrc.json`, `baseline.json`, `approvals.json`, `.cache/`, `.gitignore` all exist with correct content
+- [ ] `check` admit test: modifies a fixture lockfile, runs `trustlock check`, asserts "admitted" in output, asserts baseline is updated and staged
+- [ ] `check` block test: introduces a policy-violating dependency, runs `trustlock check`, asserts block output with reasons and generated approval command, asserts baseline NOT advanced
+- [ ] `approve` + re-check test: runs `trustlock approve` after block, then `trustlock check`, asserts "admitted with approval" in output, asserts commit would succeed
 - [ ] `check --enforce` block test: asserts exit code 1 and baseline not written
 - [ ] `check --enforce` pass test: asserts exit code 0 and baseline not written (D10)
 - [ ] `check --dry-run` test: asserts no baseline write even when all packages admitted
-- [ ] No-changes test: lockfile unchanged, `dep-fence check` prints "No dependency changes", exit 0
+- [ ] No-changes test: lockfile unchanged, `trustlock check` prints "No dependency changes", exit 0
 - [ ] `clean-approvals` test: expired approval removed from `approvals.json`, count printed
-- [ ] `install-hook` test: `.git/hooks/pre-commit` created, executable, contains `dep-fence check`
+- [ ] `install-hook` test: `.git/hooks/pre-commit` created, executable, contains `trustlock check`
 - [ ] Full pipeline test: `init` → `check` (admit) → modify lockfile → `check` (block) → `approve` → `check` (admit with approval) — all pass in sequence
 
 ## Task Breakdown
 1. Create `test/fixtures/` directory structure with a minimal npm project (package.json + package-lock.json v3)
-2. Pre-populate `test/fixtures/.dep-fence/.cache/` with recorded npm registry responses for fixture packages
+2. Pre-populate `test/fixtures/.trustlock/.cache/` with recorded npm registry responses for fixture packages
 3. Create `test/integration/cli-e2e.test.js` using `node:test` and `node:child_process`
 4. Implement test helper: `spawnCli(args, cwd)` → `{ exitCode, stdout, stderr }`
 5. Implement test helper: `setupFixtureProject(tmpDir)` — copies fixture files into a clean temp git repo

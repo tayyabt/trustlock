@@ -36,7 +36,7 @@ function makeInput(overrides = {}) {
 }
 
 async function makeTempDir(t) {
-  const dir = join(tmpdir(), `dep-fence-test-${process.pid}-${Date.now()}`);
+  const dir = join(tmpdir(), `trustlock-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
   t.after(() => rm(dir, { recursive: true, force: true }));
   return dir;
@@ -114,7 +114,7 @@ test('readApprovals returns array from valid approvals file', async (t) => {
 // ---------------------------------------------------------------------------
 
 test('readApprovals returns empty array when file does not exist', async () => {
-  const result = await readApprovals('/tmp/__dep-fence-nonexistent-approvals.json');
+  const result = await readApprovals('/tmp/__trustlock-nonexistent-approvals.json');
   assert.deepEqual(result, []);
 });
 
@@ -309,8 +309,8 @@ test('writeApproval does not cap when duration is within max_expiry_days', async
 test('writeApproval throws when approvals file does not exist', async () => {
   const deps = [makeDep()];
   await assert.rejects(
-    () => writeApproval('/tmp/__dep-fence-missing-approvals.json', makeInput(), deps, makeConfig()),
-    /Approvals file not found|dep-fence init/
+    () => writeApproval('/tmp/__trustlock-missing-approvals.json', makeInput(), deps, makeConfig()),
+    /Approvals file not found|trustlock init/
   );
 });
 
@@ -379,8 +379,8 @@ test('cleanExpired returns { removed: 0, remaining: 0 } when approvals file is e
 
 test('cleanExpired throws when approvals file does not exist', async () => {
   await assert.rejects(
-    () => cleanExpired('/tmp/__dep-fence-missing-approvals-clean.json'),
-    /Approvals file not found|dep-fence init/
+    () => cleanExpired('/tmp/__trustlock-missing-approvals-clean.json'),
+    /Approvals file not found|trustlock init/
   );
 });
 

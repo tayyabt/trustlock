@@ -34,7 +34,7 @@ Implement the cache layer in `src/registry/cache.js` that stores registry respon
 - `_cachedAt` timestamp injection — must be real `Date.now()` value written into cached JSON
 - TTL checking logic — must compare `_cachedAt + ttlMs` against current time, not a passthrough
 - Atomic write — must write to temp file then rename, not direct write to final path
-- Cache directory creation — must create `.dep-fence/.cache/` if it does not exist on first write
+- Cache directory creation — must create `.trustlock/.cache/` if it does not exist on first write
 
 ## Behavioral / Interaction Rules
 - `get()` must never throw — corrupted JSON (invalid parse) returns `null` (treated as cache miss)

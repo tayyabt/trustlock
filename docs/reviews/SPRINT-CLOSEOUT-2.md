@@ -2,7 +2,7 @@
 
 ## Summary
 
-Sprint 2 ships **dep-fence v0.1.0** — the complete, production-ready CLI tool for npm dependency governance. All 13 sprint-2 delivery tasks are done. The docs closeout (task-042) is done. No sprint blockers remain.
+Sprint 2 ships **trustlock v0.1.0** — the complete, production-ready CLI tool for npm dependency governance. All 13 sprint-2 delivery tasks are done. The docs closeout (task-042) is done. No sprint blockers remain.
 
 One maintenance task (task-041 / BUG-001) is carried forward to v0.1.1. It is a medium-severity usability bug and does not block the release.
 
@@ -51,7 +51,7 @@ One maintenance task (task-041 / BUG-001) is carried forward to v0.1.1. It is a 
 
 | Task | Bug | Severity | Status | Description |
 |------|-----|----------|--------|-------------|
-| task-041 | BUG-001 | Medium | ready (v0.1.1) | Terminal formatter emits full rule IDs (e.g. `execution:scripts`) in generated `dep-fence approve --override` commands, but `approve` only accepts short names (`scripts`). Documented in `CHANGELOG.md` with workaround. |
+| task-041 | BUG-001 | Medium | ready (v0.1.1) | Terminal formatter emits full rule IDs (e.g. `execution:scripts`) in generated `trustlock approve --override` commands, but `approve` only accepts short names (`scripts`). Documented in `CHANGELOG.md` with workaround. |
 
 ---
 

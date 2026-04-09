@@ -1,5 +1,5 @@
 /**
- * `dep-fence audit` — whole-tree trust posture scan.
+ * `trustlock audit` — whole-tree trust posture scan.
  *
  * Parses the full lockfile (not just delta), evaluates every package against
  * all policy rules, and prints aggregate stats with heuristic suggestions.
@@ -31,9 +31,9 @@ const EXPECTED_LOCKFILES = ['package-lock.json'];
  */
 export async function run(args, { _registryClient = null, _cwd } = {}) {
   const cwd           = _cwd ?? process.cwd();
-  const configPath    = join(cwd, '.depfencerc.json');
-  const approvalsPath = join(cwd, '.dep-fence', 'approvals.json');
-  const cacheDir      = join(cwd, '.dep-fence', '.cache');
+  const configPath    = join(cwd, '.trustlockrc.json');
+  const approvalsPath = join(cwd, '.trustlock', 'approvals.json');
+  const cacheDir      = join(cwd, '.trustlock', '.cache');
   const packageJsonPath = join(cwd, 'package.json');
 
   // ── 1. Load policy ─────────────────────────────────────────────────────────
@@ -43,7 +43,7 @@ export async function run(args, { _registryClient = null, _cwd } = {}) {
   } catch (err) {
     const isMissing = err.exitCode === 2 && err.cause?.code === 'ENOENT';
     if (isMissing) {
-      process.stderr.write('No .depfencerc.json found. Run `dep-fence init` first.\n');
+      process.stderr.write('No .trustlockrc.json found. Run `trustlock init` first.\n');
     } else {
       process.stderr.write(`${err.message}\n`);
     }

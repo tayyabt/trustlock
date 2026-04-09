@@ -1,5 +1,5 @@
 /**
- * Unit tests for `dep-fence clean-approvals` command.
+ * Unit tests for `trustlock clean-approvals` command.
  *
  * Coverage:
  *   AC1  - removes expired entries from approvals.json and prints counts
@@ -68,8 +68,8 @@ function isoOffset(offsetMs) {
 
 /** Set up a minimal project in testDir with given approvals array. */
 async function setupProject(approvals = []) {
-  await mkdir(join(testDir, '.dep-fence'), { recursive: true });
-  await writeFile(join(testDir, '.dep-fence', 'approvals.json'), JSON.stringify(approvals, null, 2));
+  await mkdir(join(testDir, '.trustlock'), { recursive: true });
+  await writeFile(join(testDir, '.trustlock', 'approvals.json'), JSON.stringify(approvals, null, 2));
 }
 
 /** Build a minimal parsed-args object. */
@@ -82,7 +82,7 @@ function makeArgs() {
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
-  testDir = join(tmpdir(), `dep-fence-clean-test-${process.pid}-${Date.now()}`);
+  testDir = join(tmpdir(), `trustlock-clean-test-${process.pid}-${Date.now()}`);
   await mkdir(testDir, { recursive: true });
   captureOutput();
   process.exitCode = 0;
@@ -120,7 +120,7 @@ test('AC1: removes expired entries and prints correct counts', async () => {
   );
 
   // Verify file content: only active approval remains
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.equal(written.length, 1);
   assert.equal(written[0].package, 'react');
 });
@@ -141,7 +141,7 @@ test('AC2: no expired entries → "No expired approvals found." exits 0', async 
   );
 
   // File unchanged — both approvals still present
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.equal(written.length, 2);
 });
 
@@ -171,7 +171,7 @@ test('AC3: preserves active approvals while removing only expired', async () => 
     `Unexpected output: ${out}`
   );
 
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.equal(written.length, 2);
 
   const names = written.map((e) => e.package);
@@ -181,15 +181,15 @@ test('AC3: preserves active approvals while removing only expired', async () => 
 });
 
 test('AC4: missing approvals.json exits 2 with error message', async () => {
-  // Do NOT create .dep-fence/approvals.json
-  await mkdir(join(testDir, '.dep-fence'), { recursive: true });
+  // Do NOT create .trustlock/approvals.json
+  await mkdir(join(testDir, '.trustlock'), { recursive: true });
 
   await run(makeArgs(), { _cwd: testDir });
 
   assert.equal(process.exitCode, 2);
   const errOut = stderrLines.join('');
   assert.ok(
-    errOut.includes('Approvals file not found') || errOut.includes('ENOENT') || errOut.includes('dep-fence init'),
+    errOut.includes('Approvals file not found') || errOut.includes('ENOENT') || errOut.includes('trustlock init'),
     `Expected initialization error, got: ${errOut}`
   );
 });
@@ -224,6 +224,6 @@ test('all entries removed → 0 active remain in output', async () => {
     `Unexpected output: ${out}`
   );
 
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.equal(written.length, 0);
 });

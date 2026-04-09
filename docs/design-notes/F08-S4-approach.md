@@ -1,20 +1,20 @@
-# Design Approach: task-037 — `dep-fence init` Command
+# Design Approach: task-037 — `trustlock init` Command
 
 ## Summary
 
-Implements `dep-fence init` by replacing the stub in `src/cli/commands/init.js` with full
+Implements `trustlock init` by replacing the stub in `src/cli/commands/init.js` with full
 integration of all sprint 1 modules: lockfile parser (F02), registry client (F03), baseline
 manager (F04), and approvals store (F05). The command orchestrates a linear flow — guards
 first (nothing written until all checks pass), then scaffold creation, then optional baseline
 build from lockfile + registry provenance.
 
-The init command is the entry point that gates all subsequent dep-fence usage. It must succeed
+The init command is the entry point that gates all subsequent trustlock usage. It must succeed
 cleanly or fail with actionable messages; partial writes are prevented by ordering guards before
 all writes.
 
 ## Key Design Decisions
 
-1. **Guards before writes**: All exit-2 conditions (D6: `.dep-fence/` exists, no lockfile,
+1. **Guards before writes**: All exit-2 conditions (D6: `.trustlock/` exists, no lockfile,
    unknown lockfile version) are checked before any file is written to disk. This prevents
    partial initialization state.
 
@@ -38,8 +38,8 @@ all writes.
    the file exists). Prints the deferred audit message. Lockfile version validation is also
    skipped (not needed without parsing).
 
-6. **`.dep-fence/.gitignore` content**: D8 requires `.dep-fence/.cache/` to be gitignored.
-   The `.gitignore` inside `.dep-fence/` contains `.cache/` (relative path).
+6. **`.trustlock/.gitignore` content**: D8 requires `.trustlock/.cache/` to be gitignored.
+   The `.gitignore` inside `.trustlock/` contains `.cache/` (relative path).
 
 7. **Strict policy**: Sets `cooldown_hours: 24` (vs 72), `pinning.required: true`,
    `provenance.required_for: ['*']` (all packages), `transitive.max_new: 3` (vs 5).
@@ -74,21 +74,21 @@ Unit tests in `test/unit/cli/init.test.js` using `node:test`:
 
 | AC | Test | Method |
 |----|------|--------|
-| AC1: creates `.depfencerc.json` with valid default policy | `creates .depfencerc.json with default policy` | File read + JSON parse |
-| AC2: creates `.dep-fence/` with `approvals.json`, `.cache/`, `.gitignore` | `creates .dep-fence/ scaffold` | File stat + content check |
+| AC1: creates `.trustlockrc.json` with valid default policy | `creates .trustlockrc.json with default policy` | File read + JSON parse |
+| AC2: creates `.trustlock/` with `approvals.json`, `.cache/`, `.gitignore` | `creates .trustlock/ scaffold` | File stat + content check |
 | AC3: creates `baseline.json` with all packages trusted | `creates baseline.json with trusted packages` | File read + JSON parse |
 | AC4: prints "Baselined N packages" with correct count | `prints summary with correct package count` | stdout capture |
-| AC5: already initialized → exit 2 + D6 message | `exits 2 if .dep-fence/ already exists` | exitCode + stderr |
+| AC5: already initialized → exit 2 + D6 message | `exits 2 if .trustlock/ already exists` | exitCode + stderr |
 | AC6: no lockfile → exit 2 + message | `exits 2 if no lockfile found` | exitCode + stderr |
 | AC7: unknown lockfile version → exit 2 | `exits 2 on unknown lockfile version` | exitCode + stderr |
-| AC8: `--strict` creates stricter policy | `--strict creates stricter .depfencerc.json` | File read + JSON parse |
+| AC8: `--strict` creates stricter policy | `--strict creates stricter .trustlockrc.json` | File read + JSON parse |
 | AC9: `--no-baseline` creates scaffold but not `baseline.json` | `--no-baseline creates scaffold but skips baseline` | File stat (absent) |
 | AC10: registry unreachable → null provenance + warning | `registry unreachable sets null provenance and warns` | baseline.json + stderr |
 
 ## Risks and Questions
 
 - **writeAndStage calls gitAdd**: During tests, `writeAndStage` will attempt to call `gitAdd`
-  which runs `git add .dep-fence/baseline.json`. In temp directories, this won't be a git repo,
+  which runs `git add .trustlock/baseline.json`. In temp directories, this won't be a git repo,
   so it'll print a warning to stderr. This is acceptable test noise — the test suite captures
   stderr per test so we can filter or ignore the warning. Alternatively the test can mock
   `writeAndStage` via injection... but looking at baseline manager, `writeAndStage` accepts
@@ -107,13 +107,13 @@ Result: `ℹ tests 16 | ℹ pass 16 | ℹ fail 0`
 
 | AC | Result | Evidence |
 |----|--------|----------|
-| AC1: `.depfencerc.json` default policy | PASS | `creates .depfencerc.json with default policy` — reads + parses policy, asserts all fields |
-| AC2: `.dep-fence/` scaffold | PASS | `creates .dep-fence/ scaffold with approvals.json, .cache/, and .gitignore` |
+| AC1: `.trustlockrc.json` default policy | PASS | `creates .trustlockrc.json with default policy` — reads + parses policy, asserts all fields |
+| AC2: `.trustlock/` scaffold | PASS | `creates .trustlock/ scaffold with approvals.json, .cache/, and .gitignore` |
 | AC3: `baseline.json` trusted packages | PASS | `creates baseline.json with all current packages` |
 | AC4: summary message | PASS | `prints summary with correct package count and lockfile version` |
-| AC5: already initialized exit 2 | PASS | `exits 2 with "already initialized" message when .dep-fence/ exists (D6)` |
+| AC5: already initialized exit 2 | PASS | `exits 2 with "already initialized" message when .trustlock/ exists (D6)` |
 | AC6: no lockfile exit 2 | PASS | `exits 2 with "No lockfile found" when package-lock.json is absent` |
 | AC7: unknown version exit 2 | PASS | `exits 2 on unknown lockfile version (Q1)` + missing field test |
-| AC8: `--strict` policy | PASS | `--strict creates .depfencerc.json with stricter policy thresholds` |
+| AC8: `--strict` policy | PASS | `--strict creates .trustlockrc.json with stricter policy thresholds` |
 | AC9: `--no-baseline` scaffold only | PASS | `--no-baseline creates scaffold and config but not baseline.json` |
 | AC10: registry unreachable | PASS | `registry unreachable sets provenanceStatus to null and prints warning per package` |

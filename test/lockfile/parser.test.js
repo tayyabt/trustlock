@@ -49,7 +49,7 @@ async function expectExit2(fn) {
 // ── Temp file helpers ─────────────────────────────────────────────────────────
 
 async function withTempDir(cb) {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'dep-fence-test-'));
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'trustlock-test-'));
   try {
     return await cb(dir);
   } finally {
@@ -110,8 +110,8 @@ describe('detectFormat — unsupported version', () => {
         `Expected "Unsupported npm lockfile version 4", got: ${JSON.stringify(messages)}`
       );
       assert.ok(
-        messages.some((m) => m.includes('dep-fence supports v1, v2, v3')),
-        `Expected "dep-fence supports v1, v2, v3", got: ${JSON.stringify(messages)}`
+        messages.some((m) => m.includes('trustlock supports v1, v2, v3')),
+        `Expected "trustlock supports v1, v2, v3", got: ${JSON.stringify(messages)}`
       );
     });
   });

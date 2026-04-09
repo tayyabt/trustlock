@@ -12,7 +12,7 @@ Manage the trust baseline — the last known-good state of the dependency tree. 
 - Sprint Rationale: Required by policy engine (sprint 2) for delta computation and trust profile comparison
 
 ## Description
-This feature implements the baseline module per ADR-002. The baseline is stored as `.dep-fence/baseline.json` and tracks the trust profile for every admitted package: name, version, admission timestamp, provenance status, install scripts, and source type.
+This feature implements the baseline module per ADR-002. The baseline is stored as `.trustlock/baseline.json` and tracks the trust profile for every admitted package: name, version, admission timestamp, provenance status, install scripts, and source type.
 
 The delta computation compares the current lockfile state against the baseline and classifies each package as added, removed, changed, or unchanged. Only added and changed packages are evaluated by the policy engine.
 
@@ -43,10 +43,10 @@ N/A — CLI tool, no UI.
 
 ## Acceptance Criteria
 - [ ] `createBaseline()` builds a baseline from `ResolvedDependency[]` with correct trust profiles
-- [ ] `readBaseline()` loads and validates `.dep-fence/baseline.json`
+- [ ] `readBaseline()` loads and validates `.trustlock/baseline.json`
 - [ ] `computeDelta()` correctly classifies packages as added, removed, changed, or unchanged
 - [ ] `advanceBaseline()` merges newly admitted packages and removes deleted ones
-- [ ] `writeAndStage()` writes baseline and runs `git add .dep-fence/baseline.json`
+- [ ] `writeAndStage()` writes baseline and runs `git add .trustlock/baseline.json`
 - [ ] All-or-nothing semantics enforced: no partial advancement
 - [ ] `--dry-run` and `--enforce` modes skip advancement entirely
 - [ ] Unit tests cover delta computation, advancement, and error paths
@@ -74,5 +74,5 @@ N/A — CLI tool, no UI.
 ## Metadata
 - Agent: pm
 - Date: 2026-04-08
-- Spec source: specs/2026-04-07-dep-fence-full-spec.md
+- Spec source: specs/2026-04-07-trustlock-full-spec.md
 - Sprint: 1

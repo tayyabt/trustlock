@@ -1,4 +1,4 @@
-# Data Model: dep-fence v0.1
+# Data Model: trustlock v0.1
 
 ## Entities
 
@@ -47,7 +47,7 @@ Per-package entry stored in the baseline. Captures the trust state at the time o
 
 ### Baseline
 
-The trusted state file. Stored at `.dep-fence/baseline.json`. Committed to git.
+The trusted state file. Stored at `.trustlock/baseline.json`. Committed to git.
 
 ```javascript
 {
@@ -72,7 +72,7 @@ The trusted state file. Stored at `.dep-fence/baseline.json`. Committed to git.
 
 ### PolicyConfig
 
-Loaded from `.depfencerc.json`. Declares the team's trust policy.
+Loaded from `.trustlockrc.json`. Declares the team's trust policy.
 
 ```javascript
 {
@@ -112,7 +112,7 @@ Loaded from `.depfencerc.json`. Declares the team's trust policy.
 
 ### Approval
 
-Entry in `.dep-fence/approvals.json`. The file contains a JSON array of approval entries.
+Entry in `.trustlock/approvals.json`. The file contains a JSON array of approval entries.
 
 ```javascript
 {
@@ -157,7 +157,7 @@ Per-dependency evaluation output. Ephemeral — not persisted.
     }
   ],
   approval: null,                             // Approval | null
-  approvalCommand: "dep-fence approve axios@1.14.1 --override cooldown --reason \"...\" --expires 7d"
+  approvalCommand: "trustlock approve axios@1.14.1 --override cooldown --reason \"...\" --expires 7d"
 }
 ```
 
@@ -190,4 +190,4 @@ Computed diff between baseline and current lockfile.
 ## Metadata
 - Agent: architect-foundation
 - Date: 2026-04-08
-- Spec: 2026-04-07-dep-fence-full-spec
+- Spec: 2026-04-07-trustlock-full-spec

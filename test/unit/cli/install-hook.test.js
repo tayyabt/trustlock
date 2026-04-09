@@ -1,10 +1,10 @@
 /**
- * Unit tests for `dep-fence install-hook` command.
+ * Unit tests for `trustlock install-hook` command.
  *
  * Coverage:
- *   AC1  - no hook → creates with shebang + dep-fence check + chmod +x
- *   AC2  - hook already contains "dep-fence check" → "Hook already installed." (edge case #8)
- *   AC3  - hook exists without dep-fence check, no --force → appends
+ *   AC1  - no hook → creates with shebang + trustlock check + chmod +x
+ *   AC2  - hook already contains "trustlock check" → "Hook already installed." (edge case #8)
+ *   AC3  - hook exists without trustlock check, no --force → appends
  *   AC4  - hook exists with custom content + --force → warns + overwrites (edge case #9)
  *   AC5  - no .git/ directory → exit 2 + "Not a git repository"
  */
@@ -85,7 +85,7 @@ async function isExecutable(filePath) {
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
-  testDir = join(tmpdir(), `dep-fence-hook-test-${process.pid}-${Date.now()}`);
+  testDir = join(tmpdir(), `trustlock-hook-test-${process.pid}-${Date.now()}`);
   await mkdir(testDir, { recursive: true });
   captureOutput();
   process.exitCode = 0;
@@ -104,7 +104,7 @@ afterEach(async () => {
 // Tests
 // ---------------------------------------------------------------------------
 
-test('AC1: no hook → creates with shebang + dep-fence check, makes executable', async () => {
+test('AC1: no hook → creates with shebang + trustlock check, makes executable', async () => {
   await setupGitDir(); // .git/hooks/ exists, no pre-commit file
 
   await run(makeArgs(), { _cwd: testDir, _resolveGitCommonDir: fakeResolveGitDir });
@@ -116,11 +116,11 @@ test('AC1: no hook → creates with shebang + dep-fence check, makes executable'
   const content  = await readFile(hookPath, 'utf8');
 
   assert.ok(content.startsWith('#!/bin/sh'), 'Hook should start with shebang');
-  assert.ok(content.includes('dep-fence check'), 'Hook should contain dep-fence check');
+  assert.ok(content.includes('trustlock check'), 'Hook should contain trustlock check');
   assert.ok(await isExecutable(hookPath), 'Hook file should be executable');
 
   const out = stdoutLines.join('');
-  assert.ok(out.includes('Installed dep-fence pre-commit hook'), `Unexpected output: ${out}`);
+  assert.ok(out.includes('Installed trustlock pre-commit hook'), `Unexpected output: ${out}`);
 });
 
 test('AC1b: creates .git/hooks/ directory if it does not exist', async () => {
@@ -132,11 +132,11 @@ test('AC1b: creates .git/hooks/ directory if it does not exist', async () => {
   assert.equal(process.exitCode, 0);
   const hookPath = join(testDir, '.git', 'hooks', 'pre-commit');
   const content  = await readFile(hookPath, 'utf8');
-  assert.ok(content.includes('dep-fence check'));
+  assert.ok(content.includes('trustlock check'));
 });
 
-test('AC2: hook already contains "dep-fence check" → "Hook already installed." (edge case #8)', async () => {
-  const existingHook = '#!/bin/sh\n# CI checks\ndep-fence check\n';
+test('AC2: hook already contains "trustlock check" → "Hook already installed." (edge case #8)', async () => {
+  const existingHook = '#!/bin/sh\n# CI checks\ntrustlock check\n';
   await setupGitDir(existingHook);
 
   await run(makeArgs(), { _cwd: testDir, _resolveGitCommonDir: fakeResolveGitDir });
@@ -152,7 +152,7 @@ test('AC2: hook already contains "dep-fence check" → "Hook already installed."
   assert.equal(content, existingHook, 'Hook content should not be changed when already installed');
 });
 
-test('AC3: hook exists without dep-fence, no --force → appends dep-fence check', async () => {
+test('AC3: hook exists without trustlock, no --force → appends trustlock check', async () => {
   const existingHook = '#!/bin/sh\necho "Running my custom checks"\n';
   await setupGitDir(existingHook);
 
@@ -166,16 +166,16 @@ test('AC3: hook exists without dep-fence, no --force → appends dep-fence check
 
   // Existing content must still be there
   assert.ok(content.includes('echo "Running my custom checks"'), 'Existing content should be preserved');
-  // dep-fence check must be appended
-  assert.ok(content.includes('dep-fence check'), 'dep-fence check should be appended');
+  // trustlock check must be appended
+  assert.ok(content.includes('trustlock check'), 'trustlock check should be appended');
   // Must not have duplicate lines
-  const depFenceLineCount = content.split('\n').filter((l) => l.trim() === 'dep-fence check').length;
-  assert.equal(depFenceLineCount, 1, 'dep-fence check should appear exactly once');
+  const depFenceLineCount = content.split('\n').filter((l) => l.trim() === 'trustlock check').length;
+  assert.equal(depFenceLineCount, 1, 'trustlock check should appear exactly once');
 
   assert.ok(await isExecutable(hookPath), 'Hook should be executable after append');
 
   const out = stdoutLines.join('');
-  assert.ok(out.includes('Appended dep-fence check'), `Unexpected output: ${out}`);
+  assert.ok(out.includes('Appended trustlock check'), `Unexpected output: ${out}`);
 });
 
 test('AC3b: appends correctly when existing hook has no trailing newline', async () => {
@@ -187,8 +187,8 @@ test('AC3b: appends correctly when existing hook has no trailing newline', async
   assert.equal(process.exitCode, 0);
 
   const content = await readFile(join(testDir, '.git', 'hooks', 'pre-commit'), 'utf8');
-  // Should have added a newline before dep-fence check
-  assert.ok(content.includes('my-check\ndep-fence check'), 'Should insert newline before appended line');
+  // Should have added a newline before trustlock check
+  assert.ok(content.includes('my-check\ntrustlock check'), 'Should insert newline before appended line');
 });
 
 test('AC4: hook exists with custom content + --force → warns + overwrites (edge case #9)', async () => {
@@ -206,7 +206,7 @@ test('AC4: hook exists with custom content + --force → warns + overwrites (edg
     `Expected overwrite warning, got: ${out}`
   );
   assert.ok(
-    out.includes('Installed dep-fence pre-commit hook'),
+    out.includes('Installed trustlock pre-commit hook'),
     `Expected install message, got: ${out}`
   );
 
@@ -217,7 +217,7 @@ test('AC4: hook exists with custom content + --force → warns + overwrites (edg
   assert.ok(!content.includes('My important custom hook'), 'Old content should be replaced');
   // Fresh hook content
   assert.ok(content.startsWith('#!/bin/sh'), 'Fresh hook should start with shebang');
-  assert.ok(content.includes('dep-fence check'), 'Fresh hook should contain dep-fence check');
+  assert.ok(content.includes('trustlock check'), 'Fresh hook should contain trustlock check');
 
   assert.ok(await isExecutable(hookPath), 'Overwritten hook should be executable');
 });
@@ -244,14 +244,14 @@ test('--force on non-existent hook still creates fresh hook', async () => {
 
   const hookPath = join(testDir, '.git', 'hooks', 'pre-commit');
   const content  = await readFile(hookPath, 'utf8');
-  assert.ok(content.includes('dep-fence check'));
+  assert.ok(content.includes('trustlock check'));
   assert.ok(await isExecutable(hookPath));
 });
 
-test('hook containing dep-fence check is not modified even with --force', async () => {
-  // --force only applies when hook exists WITHOUT dep-fence check
+test('hook containing trustlock check is not modified even with --force', async () => {
+  // --force only applies when hook exists WITHOUT trustlock check
   // Edge case #8 takes priority: if already installed, no action even with --force
-  const existingHook = '#!/bin/sh\ndep-fence check\n';
+  const existingHook = '#!/bin/sh\ntrustlock check\n';
   await setupGitDir(existingHook);
 
   await run(makeArgs({ force: true }), { _cwd: testDir, _resolveGitCommonDir: fakeResolveGitDir });

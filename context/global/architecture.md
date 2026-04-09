@@ -1,7 +1,7 @@
-# Global Architecture Context: dep-fence
+# Global Architecture Context: trustlock
 
 ## What This Is
-dep-fence is a dependency admission controller for npm projects. It makes binary admit/block decisions on dependency changes based on trust continuity, release age, install-time behavior, and declared policy.
+trustlock is a dependency admission controller for npm projects. It makes binary admit/block decisions on dependency changes based on trust continuity, release age, install-time behavior, and declared policy.
 
 ## Module Map
 
@@ -47,9 +47,9 @@ These decisions are locked and must be respected by all implementation:
 | D3 | Removed deps — silent | No policy evaluation on removal |
 | D4 | Cooldown clears_at required | Output must include exact UTC timestamp |
 | D5 | Single lockfile in v0.1 | No multi-lockfile support |
-| D6 | init fails if .dep-fence/ exists | Must delete first or use --force |
+| D6 | init fails if .trustlock/ exists | Must delete first or use --force |
 | D7 | Approver from git config | `git config user.name` or `--as` flag |
-| D8 | Cache is gitignored | `.dep-fence/.cache/` never committed |
+| D8 | Cache is gitignored | `.trustlock/.cache/` never committed |
 | D9 | No wildcard approvals | Must specify which rules to override |
 | D10 | CI is read-only | `--enforce` never advances baseline |
 | Q1 | Fail hard on unknown lockfile | Exit 2 on unrecognized format version |

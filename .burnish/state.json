@@ -1,13 +1,13 @@
 {
   "version": "0.4.0",
-  "project_name": "dep-fence",
-  "project_root": "/Users/tayyabtariq/Documents/projects/dep-fence",
+  "project_name": "trustlock",
+  "project_root": "/Users/tayyabtariq/Documents/projects/trustlock",
   "has_ui": false,
   "bootstrap_complete": true,
   "current_sprint": 2,
   "orchestrator_mode": "manual",
   "specs_seeded": [
-    "2026-04-07-dep-fence-full-spec"
+    "2026-04-07-trustlock-full-spec"
   ],
   "next_task_id": 44,
   "git_policy": {

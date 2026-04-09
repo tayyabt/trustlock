@@ -1,5 +1,5 @@
 /**
- * Unit tests for `dep-fence approve` command.
+ * Unit tests for `trustlock approve` command.
  *
  * Each test creates a temporary directory with real fixture files and passes
  * `_cwd` to isolate from the real project state.
@@ -37,7 +37,7 @@ let origStderrWrite;
  * Create a fresh temp directory for each test.
  */
 async function setupTempDir() {
-  const dir = join(tmpdir(), `dep-fence-approve-test-${process.pid}-${Date.now()}`);
+  const dir = join(tmpdir(), `trustlock-approve-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
   return dir;
 }
@@ -78,7 +78,7 @@ function makeLockfile(packages) {
  * @param {string} dir
  * @param {object} [opts]
  * @param {{ [name: string]: string }} [opts.packages]  Packages in lockfile
- * @param {object}  [opts.config]    Content of .depfencerc.json
+ * @param {object}  [opts.config]    Content of .trustlockrc.json
  * @param {object[]} [opts.approvals] Initial approvals.json content
  */
 async function writeProjectFixtures(dir, {
@@ -86,14 +86,14 @@ async function writeProjectFixtures(dir, {
   config = {},
   approvals = [],
 } = {}) {
-  // .depfencerc.json — minimal valid config with approval fields
+  // .trustlockrc.json — minimal valid config with approval fields
   const fullConfig = {
     cooldown_hours: 72,
     require_reason: true,
     max_expiry_days: 30,
     ...config,
   };
-  await writeFile(join(dir, '.depfencerc.json'), JSON.stringify(fullConfig));
+  await writeFile(join(dir, '.trustlockrc.json'), JSON.stringify(fullConfig));
 
   // package.json
   await writeFile(
@@ -108,9 +108,9 @@ async function writeProjectFixtures(dir, {
   // package-lock.json
   await writeFile(join(dir, 'package-lock.json'), makeLockfile(packages));
 
-  // .dep-fence/approvals.json
-  await mkdir(join(dir, '.dep-fence'), { recursive: true });
-  await writeFile(join(dir, '.dep-fence', 'approvals.json'), JSON.stringify(approvals));
+  // .trustlock/approvals.json
+  await mkdir(join(dir, '.trustlock'), { recursive: true });
+  await writeFile(join(dir, '.trustlock', 'approvals.json'), JSON.stringify(approvals));
 }
 
 /**
@@ -203,7 +203,7 @@ test('AC1: happy path writes valid approval entry to approvals.json', async () =
   assert.equal(process.exitCode, 0);
   assert.equal(stderrLines.length, 0);
 
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.equal(written.length, 1);
   assert.equal(written[0].package, 'axios');
   assert.equal(written[0].version, '1.14.1');
@@ -219,7 +219,7 @@ test('AC2: approval entry has all required fields with correct shape', async () 
 
   assert.equal(process.exitCode, 0);
 
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   const entry = written[0];
 
   // Required fields
@@ -248,7 +248,7 @@ test('AC3: --as <name> overrides approvedBy', async () => {
 
   assert.equal(process.exitCode, 0);
 
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.equal(written[0].approver, 'Override User');
 });
 
@@ -287,7 +287,7 @@ test('AC6: --expires exceeding max_expiry_days exits with exit 2 and shows confi
   assert.equal(process.exitCode, 2);
   const errOut = stderrLines.join('');
   assert.ok(errOut.includes('Maximum expiry is 30 days'), `Expected max expiry error, got: ${errOut}`);
-  assert.ok(errOut.includes('.depfencerc.json'), `Expected config file reference, got: ${errOut}`);
+  assert.ok(errOut.includes('.trustlockrc.json'), `Expected config file reference, got: ${errOut}`);
 });
 
 test('AC7: missing --reason when require_reason:true exits with exit 2', async () => {
@@ -311,7 +311,7 @@ test('AC7b: --reason is optional when require_reason:false', async () => {
 
   assert.equal(process.exitCode, 0, `Expected exit 0, stderr: ${stderrLines.join('')}`);
 
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.equal(written.length, 1);
 });
 
@@ -337,7 +337,7 @@ test('AC8: appends to existing approvals (does not overwrite)', async () => {
 
   assert.equal(process.exitCode, 0);
 
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.equal(written.length, 2, 'Should have 2 entries (pre-existing + new)');
   assert.equal(written[0].package, 'lodash', 'First entry should be the pre-existing one');
   assert.equal(written[1].package, 'axios', 'Second entry should be the new approval');
@@ -365,7 +365,7 @@ test('--override supports comma-separated values', async () => {
 
   assert.equal(process.exitCode, 0);
 
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.deepEqual(written[0].overrides, ['cooldown', 'provenance']);
 });
 
@@ -381,13 +381,13 @@ test('missing --override flag exits with exit 2', async () => {
 });
 
 test('missing config file exits with exit 2', async () => {
-  // Write project without .depfencerc.json
+  // Write project without .trustlockrc.json
   await mkdir(testDir, { recursive: true });
   await writeFile(join(testDir, 'package.json'), JSON.stringify({ name: 'test', version: '1.0.0' }));
   await writeFile(join(testDir, 'package-lock.json'), makeLockfile({ axios: '1.14.1' }));
-  await mkdir(join(testDir, '.dep-fence'), { recursive: true });
-  await writeFile(join(testDir, '.dep-fence', 'approvals.json'), JSON.stringify([]));
-  // No .depfencerc.json
+  await mkdir(join(testDir, '.trustlock'), { recursive: true });
+  await writeFile(join(testDir, '.trustlock', 'approvals.json'), JSON.stringify([]));
+  // No .trustlockrc.json
 
   const args = makeArgs({ reason: 'test', as: 'User' });
 
@@ -395,7 +395,7 @@ test('missing config file exits with exit 2', async () => {
 
   assert.equal(process.exitCode, 2);
   const errOut = stderrLines.join('');
-  assert.ok(errOut.includes('.depfencerc.json'), `Expected config missing error, got: ${errOut}`);
+  assert.ok(errOut.includes('.trustlockrc.json'), `Expected config missing error, got: ${errOut}`);
 });
 
 test('scoped package spec is parsed correctly', async () => {
@@ -406,7 +406,7 @@ test('scoped package spec is parsed correctly', async () => {
 
   assert.equal(process.exitCode, 0, `Unexpected error: ${stderrLines.join('')}`);
 
-  const written = JSON.parse(await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8'));
+  const written = JSON.parse(await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8'));
   assert.equal(written[0].package, '@scope/mypkg');
   assert.equal(written[0].version, '2.0.0');
 });

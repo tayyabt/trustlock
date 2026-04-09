@@ -12,7 +12,7 @@ Policy rules like cooldown and provenance require live npm registry data. Other 
 ## Options Considered
 
 ### Option 1: Cache-first with staleness markers
-- Description: Registry responses cached as JSON files in `.dep-fence/.cache/`. Cache key: `{package}@{version}` for version data, `{package}` for full metadata. Fresh cache (within TTL) used directly. Stale cache triggers refresh attempt; on failure, stale data used with warning annotation. No cache + no network → "skipped" warning.
+- Description: Registry responses cached as JSON files in `.trustlock/.cache/`. Cache key: `{package}@{version}` for version data, `{package}` for full metadata. Fresh cache (within TTL) used directly. Stale cache triggers refresh attempt; on failure, stale data used with warning annotation. No cache + no network → "skipped" warning.
 - Pros: Works offline if previously run. Stale data is better than no data. Clear signal when data quality is degraded. CI doesn't break on registry outages.
 - Cons: Stale cache could miss a provenance regression that happened after the cache was written.
 
@@ -44,7 +44,7 @@ Option 1: Cache-first with staleness markers. This provides the best balance of 
 ## Consequences
 - Implementation: Cache layer must store fetch timestamp alongside data. Cache reads check TTL. Cache writes are atomic (write to temp file, rename). Cache directory is gitignored (D8).
 - Testing: Must test all three degradation states (fresh, stale, missing). Mock the HTTP layer to simulate registry failures.
-- Operations: `.dep-fence/.cache/` grows over time. Not a concern for typical projects (a few MB). Could add cache size limit in future.
+- Operations: `.trustlock/.cache/` grows over time. Not a concern for typical projects (a few MB). Could add cache size limit in future.
 - Future: v0.5 trust intelligence API would replace direct registry calls. The cache layer's interface (fetch metadata for package+version) remains the same.
 
 ## Deployment Architecture

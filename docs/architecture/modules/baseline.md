@@ -4,7 +4,7 @@
 Manage the trust baseline — the last known-good state of the dependency tree. Compute deltas between baseline and current lockfile. Handle advancement with auto-staging.
 
 ## Responsibilities
-- Read baseline from `.dep-fence/baseline.json`
+- Read baseline from `.trustlock/baseline.json`
 - Create initial baseline during `init` (trust all current packages)
 - Compute `DependencyDelta` (added, removed, changed, unchanged)
 - Advance baseline on full admission: update packages, update timestamp, update lockfile hash
@@ -24,7 +24,7 @@ Manage the trust baseline — the last known-good state of the dependency tree. 
 - Used by: policy (for delta computation and trust profile lookup), cli (for init and advancement)
 
 ## Allowed Interactions
-- Read/write `.dep-fence/baseline.json`
+- Read/write `.trustlock/baseline.json`
 - Call `git add` on the baseline file after writing
 - Compute hash of lockfile content
 

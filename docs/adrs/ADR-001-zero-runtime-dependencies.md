@@ -7,7 +7,7 @@ Accepted
 N/A
 
 ## Context
-dep-fence is a supply chain security tool. Its core product thesis is that dependency changes should pass a trust policy. A tool that guards the supply chain should not itself be a supply chain risk. This requires zero runtime dependencies — no CLI framework, HTTP client library, semver library, or color library.
+trustlock is a supply chain security tool. Its core product thesis is that dependency changes should pass a trust policy. A tool that guards the supply chain should not itself be a supply chain risk. This requires zero runtime dependencies — no CLI framework, HTTP client library, semver library, or color library.
 
 ## Options Considered
 
@@ -41,7 +41,7 @@ Option 1: Pure Node.js built-ins. For v0.1 (npm only), the required functionalit
 - Future: v0.2 (pnpm/yarn) will need a YAML parser. Options: hand-roll a minimal YAML subset for pnpm-lock.yaml, or reconsider this decision at that point. The ADR applies to v0.1 scope.
 
 ## Deployment Architecture
-- Deployment method: npm package (`npm install -g dep-fence` or `npx dep-fence`)
+- Deployment method: npm package (`npm install -g trustlock` or `npx trustlock`)
 - Infrastructure needed: None (CLI tool, runs locally and in CI)
 - Environment variables: None required
 - CI/CD considerations: Node.js >= 18.3 in CI environment

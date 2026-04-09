@@ -14,7 +14,7 @@ Fetch trust-relevant metadata from the npm registry with file-based caching, TTL
 ## Description
 This feature implements the registry module per ADR-003. The client fetches three types of data from the npm registry: full package metadata (includes publish times for cooldown), version-specific metadata (install scripts, publisher identity), and attestations (SLSA provenance).
 
-All responses are cached as JSON files in `.dep-fence/.cache/` with fetch timestamps. Cache TTLs: version metadata 24h (immutable), full metadata 1h, attestations 1h. The degradation hierarchy is: fresh cache -> stale cache with warning annotation -> skipped with warning.
+All responses are cached as JSON files in `.trustlock/.cache/` with fetch timestamps. Cache TTLs: version metadata 24h (immutable), full metadata 1h, attestations 1h. The degradation hierarchy is: fresh cache -> stale cache with warning annotation -> skipped with warning.
 
 Requests are batched with a concurrency limit of 10 parallel fetches. The `--no-cache` flag bypasses cache entirely.
 
@@ -72,5 +72,5 @@ N/A — CLI tool, no UI.
 ## Metadata
 - Agent: pm
 - Date: 2026-04-08
-- Spec source: specs/2026-04-07-dep-fence-full-spec.md
+- Spec source: specs/2026-04-07-trustlock-full-spec.md
 - Sprint: 1

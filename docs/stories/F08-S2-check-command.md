@@ -4,13 +4,13 @@
 F08: CLI Commands, Integration & Documentation
 
 ## Description
-Implement `dep-fence check` — the core command that orchestrates lockfile parsing, delta computation, policy evaluation, output formatting, and baseline advancement. This story covers the check-admit workflow in full and produces the block output consumed by the blocked-approve workflow.
+Implement `trustlock check` — the core command that orchestrates lockfile parsing, delta computation, policy evaluation, output formatting, and baseline advancement. This story covers the check-admit workflow in full and produces the block output consumed by the blocked-approve workflow.
 
 ## Scope
 **In scope:**
 - `src/cli/commands/check.js` — full implementation (replace stub from F08-S1)
 - All `check` flag handling: `--enforce`, `--json`, `--dry-run`, `--lockfile <path>`, `--no-cache`
-- Loading: `.depfencerc.json` (policy), `.dep-fence/baseline.json`, `.dep-fence/approvals.json`, lockfile
+- Loading: `.trustlockrc.json` (policy), `.trustlock/baseline.json`, `.trustlock/approvals.json`, lockfile
 - Calling: lockfile parser, registry client, policy engine evaluation, output formatter (terminal + JSON)
 - Baseline advancement on full admission in advisory mode (calls `baseline.writeAndStage`)
 - Generated approval commands in block output (calls `approvals.generateCommand` from F05-S03)
@@ -22,8 +22,8 @@ Implement `dep-fence check` — the core command that orchestrates lockfile pars
 - SARIF output (v0.2)
 
 ## Entry Points
-- Route / page / screen: `dep-fence check [flags]`
-- Trigger / navigation path: manual `dep-fence check` or git pre-commit hook (`dep-fence check` in `.git/hooks/pre-commit`)
+- Route / page / screen: `trustlock check [flags]`
+- Trigger / navigation path: manual `trustlock check` or git pre-commit hook (`trustlock check` in `.git/hooks/pre-commit`)
 - Starting surface: `src/cli/index.js` routes `check` → `commands/check.js`
 
 ## Wiring / Integration Points
@@ -58,24 +58,24 @@ Implement `dep-fence check` — the core command that orchestrates lockfile pars
 - **D4 (cooldown clears_at):** Block output for cooldown must include the exact UTC timestamp when cooldown clears
 - `--dry-run`: evaluate everything, format output, but never call `writeAndStage`; exit 0 even if blocked (advisory only)
 - Registry unreachable: registry-dependent rules emit warnings but do not block; local-only rules still evaluate; exit 0 (not 2)
-- Config missing: exit 2 with "No .depfencerc.json found. Run `dep-fence init` first."
-- Baseline missing: exit 2 with "No baseline found. Run `dep-fence init` first."
+- Config missing: exit 2 with "No .trustlockrc.json found. Run `trustlock init` first."
+- Baseline missing: exit 2 with "No baseline found. Run `trustlock init` first."
 - No lockfile found: exit 2 listing expected filenames
 - No dependency changes: print "No dependency changes" and exit 0 (no baseline write)
 - Expired approvals: silently skipped — not counted, not errors
 
 ## Acceptance Criteria
-- [ ] `dep-fence check` with all packages admitted prints admit summary and advances baseline (advisory mode)
-- [ ] `dep-fence check --enforce` with blocked packages exits 1; baseline not advanced
-- [ ] `dep-fence check --enforce` with all admitted exits 0; baseline not advanced (D10)
-- [ ] `dep-fence check --dry-run` evaluates but does not write baseline even if all admitted
-- [ ] `dep-fence check --json` outputs valid JSON matching F07 JSON formatter output shape
+- [ ] `trustlock check` with all packages admitted prints admit summary and advances baseline (advisory mode)
+- [ ] `trustlock check --enforce` with blocked packages exits 1; baseline not advanced
+- [ ] `trustlock check --enforce` with all admitted exits 0; baseline not advanced (D10)
+- [ ] `trustlock check --dry-run` evaluates but does not write baseline even if all admitted
+- [ ] `trustlock check --json` outputs valid JSON matching F07 JSON formatter output shape
 - [ ] Block output includes per-package block reasons, clears_at for cooldown (D4), and generated approval command
-- [ ] `dep-fence check` with no lockfile exits 2 with list of expected filenames
-- [ ] `dep-fence check` with no `.depfencerc.json` exits 2 with "run dep-fence init first"
-- [ ] `dep-fence check` with no dependency changes exits 0 and prints "No dependency changes"
+- [ ] `trustlock check` with no lockfile exits 2 with list of expected filenames
+- [ ] `trustlock check` with no `.trustlockrc.json` exits 2 with "run trustlock init first"
+- [ ] `trustlock check` with no dependency changes exits 0 and prints "No dependency changes"
 - [ ] Registry unreachable: exits 0, prints per-check warnings, local rules still evaluated
-- [ ] `git diff --staged` shows `.dep-fence/baseline.json` after a successful advisory check
+- [ ] `git diff --staged` shows `.trustlock/baseline.json` after a successful advisory check
 
 ## Task Breakdown
 1. Implement `src/cli/commands/check.js` — config loading, lockfile detection, delta computation
@@ -89,7 +89,7 @@ Implement `dep-fence check` — the core command that orchestrates lockfile pars
 
 ## Verification
 ```bash
-# Requires a repo initialized with dep-fence (see F08-S4) — use a fixture for unit tests
+# Requires a repo initialized with trustlock (see F08-S4) — use a fixture for unit tests
 node --test test/unit/cli/check.test.js
 # Expected: all tests pass
 
@@ -106,8 +106,8 @@ node src/cli/index.js check --json | node -e "process.stdin.resume(); process.st
 
 ## Edge Cases to Handle
 - `check` with no lockfile: exit 2, list expected filenames
-- `check` with no `.depfencerc.json`: exit 2, "run dep-fence init first"
-- `check` with no baseline: exit 2, "run dep-fence init first"
+- `check` with no `.trustlockrc.json`: exit 2, "run trustlock init first"
+- `check` with no baseline: exit 2, "run trustlock init first"
 - `check` with no changes: "No dependency changes" + exit 0
 - Registry unreachable: warnings only, no block, no exit 2
 - `--dry-run`: no baseline write, exit 0 even with blocks (advisory only)

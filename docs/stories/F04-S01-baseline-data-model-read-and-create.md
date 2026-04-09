@@ -46,7 +46,7 @@ Define the Baseline and TrustProfile data structures, implement createBaseline()
 ## Acceptance Criteria
 - [ ] `createBaseline(dependencies, lockfileHash)` returns a `Baseline` object with `schema_version: 1`, `created_at` timestamp, `lockfile_hash`, and a `packages` map keyed by package name
 - [ ] Each package entry in `packages` is a `TrustProfile` with fields: `name`, `version`, `admittedAt`, `provenanceStatus`, `hasInstallScripts`, `sourceType`
-- [ ] `readBaseline(baselinePath)` loads `.dep-fence/baseline.json`, parses JSON, validates schema_version, and returns the Baseline object
+- [ ] `readBaseline(baselinePath)` loads `.trustlock/baseline.json`, parses JSON, validates schema_version, and returns the Baseline object
 - [ ] `readBaseline()` returns `{ error: "not_initialized" }` when the file does not exist
 - [ ] `readBaseline()` returns `{ error: "corrupted" }` when the file contains invalid JSON
 - [ ] `readBaseline()` returns `{ error: "unsupported_schema", version: N }` when schema_version is not 1

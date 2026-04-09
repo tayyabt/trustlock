@@ -1,5 +1,5 @@
 /**
- * Approval command generator — produces copy-pasteable `dep-fence approve`
+ * Approval command generator — produces copy-pasteable `trustlock approve`
  * commands for blocked packages.
  *
  * This is a pure string-formatting module. It has no I/O and no internal
@@ -7,10 +7,10 @@
  */
 
 /**
- * Generate a `dep-fence approve` command for a blocked package.
+ * Generate a `trustlock approve` command for a blocked package.
  *
  * Format:
- *   dep-fence approve <package>@<version> --override <rule1> [--override <rule2> ...] [--expires <duration>]
+ *   trustlock approve <package>@<version> --override <rule1> [--override <rule2> ...] [--expires <duration>]
  *
  * Rules:
  *   - One `--override <rule>` flag per entry in checkResult.blockingRules
@@ -20,7 +20,7 @@
  *
  * @param {{ packageName: string, version: string, blockingRules: string[] }} checkResult
  * @param {{ default_expiry?: string }} policyConfig
- * @returns {string}  Ready-to-run `dep-fence approve` command
+ * @returns {string}  Ready-to-run `trustlock approve` command
  */
 export function generateApprovalCommand(checkResult, policyConfig) {
   const { packageName, version, blockingRules } = checkResult;
@@ -34,5 +34,5 @@ export function generateApprovalCommand(checkResult, policyConfig) {
   const expiresFlag =
     policyConfig.default_expiry ? ` --expires ${policyConfig.default_expiry}` : '';
 
-  return `dep-fence approve ${packageAtVersion} ${overrideFlags}${expiresFlag}`;
+  return `trustlock approve ${packageAtVersion} ${overrideFlags}${expiresFlag}`;
 }

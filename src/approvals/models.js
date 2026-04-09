@@ -13,6 +13,22 @@
  */
 
 /**
+ * Maps finding rule IDs (category:name format used by policy rules) to the short
+ * approval names accepted by `dep-fence approve --override`.
+ *
+ * The terminal formatter uses this to translate findings into a copy-pasteable command.
+ */
+export const FINDING_RULE_TO_APPROVAL_NAME = new Map([
+  ['exposure:cooldown',           'cooldown'],
+  ['execution:scripts',           'scripts'],
+  ['execution:sources',           'sources'],
+  ['trust-continuity:provenance', 'provenance'],
+  ['exposure:pinning',            'pinning'],
+  ['delta:new-dependency',        'new-dep'],
+  ['delta:transitive-surprise',   'transitive'],
+]);
+
+/**
  * The set of valid policy rule names that can be used in overrides.
  * An approval must name one or more of these explicitly (D9: no wildcard approvals).
  */

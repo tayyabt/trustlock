@@ -21,6 +21,7 @@
  */
 
 import { formatHumanReadableTimestamp } from '../utils/time.js';
+import { FINDING_RULE_TO_APPROVAL_NAME } from '../approvals/models.js';
 
 // ---------------------------------------------------------------------------
 // ANSI color constants (ADR-001: no color library)
@@ -141,7 +142,7 @@ export function formatCheckResults(results) {
     if (decision === 'blocked') {
       const blockingRules = findings
         .filter((f) => f.severity === 'block')
-        .map((f) => f.rule);
+        .map((f) => FINDING_RULE_TO_APPROVAL_NAME.get(f.rule) ?? f.rule);
       const cmd = buildApprovalCommand(name, version, blockingRules);
       lines.push(dim(`  Run to approve: ${cmd}`, noColor));
     }

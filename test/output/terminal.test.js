@@ -200,7 +200,25 @@ describe('formatCheckResults — blocked result', () => {
       makeResult({ decision: 'blocked', findings: [makeFinding({ rule: 'exposure:cooldown' })] }),
     ]));
     assert.ok(out.includes('dep-fence approve'));
-    assert.ok(out.includes('exposure:cooldown'));
+    assert.ok(out.includes('cooldown'));
+  });
+
+  it('BUG-001: execution:scripts finding uses short name "scripts" in --override', () => {
+    const out = strip(formatCheckResults([
+      makeResult({ decision: 'blocked', findings: [makeFinding({ rule: 'execution:scripts', severity: 'block' })] }),
+    ]));
+    assert.ok(out.includes('--override'), 'Expected --override flag');
+    assert.ok(out.includes('scripts'), 'Expected short name "scripts"');
+    assert.ok(!out.includes('execution:scripts'), 'Must not contain full rule ID "execution:scripts"');
+  });
+
+  it('BUG-001: exposure:cooldown finding uses short name "cooldown" in --override', () => {
+    const out = strip(formatCheckResults([
+      makeResult({ decision: 'blocked', findings: [makeFinding({ rule: 'exposure:cooldown', severity: 'block' })] }),
+    ]));
+    assert.ok(out.includes('--override'), 'Expected --override flag');
+    assert.ok(out.includes('cooldown'), 'Expected short name "cooldown"');
+    assert.ok(!out.includes('exposure:cooldown'), 'Must not contain full rule ID "exposure:cooldown"');
   });
 
   it('approval command includes pkg@version', () => {

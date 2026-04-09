@@ -1,7 +1,7 @@
 # Feature: F05 Approval Store & Validation
 
 ## Summary
-Manage scoped, time-limited policy overrides. CRUD operations on `.dep-fence/approvals.json`, expiry validation, scope matching, and approval command generation for blocked packages.
+Manage scoped, time-limited policy overrides. CRUD operations on `.trustlock/approvals.json`, expiry validation, scope matching, and approval command generation for blocked packages.
 
 ## Delivery Metadata
 - UI-Bearing: no
@@ -12,11 +12,11 @@ Manage scoped, time-limited policy overrides. CRUD operations on `.dep-fence/app
 - Sprint Rationale: Required by policy engine (sprint 2) for override checking during evaluation
 
 ## Description
-This feature implements the approvals module. Approvals are stored as a JSON array in `.dep-fence/approvals.json`. Each entry is scoped to a specific package@version, lists which policy rules it overrides, carries a reason string, is attributed to a person, and has an expiry timestamp.
+This feature implements the approvals module. Approvals are stored as a JSON array in `.trustlock/approvals.json`. Each entry is scoped to a specific package@version, lists which policy rules it overrides, carries a reason string, is attributed to a person, and has an expiry timestamp.
 
 The validator checks approval applicability: package+version match, override list intersection, and expiry. No wildcard approvals (D9) — the `overrides` array must explicitly list each bypassed rule. Approver identity comes from `git config user.name` or `--as` flag (D7).
 
-The generator produces copy-pasteable `dep-fence approve` commands for blocked packages, including the correct `--override` flags for the specific rules that blocked.
+The generator produces copy-pasteable `trustlock approve` commands for blocked packages, including the correct `--override` flags for the specific rules that blocked.
 
 The cleaner removes expired entries from the file (`clean-approvals` command).
 
@@ -73,5 +73,5 @@ N/A — CLI tool, no UI.
 ## Metadata
 - Agent: pm
 - Date: 2026-04-08
-- Spec source: specs/2026-04-07-dep-fence-full-spec.md
+- Spec source: specs/2026-04-07-trustlock-full-spec.md
 - Sprint: 1

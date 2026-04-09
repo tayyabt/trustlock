@@ -6,7 +6,7 @@
  *
  * Exports:
  *   evaluate    — run all 7 rules against a dependency delta, return { results, allAdmitted }
- *   loadPolicy  — read and validate .depfencerc.json, return PolicyConfig
+ *   loadPolicy  — read and validate .trustlockrc.json, return PolicyConfig
  */
 
 export { evaluate } from './engine.js';

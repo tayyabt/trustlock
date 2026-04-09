@@ -1,17 +1,17 @@
 /**
- * `dep-fence install-hook` — install or update the Git pre-commit hook.
+ * `trustlock install-hook` — install or update the Git pre-commit hook.
  *
- * Creates or appends `dep-fence check` to `.git/hooks/pre-commit` and makes
+ * Creates or appends `trustlock check` to `.git/hooks/pre-commit` and makes
  * the file executable.
  *
  * Four states:
- *   1. Hook does not exist → create with shebang + dep-fence check + chmod +x
- *   2. Hook exists and already contains "dep-fence check" → "Hook already installed."
- *   3. Hook exists without "dep-fence check", no --force → append dep-fence check
+ *   1. Hook does not exist → create with shebang + trustlock check + chmod +x
+ *   2. Hook exists and already contains "trustlock check" → "Hook already installed."
+ *   3. Hook exists without "trustlock check", no --force → append trustlock check
  *   4. Hook exists with custom content, --force → warn + overwrite + chmod +x
  *
  * Flags:
- *   --force   Overwrite an existing hook that does not contain dep-fence check
+ *   --force   Overwrite an existing hook that does not contain trustlock check
  *
  * Exit codes:
  *   0 — success
@@ -23,7 +23,7 @@ import { constants } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 
-const HOOK_LINE    = 'dep-fence check';
+const HOOK_LINE    = 'trustlock check';
 const HOOK_SHEBANG = '#!/bin/sh';
 const FRESH_HOOK   = `${HOOK_SHEBANG}\n${HOOK_LINE}\n`;
 
@@ -123,17 +123,17 @@ export async function run(args, { _cwd, _resolveGitCommonDir } = {}) {
       process.exitCode = 2;
       return;
     }
-    process.stdout.write(`Installed dep-fence pre-commit hook at ${hookPath}\n`);
+    process.stdout.write(`Installed trustlock pre-commit hook at ${hookPath}\n`);
     return;
   }
 
-  // State 2: Hook exists and already contains dep-fence check → no duplicate (edge case #8)
+  // State 2: Hook exists and already contains trustlock check → no duplicate (edge case #8)
   if (existingContent.includes(HOOK_LINE)) {
     process.stdout.write('Hook already installed.\n');
     return;
   }
 
-  // State 4: Hook exists without dep-fence check and --force → warn + overwrite (edge case #9)
+  // State 4: Hook exists without trustlock check and --force → warn + overwrite (edge case #9)
   if (force) {
     process.stdout.write('Overwriting existing pre-commit hook.\n');
     try {
@@ -144,11 +144,11 @@ export async function run(args, { _cwd, _resolveGitCommonDir } = {}) {
       process.exitCode = 2;
       return;
     }
-    process.stdout.write(`Installed dep-fence pre-commit hook at ${hookPath}\n`);
+    process.stdout.write(`Installed trustlock pre-commit hook at ${hookPath}\n`);
     return;
   }
 
-  // State 3: Hook exists without dep-fence check, no --force → append
+  // State 3: Hook exists without trustlock check, no --force → append
   const newContent = existingContent.endsWith('\n')
     ? `${existingContent}${HOOK_LINE}\n`
     : `${existingContent}\n${HOOK_LINE}\n`;
@@ -161,5 +161,5 @@ export async function run(args, { _cwd, _resolveGitCommonDir } = {}) {
     process.exitCode = 2;
     return;
   }
-  process.stdout.write(`Appended dep-fence check to existing pre-commit hook at ${hookPath}\n`);
+  process.stdout.write(`Appended trustlock check to existing pre-commit hook at ${hookPath}\n`);
 }

@@ -1,7 +1,7 @@
 pre-commit:
   commands:
-    dep-fence:
-      run: dep-fence check
+    trustlock:
+      run: trustlock check
       # Advisory mode: warns on violations but does not block the commit.
       # Remove --enforce from the run command above if you want strict blocking.
-      # To use enforce mode in the hook: run: dep-fence check --enforce
+      # To use enforce mode in the hook: run: trustlock check --enforce

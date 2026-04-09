@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { createCache } from '../../src/registry/cache.js';
 
 async function withTmpDir(fn) {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-cache-test-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-cache-test-'));
   try {
     await fn(dir);
   } finally {

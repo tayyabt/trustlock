@@ -1,4 +1,4 @@
-# dep-fence: Full Technical Specification
+# trustlock: Full Technical Specification
 
 **Version:** 1.0
 **Date:** 2026-04-07
@@ -8,7 +8,7 @@
 
 ## 1. Product Overview
 
-dep-fence is a dependency admission controller for Git-based projects. It evaluates trust signals on dependency changes and blocks commits or builds when changes violate the team's declared policy.
+trustlock is a dependency admission controller for Git-based projects. It evaluates trust signals on dependency changes and blocks commits or builds when changes violate the team's declared policy.
 
 It's not a scanner, not a vulnerability database, not a malware detector. It decides whether a dependency change is admissible based on trust continuity, release age, install-time behavior, and declared policy.
 
@@ -19,11 +19,11 @@ It runs in two places: as a Git pre-commit hook (local, advisory) and as a CI ch
 
 ### 2.1 Admission Control Model
 
-Every dependency change is evaluated as an admission decision: admit or block. The decision is based on the team's policy file (`.depfencerc.json`), the current state of the lockfile, the previous trusted baseline, and metadata from the package registry.
+Every dependency change is evaluated as an admission decision: admit or block. The decision is based on the team's policy file (`.trustlockrc.json`), the current state of the lockfile, the previous trusted baseline, and metadata from the package registry.
 
 ### 2.2 Trust Baseline
 
-The trust baseline is the last known-good state of the dependency tree. It's stored as `.dep-fence/baseline.json` and contains:
+The trust baseline is the last known-good state of the dependency tree. It's stored as `.trustlock/baseline.json` and contains:
 
 - Package name and version for every resolved dependency
 - Provenance status at time of admission (had provenance: yes/no, publisher identity)
@@ -34,7 +34,7 @@ The baseline only advances when changes pass policy or are explicitly approved. 
 
 ### 2.3 Approvals
 
-Approvals are recorded in `.dep-fence/approvals.json`. Each approval is:
+Approvals are recorded in `.trustlock/approvals.json`. Each approval is:
 
 - Scoped to a specific package and version
 - Scoped to specific policy overrides (e.g., only cooldown, not provenance)
@@ -46,7 +46,7 @@ Approvals are committed to Git and go through code review.
 
 ### 2.4 Policy
 
-Policy is declared in `.depfencerc.json`. It specifies:
+Policy is declared in `.trustlockrc.json`. It specifies:
 
 - Which rules are enforced
 - What thresholds apply (cooldown hours, etc.)
@@ -59,21 +59,21 @@ Policy produces decisions, not findings. Every rule resolves to admit or block.
 ## 3. Architecture
 
 ```
-dep-fence/
+trustlock/
 ├── src/
 │   ├── cli/
 │   │   ├── index.js              # Main entry point, command router
 │   │   ├── commands/
-│   │   │   ├── init.js            # dep-fence init
-│   │   │   ├── check.js           # dep-fence check [--enforce]
-│   │   │   ├── approve.js         # dep-fence approve <pkg>@<ver>
-│   │   │   ├── audit.js           # dep-fence audit
-│   │   │   ├── clean.js           # dep-fence clean-approvals
-│   │   │   └── install-hook.js    # dep-fence install-hook
+│   │   │   ├── init.js            # trustlock init
+│   │   │   ├── check.js           # trustlock check [--enforce]
+│   │   │   ├── approve.js         # trustlock approve <pkg>@<ver>
+│   │   │   ├── audit.js           # trustlock audit
+│   │   │   ├── clean.js           # trustlock clean-approvals
+│   │   │   └── install-hook.js    # trustlock install-hook
 │   │   └── args.js               # Argument parser
 │   ├── policy/
 │   │   ├── engine.js              # Core policy evaluation
-│   │   ├── config.js              # .depfencerc.json loader and defaults
+│   │   ├── config.js              # .trustlockrc.json loader and defaults
 │   │   ├── rules/
 │   │   │   ├── trust-continuity.js  # Provenance regression, publisher change
 │   │   │   ├── exposure.js          # Cooldown, version pinning
@@ -128,8 +128,8 @@ dep-fence/
 │       ├── approve-flow.test.js
 │       └── ci-enforce.test.js
 ├── examples/
-│   ├── depfencerc-production.json
-│   ├── depfencerc-relaxed.json
+│   ├── trustlockrc-production.json
+│   ├── trustlockrc-relaxed.json
 │   ├── lefthook.yml
 │   ├── husky-pre-commit
 │   └── github-actions.yml
@@ -180,7 +180,7 @@ dep-fence/
 }
 ```
 
-### 4.3 Policy Config (.depfencerc.json)
+### 4.3 Policy Config (.trustlockrc.json)
 
 ```javascript
 {
@@ -275,11 +275,11 @@ dep-fence/
     }
   ],
   approval: null,                     // Populated if admitted_with_approval
-  approvalCommand: "dep-fence approve axios@1.14.1 --override cooldown,provenance --reason \"...\" --expires 7d"
+  approvalCommand: "trustlock approve axios@1.14.1 --override cooldown,provenance --reason \"...\" --expires 7d"
 }
 ```
 
-### 4.6 Baseline File (.dep-fence/baseline.json)
+### 4.6 Baseline File (.trustlock/baseline.json)
 
 ```javascript
 {
@@ -298,17 +298,17 @@ dep-fence/
 
 ## 5. Commands
 
-### 5.1 dep-fence init
+### 5.1 trustlock init
 
-**Purpose:** Initialize dep-fence in a project.
+**Purpose:** Initialize trustlock in a project.
 
 **Behavior:**
 1. Check for lockfile (package-lock.json, pnpm-lock.yaml, yarn.lock). Fail if none found.
-2. Create `.depfencerc.json` with defaults.
-3. Create `.dep-fence/` directory.
-4. Create `.dep-fence/approvals.json` (empty array).
+2. Create `.trustlockrc.json` with defaults.
+3. Create `.trustlock/` directory.
+4. Create `.trustlock/approvals.json` (empty array).
 5. Parse current lockfile and build initial baseline.
-6. Write `.dep-fence/baseline.json`.
+6. Write `.trustlock/baseline.json`.
 7. Print summary: number of packages baselined, detected lockfile format, next steps.
 
 **Flags:**
@@ -316,14 +316,14 @@ dep-fence/
 - `--strict`: Create policy with provenance required for top 100 npm packages.
 - `--no-baseline`: Skip baseline creation (useful if you want to run audit first).
 
-### 5.2 dep-fence check
+### 5.2 trustlock check
 
 **Purpose:** Evaluate dependency changes against policy.
 
 **Behavior:**
-1. Load policy from `.depfencerc.json`.
-2. Load baseline from `.dep-fence/baseline.json`.
-3. Load approvals from `.dep-fence/approvals.json`.
+1. Load policy from `.trustlockrc.json`.
+2. Load baseline from `.trustlock/baseline.json`.
+3. Load approvals from `.trustlock/approvals.json`.
 4. Parse current lockfile.
 5. Compute delta between baseline and current lockfile.
 6. If no changes, print "No dependency changes" and exit 0.
@@ -350,7 +350,7 @@ dep-fence/
 - 1: One or more changes blocked (only with `--enforce`).
 - 2: Fatal error (config missing, lockfile parse failure, etc.).
 
-### 5.3 dep-fence approve
+### 5.3 trustlock approve
 
 **Purpose:** Record an approval for a blocked dependency.
 
@@ -361,7 +361,7 @@ dep-fence/
 4. Calculate expiry from `--expires` (duration string like "7d", "24h", "30d").
 5. Enforce max expiry from config.
 6. Get approver identity (from git config user.name, or `--as` flag).
-7. Write entry to `.dep-fence/approvals.json`.
+7. Write entry to `.trustlock/approvals.json`.
 8. Print confirmation with expiry date.
 
 **Arguments:**
@@ -373,13 +373,13 @@ dep-fence/
 
 **Example:**
 ```bash
-dep-fence approve axios@1.14.1 \
+trustlock approve axios@1.14.1 \
   --override cooldown,provenance \
   --reason "Verified source against commit abc1234. Hotfix for #432." \
   --expires 7d
 ```
 
-### 5.4 dep-fence audit
+### 5.4 trustlock audit
 
 **Purpose:** Evaluate the entire current lockfile against policy, without blocking.
 
@@ -402,24 +402,24 @@ dep-fence approve axios@1.14.1 \
 
 This command never blocks or modifies anything. It's informational only.
 
-### 5.5 dep-fence clean-approvals
+### 5.5 trustlock clean-approvals
 
 **Purpose:** Remove expired approvals from the approvals file.
 
 **Behavior:**
-1. Load `.dep-fence/approvals.json`.
+1. Load `.trustlock/approvals.json`.
 2. Filter out entries where `expires` is in the past.
 3. Write back the filtered list.
 4. Print count of removed and remaining approvals.
 
-### 5.6 dep-fence install-hook
+### 5.6 trustlock install-hook
 
 **Purpose:** Install the Git pre-commit hook directly (for teams not using lefthook/Husky).
 
 **Behavior:**
 1. Check if `.git/hooks/pre-commit` exists.
-2. If it exists, append dep-fence check to it (after existing content).
-3. If it doesn't exist, create it with dep-fence check.
+2. If it exists, append trustlock check to it (after existing content).
+3. If it doesn't exist, create it with trustlock check.
 4. Make it executable.
 5. Print confirmation.
 
@@ -544,14 +544,14 @@ This command never blocks or modifies anything. It's informational only.
 
 ### 7.1 Caching
 
-Registry responses are cached locally in `.dep-fence/.cache/` as JSON files. Cache key is `{package}@{version}` for version-specific data and `{package}` for full package metadata.
+Registry responses are cached locally in `.trustlock/.cache/` as JSON files. Cache key is `{package}@{version}` for version-specific data and `{package}` for full package metadata.
 
 **Cache TTL:**
 - Version metadata: 24 hours (immutable once published)
 - Full package metadata (includes `time` object): 1 hour
 - Attestations: 1 hour
 
-**Cache invalidation:** `dep-fence check --no-cache` bypasses cache entirely.
+**Cache invalidation:** `trustlock check --no-cache` bypasses cache entirely.
 
 ### 7.2 Rate Limiting
 
@@ -616,8 +616,8 @@ If the registry is unreachable:
 - Lockfile parser: pip requirements.txt (pinned), pip-compile output, uv.lock
 - Registry client adapter: PyPI JSON API
 - PyPI provenance checks (if available, PyPI has been working on attestation support)
-- Policy inheritance: org-level `.depfencerc.json` that repos extend
-- `dep-fence audit` improvements: compare across projects, identify shared vulnerable deps
+- Policy inheritance: org-level `.trustlockrc.json` that repos extend
+- `trustlock audit` improvements: compare across projects, identify shared vulnerable deps
 
 **Estimated size:** ~1,500 additional lines of source, ~800 lines of tests.
 
@@ -628,8 +628,8 @@ If the registry is unreachable:
 **Deliverables:**
 - Lockfile parser: Cargo.lock
 - Registry client adapter: crates.io API
-- `dep-fence diff` command: show dependency delta between any two commits (not just baseline vs current)
-- `dep-fence why <package>`: show why a package is in the tree (which direct dep pulls it in)
+- `trustlock diff` command: show dependency delta between any two commits (not just baseline vs current)
+- `trustlock why <package>`: show why a package is in the tree (which direct dep pulls it in)
 - CycloneDX SBOM generation as a side effect of check
 - Bash/Zsh completions
 - Man page
@@ -643,7 +643,7 @@ If the registry is unreachable:
 - Cross-project correlation (detect when a publisher's multiple packages all change simultaneously)
 - Maintained curated allowlists
 - Historical trust timeline per package
-- CLI integration: `dep-fence check --trust-api <url>` uses the API instead of direct registry queries
+- CLI integration: `trustlock check --trust-api <url>` uses the API instead of direct registry queries
 - Compliance report generation (SOC 2, NIST SSDF, NIS2)
 
 This phase is the monetization path. The CLI remains free. The API is the paid product.
@@ -664,11 +664,11 @@ Every policy rule has unit tests with:
 
 End-to-end tests that:
 1. Create a temp directory with a package.json and lockfile.
-2. Run `dep-fence init`.
+2. Run `trustlock init`.
 3. Modify the lockfile (simulating `npm install`).
-4. Run `dep-fence check` and assert output and exit code.
-5. Run `dep-fence approve` and assert approval file written.
-6. Run `dep-fence check` again and assert admission with approval.
+4. Run `trustlock check` and assert output and exit code.
+5. Run `trustlock approve` and assert approval file written.
+6. Run `trustlock check` again and assert admission with approval.
 
 ### 9.3 Fixture Data
 
@@ -686,14 +686,14 @@ Fixtures include:
 
 ## 10. Non-Goals
 
-Things dep-fence explicitly does NOT do:
+Things trustlock explicitly does NOT do:
 
-- **Malware detection.** dep-fence doesn't analyze package code. Use Socket for that.
-- **CVE tracking.** dep-fence doesn't check vulnerability databases. Use npm audit or Snyk for that.
-- **License compliance.** dep-fence doesn't check package licenses. Use license-checker for that.
-- **Dependency recommendations.** dep-fence doesn't suggest alternatives to risky packages.
-- **Registry mirroring or proxying.** dep-fence doesn't sit between you and the registry. It evaluates after resolution.
-- **Blockchain or cryptographic package verification beyond SLSA.** dep-fence uses the provenance infrastructure npm already provides.
+- **Malware detection.** trustlock doesn't analyze package code. Use Socket for that.
+- **CVE tracking.** trustlock doesn't check vulnerability databases. Use npm audit or Snyk for that.
+- **License compliance.** trustlock doesn't check package licenses. Use license-checker for that.
+- **Dependency recommendations.** trustlock doesn't suggest alternatives to risky packages.
+- **Registry mirroring or proxying.** trustlock doesn't sit between you and the registry. It evaluates after resolution.
+- **Blockchain or cryptographic package verification beyond SLSA.** trustlock uses the provenance infrastructure npm already provides.
 
 
 ## 11. Design Decisions and Rationale

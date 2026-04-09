@@ -1,5 +1,5 @@
 /**
- * Policy data model shapes for dep-fence.
+ * Policy data model shapes for trustlock.
  *
  * All shapes are plain objects. These exports document the expected structure
  * with field-level JSDoc comments; they serve as the canonical contract for
@@ -65,7 +65,7 @@ export const Finding = {
  * Fields:
  *   decision        {string}       'admitted' | 'admitted_with_approval' | 'blocked'.
  *   findings        {Finding[]}    All findings produced by rule evaluation (block and warn).
- *   approvalCommand {string|null}  Suggested `dep-fence approve` command when decision is
+ *   approvalCommand {string|null}  Suggested `trustlock approve` command when decision is
  *                                  'blocked'; null otherwise.
  */
 export const CheckResult = {

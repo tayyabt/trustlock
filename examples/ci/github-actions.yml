@@ -1,4 +1,4 @@
-name: dep-fence
+name: trustlock
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  dep-fence:
+  trustlock:
     name: Dependency admission check
     runs-on: ubuntu-latest
 
@@ -18,13 +18,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'   # dep-fence requires Node.js >= 18.3
+          node-version: '18.x'   # trustlock requires Node.js >= 18.3
 
-      - name: Install dep-fence
-        run: npm install -g dep-fence
+      - name: Install trustlock
+        run: npm install -g trustlock
 
-      - name: Run dep-fence check
-        run: dep-fence check --enforce
+      - name: Run trustlock check
+        run: trustlock check --enforce
         # Exits 1 if any dependency is blocked by policy.
         # Never advances the baseline in CI (D10).
         # Set NO_COLOR=1 for cleaner CI log output.

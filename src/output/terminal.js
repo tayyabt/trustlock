@@ -1,5 +1,5 @@
 /**
- * Terminal formatter for dep-fence.
+ * Terminal formatter for trustlock.
  *
  * Renders check results, audit reports, and status messages with ANSI colors
  * for human consumption. All functions return plain strings; the caller (CLI)
@@ -67,7 +67,7 @@ function shellEscape(arg) {
 }
 
 /**
- * Build a copy-pasteable `dep-fence approve` command.
+ * Build a copy-pasteable `trustlock approve` command.
  * @param {string} name - Package name (e.g. "lodash", "@scope/pkg")
  * @param {string} version - Exact resolved version
  * @param {string[]} blockingRules - Rule identifiers from block-severity findings
@@ -76,7 +76,7 @@ function shellEscape(arg) {
 function buildApprovalCommand(name, version, blockingRules) {
   const pkgAtVersion = shellEscape(`${name}@${version}`);
   const overrideFlags = blockingRules.map((r) => `--override ${shellEscape(r)}`).join(' ');
-  return `dep-fence approve ${pkgAtVersion} ${overrideFlags}`.trimEnd();
+  return `trustlock approve ${pkgAtVersion} ${overrideFlags}`.trimEnd();
 }
 
 // ---------------------------------------------------------------------------

@@ -86,7 +86,7 @@ test('createBaseline with empty dependency list returns valid Baseline with empt
 // ---------------------------------------------------------------------------
 
 test('readBaseline returns the Baseline object for a valid file (round-trip)', async (t) => {
-  const dir = join(tmpdir(), `dep-fence-test-${process.pid}-${Date.now()}`);
+  const dir = join(tmpdir(), `trustlock-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
   t.after(() => rm(dir, { recursive: true, force: true }));
 
@@ -105,13 +105,13 @@ test('readBaseline returns the Baseline object for a valid file (round-trip)', a
 
 // AC4: missing file → { error: "not_initialized" }
 test('readBaseline returns { error: "not_initialized" } when file does not exist', async () => {
-  const result = await readBaseline('/tmp/__dep-fence-nonexistent-baseline.json');
+  const result = await readBaseline('/tmp/__trustlock-nonexistent-baseline.json');
   assert.deepEqual(result, { error: 'not_initialized' });
 });
 
 // AC5: corrupted JSON → { error: "corrupted" }
 test('readBaseline returns { error: "corrupted" } for a file with invalid JSON', async (t) => {
-  const dir = join(tmpdir(), `dep-fence-test-${process.pid}-${Date.now()}`);
+  const dir = join(tmpdir(), `trustlock-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
   t.after(() => rm(dir, { recursive: true, force: true }));
 
@@ -124,7 +124,7 @@ test('readBaseline returns { error: "corrupted" } for a file with invalid JSON',
 
 // AC6: wrong schema_version → { error: "unsupported_schema", version: N }
 test('readBaseline returns { error: "unsupported_schema", version } for unknown schema_version', async (t) => {
-  const dir = join(tmpdir(), `dep-fence-test-${process.pid}-${Date.now()}`);
+  const dir = join(tmpdir(), `trustlock-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
   t.after(() => rm(dir, { recursive: true, force: true }));
 
@@ -237,9 +237,9 @@ test('advanceBaseline preserves schema_version and created_at from old baseline'
 // writeAndStage — AC5, AC6
 // ---------------------------------------------------------------------------
 
-// AC5: writes JSON to disk and calls gitAdd with '.dep-fence/baseline.json'
+// AC5: writes JSON to disk and calls gitAdd with '.trustlock/baseline.json'
 test('writeAndStage writes JSON to disk and calls gitAdd', async (t) => {
-  const dir = join(tmpdir(), `dep-fence-test-${process.pid}-${Date.now()}`);
+  const dir = join(tmpdir(), `trustlock-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
   t.after(() => rm(dir, { recursive: true, force: true }));
 
@@ -262,12 +262,12 @@ test('writeAndStage writes JSON to disk and calls gitAdd', async (t) => {
   assert.ok(content.includes('  "schema_version"'), 'JSON must use 2-space indentation');
 
   // gitAdd must be called with the hardcoded baseline path
-  assert.equal(gitAddCalledWith, '.dep-fence/baseline.json');
+  assert.equal(gitAddCalledWith, '.trustlock/baseline.json');
 });
 
 // AC6: if gitAdd fails, logs warning to stderr and does not throw
 test('writeAndStage logs warning when gitAdd fails and does not throw', async (t) => {
-  const dir = join(tmpdir(), `dep-fence-test-${process.pid}-${Date.now()}`);
+  const dir = join(tmpdir(), `trustlock-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
   t.after(() => rm(dir, { recursive: true, force: true }));
 

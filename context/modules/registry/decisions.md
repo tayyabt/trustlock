@@ -6,7 +6,7 @@
    - Consequence: Every registry function returns data + quality indicator. Policy engine must propagate quality status into findings.
 
 2. File-based cache with atomic writes
-   - Why: No database dependency. JSON files in `.dep-fence/.cache/`. Atomic write (temp + rename) prevents corruption on crash.
+   - Why: No database dependency. JSON files in `.trustlock/.cache/`. Atomic write (temp + rename) prevents corruption on crash.
    - Consequence: Cache operations are async file I/O. Cache directory must exist before first write (created during init).
 
 3. HTTP via `node:https` only (ADR-001)

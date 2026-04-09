@@ -18,4 +18,4 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F08-S7-approach.md
 review_artifact: docs/reviews/task-040-review.md
-docs_updates: README.md, USAGE.md, POLICY-REFERENCE.md, ARCHITECTURE.md, examples/configs/production.depfencerc.json, examples/configs/relaxed.depfencerc.json, examples/ci/github-actions.yml, examples/ci/lefthook.yml, examples/ci/husky/.husky/pre-commit
+docs_updates: README.md, USAGE.md, POLICY-REFERENCE.md, ARCHITECTURE.md, examples/configs/production.trustlockrc.json, examples/configs/relaxed.trustlockrc.json, examples/ci/github-actions.yml, examples/ci/lefthook.yml, examples/ci/husky/.husky/pre-commit

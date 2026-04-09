@@ -1,7 +1,7 @@
 # Design Approach: F01-S01 Project Skeleton and Test Harness
 
 ## Summary
-Create the foundational project skeleton for dep-fence: package.json with bin entry, ES module entry point with shebang, directory structure, and a working test harness using Node.js built-in test runner. This is the base layer every other feature builds on.
+Create the foundational project skeleton for trustlock: package.json with bin entry, ES module entry point with shebang, directory structure, and a working test harness using Node.js built-in test runner. This is the base layer every other feature builds on.
 
 The entry point prints the package version and exits 0. Real command routing is deferred to F08.
 
@@ -16,7 +16,7 @@ The entry point prints the package version and exits 0. Real command routing is 
 N/A — no UI, no design preview applicable.
 
 ## Integration / Wiring
-- **Caller-side**: `package.json` `bin.dep-fence` points to `src/index.js`
+- **Caller-side**: `package.json` `bin.trustlock` points to `src/index.js`
 - **Callee-side**: `src/index.js` is the entry point. Prints version and exits.
 - **Deferred**: Real command routing deferred to F08. The seam is the body of `src/index.js`.
 - **Boundary check**: `node src/index.js` exits 0; `node -e "import('./src/index.js')"` succeeds.
@@ -43,14 +43,14 @@ One smoke test file using `node:test` and `node:assert/strict`:
 ## Verification Results
 - AC: package.json has bin, type, engines, zero deps -> PASS — `node -e "const pkg = ..."` prints OK; test assertions pass (5/5)
 - AC: src/index.js has shebang and is valid ES module -> PASS — file starts with `#!/usr/bin/env node`, `chmod +x` applied, `node src/index.js` exits 0
-- AC: `node -e "import('./src/index.js')"` succeeds -> PASS — prints `dep-fence v0.1.0`, no errors
+- AC: `node -e "import('./src/index.js')"` succeeds -> PASS — prints `trustlock v0.1.0`, no errors
 - AC: `node --test` discovers and runs tests -> PASS — 5 tests, 1 suite, 0 failures
 - AC: directory structure exists (src/utils/, test/, test/fixtures/) -> PASS — all three directories confirmed
 
 ## Story Run Log Update
 ### 2026-04-08 Developer: Implementation
 - Created project skeleton per F01-S01 spec
-- `node -e "import('./src/index.js')"` -> PASS (prints `dep-fence v0.1.0`)
+- `node -e "import('./src/index.js')"` -> PASS (prints `trustlock v0.1.0`)
 - `node --test` -> PASS (5 tests, 0 failures)
 - `node src/index.js` -> PASS (exit 0)
 - package.json field validation -> PASS

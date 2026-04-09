@@ -11,7 +11,7 @@
 
   "scripts": {
     "allowlist": [],
-    "_comment": "Empty allowlist with no install-script blocking policy. dep-fence does not block install scripts unless the allowlist policy is activated via the scripts rule. This relaxed config leaves the default behavior in place."
+    "_comment": "Empty allowlist with no install-script blocking policy. trustlock does not block install scripts unless the allowlist policy is activated via the scripts rule. This relaxed config leaves the default behavior in place."
   },
 
   "sources": {

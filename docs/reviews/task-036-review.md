@@ -1,7 +1,7 @@
 # Code Review: task-036 — Implement `approve` Command (F08-S3)
 
 ## Summary
-Full implementation of `dep-fence approve` replacing the F08-S1 stub. All 8 acceptance criteria are satisfied and verified by 14 passing unit tests. No runtime stubs present; all required callee wires use real module APIs. The design note is honest and complete.
+Full implementation of `trustlock approve` replacing the F08-S1 stub. All 8 acceptance criteria are satisfied and verified by 14 passing unit tests. No runtime stubs present; all required callee wires use real module APIs. The design note is honest and complete.
 
 ## Verdict
 Approved
@@ -44,7 +44,7 @@ Approved
 - AC3: `--as <name>` overrides git config for approver identity → **PASS** — unit test "AC3: --as <name> overrides approvedBy"; `approve.js:185-198` takes strict precedence
 - AC4: Package not in lockfile exits exit 2 + "Error: \<pkg\>@\<ver\> not found in lockfile" → **PASS** — unit test "AC4: package not in lockfile"; `approve.js:209-212`
 - AC5: Invalid `--override` value exits exit 2 + valid rule names list → **PASS** — unit test "AC5: invalid --override value"; `approve.js:146-153`
-- AC6: `--expires` exceeding `max_expiry_days` exits exit 2 + "Maximum expiry is N days (configured in .depfencerc.json)" → **PASS** — unit test "AC6: --expires exceeding max_expiry_days"; `approve.js:165-171`
+- AC6: `--expires` exceeding `max_expiry_days` exits exit 2 + "Maximum expiry is N days (configured in .trustlockrc.json)" → **PASS** — unit test "AC6: --expires exceeding max_expiry_days"; `approve.js:165-171`
 - AC7: Missing `--reason` when `require_reason: true` exits exit 2 → **PASS** — unit test "AC7: missing --reason when require_reason:true"; `approve.js:175-180`
 - AC8: Approval file appended (not overwritten) when approvals already exist → **PASS** — unit test "AC8: appends to existing approvals"; pre-populated fixture with 1 entry, verifies 2 entries after
 

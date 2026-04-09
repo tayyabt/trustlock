@@ -1,4 +1,4 @@
-# System Overview: dep-fence v0.1
+# System Overview: trustlock v0.1
 
 ## What It Is
 
@@ -34,14 +34,14 @@ A dependency admission controller for npm projects. Evaluates trust signals on d
 └─────────────────────────────────────────────┘
 ```
 
-## Data Flow: `dep-fence check`
+## Data Flow: `trustlock check`
 
 ```
 1. CLI parses args (--enforce, --json, --dry-run, --lockfile, --no-cache)
 2. Policy engine loads:
-   a. PolicyConfig from .depfencerc.json
-   b. Baseline from .dep-fence/baseline.json
-   c. Approvals from .dep-fence/approvals.json
+   a. PolicyConfig from .trustlockrc.json
+   b. Baseline from .trustlock/baseline.json
+   c. Approvals from .trustlock/approvals.json
    d. Current lockfile via lockfile parser
 3. Compute delta: current lockfile vs baseline
 4. If no changes → "No dependency changes" → exit 0
@@ -53,26 +53,26 @@ A dependency admission controller for npm projects. Evaluates trust signals on d
 6. Format output (terminal or JSON)
 7. If all admitted and not --dry-run and not --enforce:
    a. Update baseline with newly admitted packages
-   b. git add .dep-fence/baseline.json
+   b. git add .trustlock/baseline.json
 8. Exit: 0 (advisory or all-pass) | 1 (enforce + any block) | 2 (fatal error)
 ```
 
-## Data Flow: `dep-fence init`
+## Data Flow: `trustlock init`
 
 ```
 1. Detect lockfile (package-lock.json). Fail if none found.
-2. Fail if .dep-fence/ already exists (D6).
-3. Create .depfencerc.json with defaults.
-4. Create .dep-fence/ directory.
-5. Create .dep-fence/approvals.json (empty array).
-6. Create .dep-fence/.cache/ and .dep-fence/.gitignore (cache gitignored, D8).
+2. Fail if .trustlock/ already exists (D6).
+3. Create .trustlockrc.json with defaults.
+4. Create .trustlock/ directory.
+5. Create .trustlock/approvals.json (empty array).
+6. Create .trustlock/.cache/ and .trustlock/.gitignore (cache gitignored, D8).
 7. Parse current lockfile → ResolvedDependency[].
 8. For each dependency, build TrustProfile (fetch registry metadata for provenance).
-9. Write .dep-fence/baseline.json.
+9. Write .trustlock/baseline.json.
 10. Print summary.
 ```
 
-## Data Flow: `dep-fence approve`
+## Data Flow: `trustlock approve`
 
 ```
 1. Parse package@version from args.
@@ -80,7 +80,7 @@ A dependency admission controller for npm projects. Evaluates trust signals on d
 3. Validate --override values are valid rule names.
 4. Calculate expiry (--expires or default from config). Enforce max.
 5. Get approver identity (git config user.name or --as).
-6. Append entry to .dep-fence/approvals.json.
+6. Append entry to .trustlock/approvals.json.
 7. Print confirmation with expiry date.
 ```
 
@@ -107,4 +107,4 @@ A dependency admission controller for npm projects. Evaluates trust signals on d
 ## Metadata
 - Agent: architect-foundation
 - Date: 2026-04-08
-- Spec: 2026-04-07-dep-fence-full-spec
+- Spec: 2026-04-07-trustlock-full-spec

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Clean, well-scoped fix. The terminal formatter now correctly translates full finding rule IDs (e.g. `execution:scripts`) to the short approval names accepted by `dep-fence approve` (e.g. `scripts`). All three bug acceptance criteria are concretely verified with passing unit tests and honest design-note evidence.
+Clean, well-scoped fix. The terminal formatter now correctly translates full finding rule IDs (e.g. `execution:scripts`) to the short approval names accepted by `trustlock approve` (e.g. `scripts`). All three bug acceptance criteria are concretely verified with passing unit tests and honest design-note evidence.
 
 ## Verdict
 

@@ -10,7 +10,7 @@
    - How to avoid it: The engine must annotate check results with data quality indicators. The terminal output must surface "skipped" warnings prominently so developers know some checks didn't run.
 
 3. Config validation gaps
-   - Why it happens: `.depfencerc.json` is user-edited. Invalid override names in config (e.g., typo in `provenance.required_for` package names) silently do nothing.
+   - Why it happens: `.trustlockrc.json` is user-edited. Invalid override names in config (e.g., typo in `provenance.required_for` package names) silently do nothing.
    - How to avoid it: Validate config at load time. Warn on `required_for` packages that aren't in the lockfile (they might be transitive or misspelled).
 
 ## Regression Traps

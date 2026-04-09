@@ -1,10 +1,10 @@
-# dep-fence — Architecture
+# trustlock — Architecture
 
-Design decisions, module map, and data flows for dep-fence v0.1.
+Design decisions, module map, and data flows for trustlock v0.1.
 
-## What dep-fence does
+## What trustlock does
 
-dep-fence is a dependency admission controller for npm projects. It evaluates trust signals on dependency changes and makes binary admit/block decisions based on a declared policy. It runs as a Git pre-commit hook (advisory) and as a CI check (`--enforce`).
+trustlock is a dependency admission controller for npm projects. It evaluates trust signals on dependency changes and makes binary admit/block decisions based on a declared policy. It runs as a Git pre-commit hook (advisory) and as a CI check (`--enforce`).
 
 ## Key design decisions
 
@@ -15,9 +15,9 @@ dep-fence is a dependency admission controller for npm projects. It evaluates tr
 | D3 | **Removed dependencies are silent** | Removal is always safe; no policy evaluation on removals. |
 | D4 | **Cooldown `clears_at` required in output** | Blocked packages show the exact UTC timestamp when the cooldown will clear. |
 | D5 | **Single lockfile in v0.1** | Only `package-lock.json` is supported. pnpm and yarn support is deferred to v0.2. |
-| D6 | **`init` fails if `.dep-fence/` exists** | Prevents silent re-initialization. Delete the directory or use `--force` (manual). |
+| D6 | **`init` fails if `.trustlock/` exists** | Prevents silent re-initialization. Delete the directory or use `--force` (manual). |
 | D7 | **Approver from git config** | Approver identity is `git config user.name` or `--as`. No anonymous approvals. |
-| D8 | **Cache is gitignored** | `.dep-fence/.cache/` is never committed. Cache is a performance optimization, not state. |
+| D8 | **Cache is gitignored** | `.trustlock/.cache/` is never committed. Cache is a performance optimization, not state. |
 | D9 | **No wildcard approvals** | Every approval must name specific rule(s). Blanket `--override *` is rejected. |
 | D10 | **CI is read-only** | `--enforce` never writes or advances the baseline. |
 | Q1 | **Fail hard on unknown lockfile version** | Exit 2 on unrecognized `lockfileVersion`. No best-effort degraded mode. |
@@ -87,14 +87,14 @@ cli → policy → [lockfile, registry, baseline, approvals] → output
 - **output** depends only on data models; no business logic.
 - **utils** is a leaf — any module may use it; it depends on nothing.
 
-## Data flow: `dep-fence check`
+## Data flow: `trustlock check`
 
 ```
 1. CLI parses args (--enforce, --json, --dry-run, --lockfile, --no-cache)
 2. Policy engine loads:
-   a. PolicyConfig from .depfencerc.json
-   b. Baseline from .dep-fence/baseline.json
-   c. Approvals from .dep-fence/approvals.json
+   a. PolicyConfig from .trustlockrc.json
+   b. Baseline from .trustlock/baseline.json
+   c. Approvals from .trustlock/approvals.json
    d. Current lockfile via lockfile parser
 3. Compute delta: current lockfile vs baseline
 4. If no changes → "No dependency changes" → exit 0
@@ -106,45 +106,45 @@ cli → policy → [lockfile, registry, baseline, approvals] → output
 6. Format output (terminal or JSON)
 7. If all admitted and not --dry-run and not --enforce:
    a. Advance baseline with newly admitted packages
-   b. git add .dep-fence/baseline.json (auto-staged)
+   b. git add .trustlock/baseline.json (auto-staged)
 8. Exit: 0 (advisory or all-pass) | 1 (enforce + any block) | 2 (fatal error)
 ```
 
-## Data flow: `dep-fence init`
+## Data flow: `trustlock init`
 
 ```
 1. Detect lockfile (package-lock.json). Fail if none found (exit 2).
-2. Fail if .dep-fence/ already exists (D6, exit 2).
+2. Fail if .trustlock/ already exists (D6, exit 2).
 3. Validate lockfile version (unless --no-baseline). Exit 2 on unknown version (Q1).
-4. Write .depfencerc.json with defaults (or --strict thresholds).
-5. Create .dep-fence/ directory scaffold:
-   a. .dep-fence/approvals.json — empty array
-   b. .dep-fence/.cache/ — cache directory
-   c. .dep-fence/.gitignore — ignores .cache/ (D8)
+4. Write .trustlockrc.json with defaults (or --strict thresholds).
+5. Create .trustlock/ directory scaffold:
+   a. .trustlock/approvals.json — empty array
+   b. .trustlock/.cache/ — cache directory
+   c. .trustlock/.gitignore — ignores .cache/ (D8)
 6. If --no-baseline: print scaffold notice, exit 0.
 7. Parse lockfile → ResolvedDependency[]
 8. For each dependency: fetch provenance attestations from registry.
-9. Write .dep-fence/baseline.json (git-staged automatically).
+9. Write .trustlock/baseline.json (git-staged automatically).
 10. Print summary.
 ```
 
-## Data flow: `dep-fence approve`
+## Data flow: `trustlock approve`
 
 ```
 1. Parse <pkg>@<ver> positional argument.
 2. Validate --override: must be non-empty, all valid rule names (D9).
-3. Load approval config (require_reason, max_expiry_days) from .depfencerc.json.
+3. Load approval config (require_reason, max_expiry_days) from .trustlockrc.json.
 4. Validate --expires duration: must not exceed max_expiry_days.
 5. Validate --reason: required when require_reason is true.
 6. Resolve approver identity: --as flag or git config user.name (D7).
 7. Parse lockfile and verify package@version exists.
-8. Append approval entry to .dep-fence/approvals.json (atomic write).
+8. Append approval entry to .trustlock/approvals.json (atomic write).
 9. Print confirmation with expiry timestamp.
 ```
 
 ## Data formats
 
-### `.depfencerc.json` (PolicyConfig)
+### `.trustlockrc.json` (PolicyConfig)
 
 ```json
 {
@@ -159,7 +159,7 @@ cli → policy → [lockfile, registry, baseline, approvals] → output
 }
 ```
 
-### `.dep-fence/baseline.json`
+### `.trustlock/baseline.json`
 
 ```json
 {
@@ -173,7 +173,7 @@ cli → policy → [lockfile, registry, baseline, approvals] → output
 }
 ```
 
-### `.dep-fence/approvals.json`
+### `.trustlock/approvals.json`
 
 ```json
 [
@@ -201,4 +201,4 @@ All parsers are pure functions: `(fileContent: string) => ResolvedDependency[]`.
 
 ## Registry caching
 
-Registry responses are cached in `.dep-fence/.cache/` with a configurable TTL. The cache directory is gitignored (D8). Use `--no-cache` to bypass the cache. See [ADR-003](docs/adrs/ADR-003-registry-caching-and-offline-behavior.md) for the full caching strategy.
+Registry responses are cached in `.trustlock/.cache/` with a configurable TTL. The cache directory is gitignored (D8). Use `--no-cache` to bypass the cache. See [ADR-003](docs/adrs/ADR-003-registry-caching-and-offline-behavior.md) for the full caching strategy.

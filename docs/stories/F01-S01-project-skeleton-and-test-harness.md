@@ -20,8 +20,8 @@ Create the project skeleton with package.json, bin entry point, directory struct
 - Any runtime behavior beyond the entry point stub
 
 ## Entry Points
-- Route / page / screen: `dep-fence` CLI binary (stub only)
-- Trigger / navigation path: `npx dep-fence` or `node src/index.js`
+- Route / page / screen: `trustlock` CLI binary (stub only)
+- Trigger / navigation path: `npx trustlock` or `node src/index.js`
 - Starting surface: Terminal — user invokes the CLI
 
 ## Wiring / Integration Points
@@ -45,7 +45,7 @@ Create the project skeleton with package.json, bin entry point, directory struct
 - `dependencies` must be an empty object or absent (ADR-001: zero runtime deps)
 
 ## Acceptance Criteria
-- [ ] `package.json` exists with `"bin": { "dep-fence": "src/index.js" }`, `"type": "module"`, `"engines": { "node": ">=18.3" }`, zero `dependencies`
+- [ ] `package.json` exists with `"bin": { "trustlock": "src/index.js" }`, `"type": "module"`, `"engines": { "node": ">=18.3" }`, zero `dependencies`
 - [ ] `src/index.js` has `#!/usr/bin/env node` shebang and is valid ES module
 - [ ] `node -e "import('./src/index.js')"` succeeds without error
 - [ ] `node --test` discovers and runs at least one test file successfully

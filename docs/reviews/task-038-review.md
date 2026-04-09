@@ -32,14 +32,14 @@ No blocking findings. One informational note:
 
 ## Acceptance Criteria Judgment
 
-- AC: `dep-fence audit` prints stats (total packages, per-rule issue counts, flagged packages with heuristic suggestions) → **PASS** — audit.test.js AC1/AC1b/AC1c pass; output includes "Audit Summary", "Total packages:", "Provenance:", "Age:", "Source types:"
-- AC: `dep-fence audit` exits 0 always (even with policy violations) → **PASS** — audit.test.js AC2 + AC4 confirm exit 0 with cooldown violations and blocked packages
-- AC: `dep-fence clean-approvals` removes expired entries from `approvals.json` and prints counts → **PASS** — clean.test.js AC1 + AC3 confirm file mutation and correct count messages; readFile assertion validates written JSON
-- AC: `dep-fence clean-approvals` with no expired entries prints "No expired approvals found." and exits 0 → **PASS** — clean.test.js AC2 + AC2b
-- AC: `dep-fence install-hook` creates `.git/hooks/pre-commit` with `dep-fence check` and makes it executable → **PASS** — install-hook.test.js AC1; `isExecutable()` asserts mode bit; content verified
-- AC: `dep-fence install-hook` when hook already contains `dep-fence check`: prints "Hook already installed." without duplicating (edge case #8) → **PASS** — install-hook.test.js AC2 + "hook containing dep-fence check is not modified even with --force"
-- AC: `dep-fence install-hook` when hook exists without dep-fence: appends without overwriting existing content → **PASS** — install-hook.test.js AC3 + AC3b (no-trailing-newline variant)
-- AC: `dep-fence install-hook --force` when hook has custom content: warns and overwrites (edge case #9) → **PASS** — install-hook.test.js AC4; "Overwriting existing pre-commit hook." confirmed in stdout; old content verified absent
+- AC: `trustlock audit` prints stats (total packages, per-rule issue counts, flagged packages with heuristic suggestions) → **PASS** — audit.test.js AC1/AC1b/AC1c pass; output includes "Audit Summary", "Total packages:", "Provenance:", "Age:", "Source types:"
+- AC: `trustlock audit` exits 0 always (even with policy violations) → **PASS** — audit.test.js AC2 + AC4 confirm exit 0 with cooldown violations and blocked packages
+- AC: `trustlock clean-approvals` removes expired entries from `approvals.json` and prints counts → **PASS** — clean.test.js AC1 + AC3 confirm file mutation and correct count messages; readFile assertion validates written JSON
+- AC: `trustlock clean-approvals` with no expired entries prints "No expired approvals found." and exits 0 → **PASS** — clean.test.js AC2 + AC2b
+- AC: `trustlock install-hook` creates `.git/hooks/pre-commit` with `trustlock check` and makes it executable → **PASS** — install-hook.test.js AC1; `isExecutable()` asserts mode bit; content verified
+- AC: `trustlock install-hook` when hook already contains `trustlock check`: prints "Hook already installed." without duplicating (edge case #8) → **PASS** — install-hook.test.js AC2 + "hook containing trustlock check is not modified even with --force"
+- AC: `trustlock install-hook` when hook exists without trustlock: appends without overwriting existing content → **PASS** — install-hook.test.js AC3 + AC3b (no-trailing-newline variant)
+- AC: `trustlock install-hook --force` when hook has custom content: warns and overwrites (edge case #9) → **PASS** — install-hook.test.js AC4; "Overwriting existing pre-commit hook." confirmed in stdout; old content verified absent
 
 ## Deferred Verification
 

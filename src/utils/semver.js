@@ -1,5 +1,5 @@
 /**
- * Semver subset utilities for dep-fence.
+ * Semver subset utilities for trustlock.
  * Handles exact version comparison and range operator detection.
  * Full range resolution is not needed — lockfiles resolve to exact versions.
  */

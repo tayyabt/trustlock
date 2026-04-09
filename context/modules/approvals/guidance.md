@@ -1,7 +1,7 @@
 # Module Guidance: Approvals
 
 ## Responsibilities
-- Read/write `.dep-fence/approvals.json`
+- Read/write `.trustlock/approvals.json`
 - Create approval entries with input validation
 - Validate approval applicability (package, version, rules, expiry)
 - Clean expired approvals

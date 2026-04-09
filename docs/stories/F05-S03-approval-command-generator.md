@@ -4,7 +4,7 @@
 F05: Approval Store & Validation
 
 ## Description
-Implement the approval command generator that produces copy-pasteable `dep-fence approve` commands for blocked packages. When a package is blocked, the output includes a ready-to-run command with the correct `--override` flags for the specific rules that blocked it.
+Implement the approval command generator that produces copy-pasteable `trustlock approve` commands for blocked packages. When a package is blocked, the output includes a ready-to-run command with the correct `--override` flags for the specific rules that blocked it.
 
 ## Scope
 **In scope:**
@@ -37,10 +37,10 @@ Implement the approval command generator that produces copy-pasteable `dep-fence
 ## Not Allowed To Stub
 - `--override` flag generation — must produce one `--override <rule>` per blocking rule, not a placeholder
 - Package@version formatting — must handle scoped packages (`@scope/pkg@1.0.0`) correctly
-- The generated command must be directly copy-pasteable into a terminal and produce a valid `dep-fence approve` invocation
+- The generated command must be directly copy-pasteable into a terminal and produce a valid `trustlock approve` invocation
 
 ## Behavioral / Interaction Rules
-- Generated command uses the format: `dep-fence approve <package>@<version> --override <rule1> --override <rule2> --expires <default>`
+- Generated command uses the format: `trustlock approve <package>@<version> --override <rule1> --override <rule2> --expires <default>`
 - Multiple blocking rules produce multiple `--override` flags, not a comma-separated list
 - Default expiry comes from `policyConfig.default_expiry` (e.g., "7d")
 - If no default expiry in config, omit `--expires` flag (let CLI use its own default)

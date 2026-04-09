@@ -24,7 +24,7 @@ Fetch trust-relevant metadata from the npm registry. Provide caching with TTL an
 
 ## Allowed Interactions
 - HTTP GET to `registry.npmjs.org` endpoints
-- Read/write `.dep-fence/.cache/` directory
+- Read/write `.trustlock/.cache/` directory
 - Return structured metadata to callers
 
 ## Forbidden Interactions

@@ -8,27 +8,27 @@
 
 ## Preconditions
 - Required data/state:
-  - dep-fence initialized (`.depfencerc.json` and `.dep-fence/baseline.json` exist)
+  - trustlock initialized (`.trustlockrc.json` and `.trustlock/baseline.json` exist)
   - Lockfile has been modified (e.g., `npm install axios@latest` was run)
   - Git working tree has the updated lockfile staged or about to be committed
 - Required permissions:
   - File system read/write access
 - Blocked prerequisites and guidance:
-  - If not initialized: exit 2, "No .depfencerc.json found. Run `dep-fence init` first."
-  - If baseline missing: exit 2, "No baseline found. Run `dep-fence init` first."
+  - If not initialized: exit 2, "No .trustlockrc.json found. Run `trustlock init` first."
+  - If baseline missing: exit 2, "No baseline found. Run `trustlock init` first."
 
 ## States And Steps
 - Happy path (advisory mode — pre-commit hook or manual):
-  1. Developer runs `git commit` (triggers pre-commit hook) or manually runs `dep-fence check`
+  1. Developer runs `git commit` (triggers pre-commit hook) or manually runs `trustlock check`
   2. Tool loads policy, baseline, approvals, and parses current lockfile
   3. Tool computes delta: identifies added, changed, removed packages
   4. For each changed/added package, tool fetches registry metadata (cache-first) and evaluates all rules
   5. All packages pass policy → all decisions are "admitted"
   6. Tool prints summary: "2 packages admitted (axios 1.14.0 → 1.14.1, lodash added)"
-  7. Tool advances baseline: writes updated `.dep-fence/baseline.json` and runs `git add` to stage it
+  7. Tool advances baseline: writes updated `.trustlock/baseline.json` and runs `git add` to stage it
   8. Exit 0 — commit proceeds
 - Happy path (enforce mode — CI):
-  1. CI runs `dep-fence check --enforce`
+  1. CI runs `trustlock check --enforce`
   2. Same evaluation as above
   3. All packages pass → tool prints summary, exit 0
   4. Baseline is NOT advanced (D10 — CI is read-only)
@@ -48,7 +48,7 @@
   - Developer sees which packages were admitted and why
 
 ## Interaction And Messaging
-- Controls: `dep-fence check [--enforce] [--json] [--dry-run] [--lockfile <path>] [--no-cache]`
+- Controls: `trustlock check [--enforce] [--json] [--dry-run] [--lockfile <path>] [--no-cache]`
 - Feedback:
   - Per-package admit line with version change
   - Summary line: "N packages admitted"

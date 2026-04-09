@@ -1,4 +1,4 @@
-# Architecture foundation: 2026-04-07-dep-fence-full-spec
+# Architecture foundation: 2026-04-07-trustlock-full-spec
 
 ## Description
 Create the foundation architecture for this project or imported system and write the durable architecture context.
@@ -9,9 +9,9 @@ Create the foundation architecture for this project or imported system and write
 - ADRs and module context are written for the chosen architecture.
 
 ## Inputs
-spec: specs/2026-04-07-dep-fence-full-spec.md
+spec: specs/2026-04-07-trustlock-full-spec.md
 project_brief: docs/project-brief.md
-product_review: docs/product-review/2026-04-07-dep-fence-full-spec.md
+product_review: docs/product-review/2026-04-07-trustlock-full-spec.md
 ## Outputs
 strategic_analysis: docs/architecture/strategic-analysis.md
 system_overview: docs/architecture/system-overview.md

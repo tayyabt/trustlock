@@ -24,7 +24,7 @@ async function main() {
   const command = args.positionals[0];
 
   if (!command) {
-    process.stderr.write(`Usage: dep-fence <command> [options]\nAvailable commands: ${AVAILABLE_COMMANDS}\n`);
+    process.stderr.write(`Usage: trustlock <command> [options]\nAvailable commands: ${AVAILABLE_COMMANDS}\n`);
     process.exitCode = 2;
     return;
   }

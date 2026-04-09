@@ -165,6 +165,6 @@ export function parseNpm(lockfileContent, packageJsonContent) {
 
   // Caller (parser.js) already exits on unsupported versions; guard for direct use.
   throw new Error(
-    `Unsupported npm lockfile version ${version}. dep-fence supports v1, v2, v3.`
+    `Unsupported npm lockfile version ${version}. trustlock supports v1, v2, v3.`
   );
 }

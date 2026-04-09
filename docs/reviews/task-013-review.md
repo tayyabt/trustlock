@@ -27,9 +27,9 @@ Approved
 - [x] Code quality & documentation (minimal, no dead code; docs update correctly noted as none)
 
 ## Acceptance Criteria Judgment
-- AC: `package.json` exists with `"bin":{"dep-fence":"src/index.js"}`, `"type":"module"`, `"engines":{"node":">=18.3"}`, zero `dependencies` -> PASS — programmatic field assertions print OK; no `dependencies` key present in package.json
+- AC: `package.json` exists with `"bin":{"trustlock":"src/index.js"}`, `"type":"module"`, `"engines":{"node":">=18.3"}`, zero `dependencies` -> PASS — programmatic field assertions print OK; no `dependencies` key present in package.json
 - AC: `src/index.js` has `#!/usr/bin/env node` shebang and is valid ES module -> PASS — `head -1` confirms shebang; `ls -la` shows `-rwxr-xr-x` permissions; import succeeds
-- AC: `node -e "import('./src/index.js')"` succeeds without error -> PASS — exits 0, prints `dep-fence v0.1.0`
+- AC: `node -e "import('./src/index.js')"` succeeds without error -> PASS — exits 0, prints `trustlock v0.1.0`
 - AC: `node --test` discovers and runs at least one test file successfully -> PASS — 5 tests, 1 suite, 0 failures
 - AC: Directory structure exists: `src/utils/`, `test/`, `test/fixtures/` -> PASS — `ls -d` confirms all three directories
 
@@ -43,7 +43,7 @@ none
 ## Integration / Boundary Judgment
 - Boundary: `package.json` bin → `src/index.js` entry point
 - Judgment: complete
-- Notes: `bin.dep-fence` correctly points to `src/index.js`. Entry point prints version and exits 0 as specified. Deferred integration to F08 (command routing) is correctly scoped out — the seam is clean for replacement.
+- Notes: `bin.trustlock` correctly points to `src/index.js`. Entry point prints version and exits 0 as specified. Deferred integration to F08 (command routing) is correctly scoped out — the seam is clean for replacement.
 
 ## Test Results
 - Command run: `node --test`

@@ -1,7 +1,7 @@
 # Design Approach: F04-S03 Baseline Advancement and Auto-Staging
 
 ## Summary
-Add `advanceBaseline()` and `writeAndStage()` to `src/baseline/manager.js`. The advancement function merges a fresh set of resolved dependencies into an existing baseline: packages with an unchanged name+version retain their original TrustProfile; packages with a new name or changed version receive a fresh TrustProfile; packages present in the old baseline but absent from the new dep set are silently dropped (D3). `writeAndStage` writes the updated baseline as 2-space-indented JSON using an atomic rename, then calls `gitAdd('.dep-fence/baseline.json')` per ADR-002. If `gitAdd` fails (e.g., file is `.gitignore`-d), a warning is written to stderr but no exception is raised.
+Add `advanceBaseline()` and `writeAndStage()` to `src/baseline/manager.js`. The advancement function merges a fresh set of resolved dependencies into an existing baseline: packages with an unchanged name+version retain their original TrustProfile; packages with a new name or changed version receive a fresh TrustProfile; packages present in the old baseline but absent from the new dep set are silently dropped (D3). `writeAndStage` writes the updated baseline as 2-space-indented JSON using an atomic rename, then calls `gitAdd('.trustlock/baseline.json')` per ADR-002. If `gitAdd` fails (e.g., file is `.gitignore`-d), a warning is written to stderr but no exception is raised.
 
 Mode guards (D1, D10) are the caller's responsibility — neither function checks `--dry-run` or `--enforce` flags.
 
@@ -40,7 +40,7 @@ Node.js built-in test runner (`node:test`). Tests use temp directories for real 
 - AC2: Newly admitted packages get fresh TrustProfile with current `admittedAt` → test: "advanceBaseline gives newly admitted packages a fresh TrustProfile"
 - AC3: Old baseline packages not in `admittedDeps` are silently dropped → test: "advanceBaseline drops packages absent from admittedDeps"
 - AC4: Unchanged packages (same name+version) retain original TrustProfile → test: "advanceBaseline retains original TrustProfile for unchanged packages"
-- AC5: `writeAndStage` writes JSON to disk and calls `gitAdd('.dep-fence/baseline.json')` → test: "writeAndStage writes JSON and calls gitAdd"
+- AC5: `writeAndStage` writes JSON to disk and calls `gitAdd('.trustlock/baseline.json')` → test: "writeAndStage writes JSON and calls gitAdd"
 - AC6: If `gitAdd` fails, warns and does not throw → test: "writeAndStage logs warning when gitAdd fails and does not throw"
 - AC7: Unit tests cover all required scenarios → covered by AC1–AC6 tests plus edge-case tests
 
@@ -53,7 +53,7 @@ Result: 18 pass, 0 fail
 - AC2: Newly admitted packages get fresh TrustProfile with current `admittedAt` → PASS — "advanceBaseline gives newly admitted packages a fresh TrustProfile"
 - AC3: Old baseline packages not in `admittedDeps` are silently dropped → PASS — "advanceBaseline drops packages absent from admittedDeps"
 - AC4: Unchanged packages (same name+version) retain original TrustProfile → PASS — "advanceBaseline retains original TrustProfile for unchanged packages"
-- AC5: `writeAndStage` writes JSON to disk and calls `gitAdd('.dep-fence/baseline.json')` → PASS — "writeAndStage writes JSON to disk and calls gitAdd"
+- AC5: `writeAndStage` writes JSON to disk and calls `gitAdd('.trustlock/baseline.json')` → PASS — "writeAndStage writes JSON to disk and calls gitAdd"
 - AC6: If `gitAdd` fails, logs warning, does not throw → PASS — "writeAndStage logs warning when gitAdd fails and does not throw"
 - AC7: Unit tests cover all required scenarios → PASS — 9 new tests covering all 6 ACs plus edge cases (all packages removed, version change, schema_version/created_at preservation)
 

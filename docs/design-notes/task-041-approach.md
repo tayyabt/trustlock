@@ -2,13 +2,13 @@
 
 ## Summary
 
-`dep-fence check` prints a generated approval command like:
+`trustlock check` prints a generated approval command like:
 
 ```
-dep-fence approve 'scripted-pkg@1.0.0' --override 'execution:scripts' --reason "..." --expires 7d
+trustlock approve 'scripted-pkg@1.0.0' --override 'execution:scripts' --reason "..." --expires 7d
 ```
 
-But `dep-fence approve` only accepts short rule names (`scripts`, `cooldown`, `provenance`, etc.), not full `category:name` IDs. Running the generated command fails with `Error: 'execution:scripts' is not a valid rule name`.
+But `trustlock approve` only accepts short rule names (`scripts`, `cooldown`, `provenance`, etc.), not full `category:name` IDs. Running the generated command fails with `Error: 'execution:scripts' is not a valid rule name`.
 
 ## Root Cause
 
@@ -20,7 +20,7 @@ const blockingRules = findings
   .map((f) => f.rule);
 ```
 
-Policy rule files set `finding.rule` to the full `category:name` format (e.g. `execution:scripts`, `exposure:cooldown`, `trust-continuity:provenance`) for uniqueness within the engine. But `dep-fence approve` validates `--override` values against `VALID_RULE_NAMES` in `src/approvals/models.js`, which contains only short names (`scripts`, `cooldown`, `provenance`, `pinning`, `sources`, `new-dep`, `transitive`).
+Policy rule files set `finding.rule` to the full `category:name` format (e.g. `execution:scripts`, `exposure:cooldown`, `trust-continuity:provenance`) for uniqueness within the engine. But `trustlock approve` validates `--override` values against `VALID_RULE_NAMES` in `src/approvals/models.js`, which contains only short names (`scripts`, `cooldown`, `provenance`, `pinning`, `sources`, `new-dep`, `transitive`).
 
 No translation between the two naming conventions existed.
 
@@ -63,7 +63,7 @@ Unknown rule IDs fall back to the raw value (`?? f.rule`) to avoid silent breaka
 
 ## Test Strategy
 
-- Update existing test `'includes a dep-fence approve command'` to assert `cooldown` not `exposure:cooldown`
+- Update existing test `'includes a trustlock approve command'` to assert `cooldown` not `exposure:cooldown`
 - Add two new targeted tests for BUG-001 ACs:
   1. `execution:scripts` → `--override scripts` and does not contain full ID
   2. `exposure:cooldown` → `--override cooldown` and does not contain full ID

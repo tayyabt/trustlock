@@ -1,7 +1,7 @@
 /**
  * Approvals store — read, write, and clean the approvals JSON file.
  *
- * File location: .dep-fence/approvals.json
+ * File location: .trustlock/approvals.json
  * Format: JSON array of Approval objects (see models.js)
  *
  * Behavioral rules:
@@ -64,7 +64,7 @@ export async function readApprovals(approvalsPath) {
 /**
  * Append a new approval entry to the approvals file atomically.
  *
- * The file MUST already exist (created by `dep-fence init`). Throws with ENOENT
+ * The file MUST already exist (created by `trustlock init`). Throws with ENOENT
  * if missing — this enforces that the project is initialized before approving.
  *
  * Validation performed:
@@ -97,7 +97,7 @@ export async function writeApproval(approvalsPath, input, lockfileDeps, config) 
     if (err.code === 'ENOENT') {
       throw new Error(
         `Approvals file not found at ${approvalsPath}. ` +
-        `Run "dep-fence init" to initialize the project first.`
+        `Run "trustlock init" to initialize the project first.`
       );
     }
     throw err;
@@ -155,7 +155,7 @@ export async function cleanExpired(approvalsPath) {
     if (err.code === 'ENOENT') {
       throw new Error(
         `Approvals file not found at ${approvalsPath}. ` +
-        `Run "dep-fence init" to initialize the project first.`
+        `Run "trustlock init" to initialize the project first.`
       );
     }
     throw err;

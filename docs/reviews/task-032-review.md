@@ -36,7 +36,7 @@ Approved
 - AC: `formatCheckResults(results)` returns colored string with per-package sections → **PASS** — tests: green/admitted (line 140), red/blocked (line 183), [block] tag (line 251), [warn] tag (line 262)
 - AC: `formatCheckResults([])` returns "No dependency changes" → **PASS** — test at line 114
 - AC: Cooldown findings include human-readable `clears_at` via `time.js` → **PASS** — test at line 275 verifies "April", "2026", "UTC" present and raw ISO string absent
-- AC: Generated approval commands are real shell-escaped `dep-fence approve` strings → **PASS** — tests at lines 198, 221, 315; `shellEscape` uses single-quote wrapping with `'\''` idiom
+- AC: Generated approval commands are real shell-escaped `trustlock approve` strings → **PASS** — tests at lines 198, 221, 315; `shellEscape` uses single-quote wrapping with `'\''` idiom
 - AC: `formatAuditReport(report)` returns stats + conditional heuristics → **PASS** — 11 tests in stats + heuristics suites; all 3 conditional suggestions verified
 - AC: `formatStatusMessage(message)` returns plain-text with dim styling → **PASS** — tests at lines 78, 84
 - AC: NO_COLOR suppresses ANSI → **PASS** — 4 tests (lines 374–408); zero `\x1b[` bytes confirmed for all three formatters

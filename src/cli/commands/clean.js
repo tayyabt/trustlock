@@ -1,7 +1,7 @@
 /**
- * `dep-fence clean-approvals` — remove expired approval entries.
+ * `trustlock clean-approvals` — remove expired approval entries.
  *
- * Reads .dep-fence/approvals.json, filters out expired entries, writes back
+ * Reads .trustlock/approvals.json, filters out expired entries, writes back
  * atomically, and prints a count summary.
  *
  * Exit codes:
@@ -20,7 +20,7 @@ import { cleanExpired } from '../../approvals/store.js';
  */
 export async function run(_args, { _cwd } = {}) {
   const cwd           = _cwd ?? process.cwd();
-  const approvalsPath = join(cwd, '.dep-fence', 'approvals.json');
+  const approvalsPath = join(cwd, '.trustlock', 'approvals.json');
 
   let result;
   try {

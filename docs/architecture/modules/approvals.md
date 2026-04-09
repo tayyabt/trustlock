@@ -4,7 +4,7 @@
 Manage scoped, time-limited policy overrides. Read, create, validate, and clean approval entries.
 
 ## Responsibilities
-- Read approvals from `.dep-fence/approvals.json`
+- Read approvals from `.trustlock/approvals.json`
 - Create new approval entries with validation (package exists in lockfile, valid override names, expiry within max)
 - Validate approval applicability: match package+version, check overrides list, check expiry
 - Clean expired approvals (remove entries past `expires` timestamp)
@@ -23,7 +23,7 @@ Manage scoped, time-limited policy overrides. Read, create, validate, and clean 
 - Used by: policy (for approval validation during evaluation), cli (for approve and clean-approvals commands)
 
 ## Allowed Interactions
-- Read/write `.dep-fence/approvals.json`
+- Read/write `.trustlock/approvals.json`
 - Return approval data and validation results to callers
 
 ## Forbidden Interactions

@@ -16,8 +16,8 @@
 ## Deferred Decisions
 - `--profile` flag (v0.2) — selects named config profile
 - `--sarif` flag (v0.2) — SARIF output format
-- `dep-fence diff` command (v0.4)
-- `dep-fence why` command (v0.4)
+- `trustlock diff` command (v0.4)
+- `trustlock why` command (v0.4)
 
 ## Metadata
 - Agent: architect-foundation

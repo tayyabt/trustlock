@@ -1,7 +1,7 @@
 /**
- * Policy configuration loader for dep-fence.
+ * Policy configuration loader for trustlock.
  *
- * Reads .depfencerc.json at the given path, merges the file contents over
+ * Reads .trustlockrc.json at the given path, merges the file contents over
  * hardcoded defaults, and returns a complete PolicyConfig. Unknown top-level
  * keys are silently dropped (forward-compat for future rule names).
  *
@@ -51,9 +51,9 @@ function mergeNested(defaults, override) {
 }
 
 /**
- * Load and validate the dep-fence policy configuration file.
+ * Load and validate the trustlock policy configuration file.
  *
- * @param {string} configPath - Absolute path to the .depfencerc.json file.
+ * @param {string} configPath - Absolute path to the .trustlockrc.json file.
  * @returns {Promise<import('./models.js').PolicyConfig>} Fully merged PolicyConfig.
  * @throws {{ message: string, exitCode: 2 }} On missing file or malformed JSON.
  */

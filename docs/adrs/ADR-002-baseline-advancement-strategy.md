@@ -17,12 +17,12 @@ The question is how the pre-commit hook should handle baseline writes.
 ## Options Considered
 
 ### Option 1: Auto-stage baseline on pass
-- Description: When all dependencies are admitted in advisory mode, write the updated baseline and run `git add .dep-fence/baseline.json` to include it in the commit. The baseline change becomes part of the same commit as the lockfile change.
+- Description: When all dependencies are admitted in advisory mode, write the updated baseline and run `git add .trustlock/baseline.json` to include it in the commit. The baseline change becomes part of the same commit as the lockfile change.
 - Pros: Baseline always reflects the admitted state. No drift. Developer doesn't need to remember to stage it. Atomic: the commit contains both the dependency change and the corresponding baseline update.
 - Cons: Hook modifies the staging area, which may surprise developers who inspect staged files.
 
 ### Option 2: Write baseline without staging
-- Description: Write the updated baseline but don't auto-stage. Developer must run `git add .dep-fence/baseline.json`.
+- Description: Write the updated baseline but don't auto-stage. Developer must run `git add .trustlock/baseline.json`.
 - Pros: No staging surprise. Developer has full control.
 - Cons: Baseline drifts if developer forgets to stage it. The next commit sees a stale baseline, potentially re-evaluating already-admitted packages.
 
@@ -34,12 +34,12 @@ The question is how the pre-commit hook should handle baseline writes.
 ## Decision
 Option 1: Auto-stage baseline on pass. The hook already modifies process state (exit code). Auto-staging the baseline is a natural extension. The baseline update is a consequence of admission, not a separate action.
 
-This behavior is clearly documented: "dep-fence updates and stages .dep-fence/baseline.json when all changes are admitted."
+This behavior is clearly documented: "trustlock updates and stages .trustlock/baseline.json when all changes are admitted."
 
 The `--dry-run` flag skips both the write and the staging.
 
 ## Consequences
-- Implementation: After successful evaluation, write baseline and call `git add .dep-fence/baseline.json`. Must handle the case where git add fails (e.g., baseline file is in .gitignore by mistake).
+- Implementation: After successful evaluation, write baseline and call `git add .trustlock/baseline.json`. Must handle the case where git add fails (e.g., baseline file is in .gitignore by mistake).
 - Testing: Integration tests must verify that after a successful hook run, the baseline is staged. Tests must also verify that `--dry-run` and `--enforce` do NOT stage.
 - Operations: Developers see baseline changes in `git diff --staged` after a successful hook. This is a feature: it makes the trust boundary advancement visible.
 - Future: If a future `advance-baseline` command is added for CI workflows, it would follow the same write logic but be triggered explicitly.

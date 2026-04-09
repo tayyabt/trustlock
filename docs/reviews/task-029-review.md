@@ -16,7 +16,7 @@ Approved
 
 ### Finding 2: Story artifact inaccessible in this worktree
 - **Severity:** warning
-- **Finding:** The task references `story: /Users/tayyabtariq/Documents/projects/.burnish-worktrees/dep-fence/task-010/docs/stories/F06-S02-trust-and-exposure-rules.md` but that file does not exist in the worktree. Review was conducted against the design note, which preserves the behavioral spec in sufficient detail.
+- **Finding:** The task references `story: /Users/tayyabtariq/Documents/projects/.burnish-worktrees/trustlock/task-010/docs/stories/F06-S02-trust-and-exposure-rules.md` but that file does not exist in the worktree. Review was conducted against the design note, which preserves the behavioral spec in sufficient detail.
 - **Proposed Judgment:** No action required for this review. Ensure the story artifact is preserved for the F06-S04 reviewer.
 - **Reference:** Task file inputs section; `read-input.sh` returned empty for `story` key
 

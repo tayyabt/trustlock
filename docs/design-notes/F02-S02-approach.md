@@ -9,7 +9,7 @@ Implement `src/lockfile/parser.js` with `detectFormat(lockfilePath)` and `parseL
 - Reads the lockfile with `node:fs/promises` → exit 2 if file missing
 - Parses JSON → exit 2 if invalid JSON
 - Checks filename: `package-lock.json` → npm path; anything else → exit 2 (pnpm/yarn deferred to v0.2)
-- Reads `lockfileVersion` field: 1/2/3 → returns `{ format: "npm", version: N }`; null/missing/other → exit 2 with "Unsupported npm lockfile version X. dep-fence supports v1, v2, v3."
+- Reads `lockfileVersion` field: 1/2/3 → returns `{ format: "npm", version: N }`; null/missing/other → exit 2 with "Unsupported npm lockfile version X. trustlock supports v1, v2, v3."
 
 ### parseLockfile(lockfilePath, packageJsonPath)
 - Reads lockfile once, parses JSON, uses a shared `_detectFromParsed(parsed, filename)` helper (to avoid double file-reads)
@@ -80,7 +80,7 @@ node --test test/lockfile/parser.test.js
 #### AC: `detectFormat()` returns `{ format: "npm", version: 1/2/3 }`
 - Status: PASS — tests: "returns { format: npm, version: 1/2/3 } for lockfileVersion 1/2/3"
 
-#### AC: Unknown version → exit 2 with message "Unsupported npm lockfile version X. dep-fence supports v1, v2, v3."
+#### AC: Unknown version → exit 2 with message "Unsupported npm lockfile version X. trustlock supports v1, v2, v3."
 - Status: PASS — tests: "exit 2 for lockfileVersion 4 with exact error message", "exit 2 when lockfileVersion field is missing"
 
 #### AC: `parseLockfile()` reads, detects, delegates to npm parser

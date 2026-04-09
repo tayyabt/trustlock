@@ -3,7 +3,7 @@
 ## Durable Decisions
 1. Fail hard on unknown lockfile version
    - Why: Silent misparse is worse than a clear error. The parser must be updated for new versions, not guess.
-   - Consequence: Exit 2 with message "Unsupported npm lockfile version X. dep-fence supports v1, v2, v3."
+   - Consequence: Exit 2 with message "Unsupported npm lockfile version X. trustlock supports v1, v2, v3."
 
 2. Use `packages` map for v2 and v3, `dependencies` tree for v1 only
    - Why: `packages` is the canonical format in v2+. The `dependencies` tree in v2 is backward-compat only.

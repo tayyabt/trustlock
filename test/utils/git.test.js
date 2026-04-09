@@ -14,7 +14,7 @@ import { gitAdd, getGitUserName, readHookFile, writeHookFile } from '../../src/u
  * Create a temporary directory with a real git repo initialised inside it.
  */
 async function makeTempGitRepo() {
-  const dir = await mkdtemp(join(tmpdir(), 'dep-fence-git-test-'));
+  const dir = await mkdtemp(join(tmpdir(), 'trustlock-git-test-'));
   execSync('git init', { cwd: dir, stdio: 'ignore' });
   execSync('git config user.email "test@example.com"', { cwd: dir, stdio: 'ignore' });
   execSync('git config user.name "Test User"', { cwd: dir, stdio: 'ignore' });
@@ -223,7 +223,7 @@ describe('readHookFile', () => {
   let tmpDir;
 
   before(async () => {
-    tmpDir = await mkdtemp(join(tmpdir(), 'dep-fence-hook-test-'));
+    tmpDir = await mkdtemp(join(tmpdir(), 'trustlock-hook-test-'));
   });
 
   after(async () => {
@@ -252,7 +252,7 @@ describe('writeHookFile', () => {
   let tmpDir;
 
   before(async () => {
-    tmpDir = await mkdtemp(join(tmpdir(), 'dep-fence-write-hook-test-'));
+    tmpDir = await mkdtemp(join(tmpdir(), 'trustlock-write-hook-test-'));
   });
 
   after(async () => {

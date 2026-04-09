@@ -1,4 +1,4 @@
-# Global Conventions: dep-fence
+# Global Conventions: trustlock
 
 ## Language and Runtime
 - JavaScript (ES modules, `import`/`export`)
@@ -43,10 +43,10 @@
 - Each policy rule has: should-admit, should-block, should-admit-with-approval, expired-approval test cases
 
 ## Git Integration
-- `.dep-fence/baseline.json` — committed, auto-staged on advancement
-- `.dep-fence/approvals.json` — committed, modified by approve/clean-approvals
-- `.dep-fence/.cache/` — gitignored (D8)
-- `.depfencerc.json` — committed, project root
+- `.trustlock/baseline.json` — committed, auto-staged on advancement
+- `.trustlock/approvals.json` — committed, modified by approve/clean-approvals
+- `.trustlock/.cache/` — gitignored (D8)
+- `.trustlockrc.json` — committed, project root
 
 ## Output
 - Terminal: ANSI colors (respect NO_COLOR and TERM=dumb)

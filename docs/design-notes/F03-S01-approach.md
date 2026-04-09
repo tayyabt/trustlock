@@ -7,7 +7,7 @@ This is the foundational layer for the ADR-003 degradation hierarchy. The `clien
 
 ## Key Design Decisions
 
-1. **`createCache(cacheDir)` factory pattern**: Returns an object with `get/set/invalidate` bound to the provided `cacheDir`. This lets callers inject different directories (e.g., real `.dep-fence/.cache/` vs temp dir in tests) without global state.
+1. **`createCache(cacheDir)` factory pattern**: Returns an object with `get/set/invalidate` bound to the provided `cacheDir`. This lets callers inject different directories (e.g., real `.trustlock/.cache/` vs temp dir in tests) without global state.
 
 2. **Key encoding via `/`→`%2f` replacement**: `@scope/name` → `@scope%2fname`. Only the forward slash is unsafe in filenames; `@` is safe. This is lighter than full `encodeURIComponent` and matches the spec example exactly.
 

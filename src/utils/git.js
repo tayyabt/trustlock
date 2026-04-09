@@ -1,5 +1,5 @@
 /**
- * Git utility wrappers for dep-fence.
+ * Git utility wrappers for trustlock.
  * All operations use node:child_process (sync) or node:fs/promises (async).
  * Errors are translated into clear, human-readable messages.
  */

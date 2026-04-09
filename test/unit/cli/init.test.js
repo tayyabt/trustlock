@@ -1,18 +1,18 @@
 /**
- * Unit tests for `dep-fence init` command.
+ * Unit tests for `trustlock init` command.
  *
  * Each test creates a temporary directory, writes minimal fixtures, and passes
  * `_cwd` + `_registryClient` injection to isolate from real project state and network.
  *
  * Coverage:
- *   AC1  - creates .depfencerc.json with valid default policy
- *   AC2  - creates .dep-fence/ scaffold: approvals.json ([]), .cache/, .gitignore
+ *   AC1  - creates .trustlockrc.json with valid default policy
+ *   AC2  - creates .trustlock/ scaffold: approvals.json ([]), .cache/, .gitignore
  *   AC3  - creates baseline.json with all packages trusted
  *   AC4  - prints "Baselined N packages. Detected npm lockfile vX."
- *   AC5  - already initialized (.dep-fence/ exists) → exit 2, D6 message
+ *   AC5  - already initialized (.trustlock/ exists) → exit 2, D6 message
  *   AC6  - no lockfile → exit 2 + message
  *   AC7  - unknown lockfile version → exit 2 (Q1)
- *   AC8  - --strict creates stricter .depfencerc.json
+ *   AC8  - --strict creates stricter .trustlockrc.json
  *   AC9  - --no-baseline creates scaffold but not baseline.json
  *   AC10 - registry unreachable → baseline with null provenance + warning
  */
@@ -36,7 +36,7 @@ let origStdoutWrite;
 let origStderrWrite;
 
 beforeEach(async () => {
-  testDir = join(tmpdir(), `dep-fence-init-test-${process.pid}-${Date.now()}`);
+  testDir = join(tmpdir(), `trustlock-init-test-${process.pid}-${Date.now()}`);
   await mkdir(testDir, { recursive: true });
 
   stdoutChunks = [];
@@ -158,17 +158,17 @@ function mockRegistry({ data = null, warnings = [] } = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// AC1: creates .depfencerc.json with valid default policy
+// AC1: creates .trustlockrc.json with valid default policy
 // ---------------------------------------------------------------------------
 
-test('creates .depfencerc.json with default policy', async () => {
+test('creates .trustlockrc.json with default policy', async () => {
   await writeProjectFiles(testDir);
 
   await run(makeArgs(), { _registryClient: mockRegistry(), _cwd: testDir });
 
   assert.equal(process.exitCode, undefined, 'should not set exit code on success');
 
-  const raw = await readFile(join(testDir, '.depfencerc.json'), 'utf8');
+  const raw = await readFile(join(testDir, '.trustlockrc.json'), 'utf8');
   const policy = JSON.parse(raw);
 
   assert.equal(policy.cooldown_hours, 72);
@@ -180,26 +180,26 @@ test('creates .depfencerc.json with default policy', async () => {
 });
 
 // ---------------------------------------------------------------------------
-// AC2: creates .dep-fence/ scaffold
+// AC2: creates .trustlock/ scaffold
 // ---------------------------------------------------------------------------
 
-test('creates .dep-fence/ scaffold with approvals.json, .cache/, and .gitignore', async () => {
+test('creates .trustlock/ scaffold with approvals.json, .cache/, and .gitignore', async () => {
   await writeProjectFiles(testDir);
 
   await run(makeArgs(), { _registryClient: mockRegistry(), _cwd: testDir });
 
-  const depFenceDir = join(testDir, '.dep-fence');
+  const trustlockDir = join(testDir, '.trustlock');
 
   // approvals.json must exist and equal []
-  const approvalsRaw = await readFile(join(depFenceDir, 'approvals.json'), 'utf8');
+  const approvalsRaw = await readFile(join(trustlockDir, 'approvals.json'), 'utf8');
   assert.deepEqual(JSON.parse(approvalsRaw), []);
 
   // .cache/ directory must exist
-  const cacheStats = await stat(join(depFenceDir, '.cache'));
+  const cacheStats = await stat(join(trustlockDir, '.cache'));
   assert.ok(cacheStats.isDirectory(), '.cache must be a directory');
 
   // .gitignore must exist and gitignore .cache/ (D8)
-  const gitignoreContent = await readFile(join(depFenceDir, '.gitignore'), 'utf8');
+  const gitignoreContent = await readFile(join(trustlockDir, '.gitignore'), 'utf8');
   assert.ok(gitignoreContent.includes('.cache/'), '.gitignore must include .cache/');
 });
 
@@ -213,7 +213,7 @@ test('creates baseline.json with all current packages', async () => {
 
   await run(makeArgs(), { _registryClient: mockRegistry({ data: null, warnings: [] }), _cwd: testDir });
 
-  const raw = await readFile(join(testDir, '.dep-fence', 'baseline.json'), 'utf8');
+  const raw = await readFile(join(testDir, '.trustlock', 'baseline.json'), 'utf8');
   const baseline = JSON.parse(raw);
 
   assert.equal(baseline.schema_version, 1);
@@ -245,10 +245,10 @@ test('prints summary with correct package count and lockfile version', async () 
 // AC5: already initialized → exit 2 + D6 message
 // ---------------------------------------------------------------------------
 
-test('exits 2 with "already initialized" message when .dep-fence/ exists (D6)', async () => {
+test('exits 2 with "already initialized" message when .trustlock/ exists (D6)', async () => {
   await writeProjectFiles(testDir);
-  // Pre-create .dep-fence/
-  await mkdir(join(testDir, '.dep-fence'), { recursive: true });
+  // Pre-create .trustlock/
+  await mkdir(join(testDir, '.trustlock'), { recursive: true });
 
   await run(makeArgs(), { _registryClient: mockRegistry(), _cwd: testDir });
 
@@ -260,20 +260,20 @@ test('exits 2 with "already initialized" message when .dep-fence/ exists (D6)', 
   );
 });
 
-// AC5: no files should be written when .dep-fence/ exists
-test('does not write .depfencerc.json when .dep-fence/ already exists', async () => {
+// AC5: no files should be written when .trustlock/ exists
+test('does not write .trustlockrc.json when .trustlock/ already exists', async () => {
   await writeProjectFiles(testDir);
-  await mkdir(join(testDir, '.dep-fence'), { recursive: true });
+  await mkdir(join(testDir, '.trustlock'), { recursive: true });
 
   await run(makeArgs(), { _registryClient: mockRegistry(), _cwd: testDir });
 
   assert.equal(process.exitCode, 2);
-  // .depfencerc.json should not have been created
+  // .trustlockrc.json should not have been created
   try {
-    await stat(join(testDir, '.depfencerc.json'));
-    assert.fail('.depfencerc.json should not exist');
+    await stat(join(testDir, '.trustlockrc.json'));
+    assert.fail('.trustlockrc.json should not exist');
   } catch (err) {
-    assert.equal(err.code, 'ENOENT', 'expected ENOENT for .depfencerc.json');
+    assert.equal(err.code, 'ENOENT', 'expected ENOENT for .trustlockrc.json');
   }
 });
 
@@ -340,17 +340,17 @@ test('exits 2 when lockfileVersion field is missing', async () => {
 });
 
 // ---------------------------------------------------------------------------
-// AC8: --strict creates stricter .depfencerc.json
+// AC8: --strict creates stricter .trustlockrc.json
 // ---------------------------------------------------------------------------
 
-test('--strict creates .depfencerc.json with stricter policy thresholds', async () => {
+test('--strict creates .trustlockrc.json with stricter policy thresholds', async () => {
   await writeProjectFiles(testDir);
 
   await run(makeArgs({ strict: true }), { _registryClient: mockRegistry(), _cwd: testDir });
 
   assert.equal(process.exitCode, undefined, 'should not set exit code on success');
 
-  const raw = await readFile(join(testDir, '.depfencerc.json'), 'utf8');
+  const raw = await readFile(join(testDir, '.trustlockrc.json'), 'utf8');
   const policy = JSON.parse(raw);
 
   // Stricter cooldown
@@ -377,17 +377,17 @@ test('--no-baseline creates scaffold and config but not baseline.json', async ()
 
   assert.equal(process.exitCode, undefined, 'should not set exit code');
 
-  // .depfencerc.json must exist
-  const policy = JSON.parse(await readFile(join(testDir, '.depfencerc.json'), 'utf8'));
+  // .trustlockrc.json must exist
+  const policy = JSON.parse(await readFile(join(testDir, '.trustlockrc.json'), 'utf8'));
   assert.equal(policy.cooldown_hours, 72);
 
   // scaffold must exist
-  const approvalsRaw = await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8');
+  const approvalsRaw = await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8');
   assert.deepEqual(JSON.parse(approvalsRaw), []);
 
   // baseline.json must NOT exist
   try {
-    await stat(join(testDir, '.dep-fence', 'baseline.json'));
+    await stat(join(testDir, '.trustlock', 'baseline.json'));
     assert.fail('baseline.json should not exist with --no-baseline');
   } catch (err) {
     assert.equal(err.code, 'ENOENT', 'expected ENOENT for baseline.json');
@@ -411,7 +411,7 @@ test('--no-baseline does not validate lockfile version', async () => {
   assert.equal(process.exitCode, undefined);
 
   // Scaffold must exist
-  const approvalsRaw = await readFile(join(testDir, '.dep-fence', 'approvals.json'), 'utf8');
+  const approvalsRaw = await readFile(join(testDir, '.trustlock', 'approvals.json'), 'utf8');
   assert.deepEqual(JSON.parse(approvalsRaw), []);
 });
 
@@ -433,7 +433,7 @@ test('registry unreachable sets provenanceStatus to null and prints warning per 
   assert.equal(process.exitCode, undefined, 'should not exit 2 on registry unreachable');
 
   // baseline.json must exist
-  const raw = await readFile(join(testDir, '.dep-fence', 'baseline.json'), 'utf8');
+  const raw = await readFile(join(testDir, '.trustlock', 'baseline.json'), 'utf8');
   const baseline = JSON.parse(raw);
 
   assert.ok('lodash' in baseline.packages);
@@ -460,7 +460,7 @@ test('package with SLSA attestations gets provenanceStatus verified', async () =
 
   await run(makeArgs(), { _registryClient: verifiedRegistry, _cwd: testDir });
 
-  const raw = await readFile(join(testDir, '.dep-fence', 'baseline.json'), 'utf8');
+  const raw = await readFile(join(testDir, '.trustlock', 'baseline.json'), 'utf8');
   const baseline = JSON.parse(raw);
   assert.equal(baseline.packages['lodash'].provenanceStatus, 'verified');
 });
@@ -472,7 +472,7 @@ test('package with no attestations (404) gets provenanceStatus unverified', asyn
 
   await run(makeArgs(), { _registryClient: noAttestationRegistry, _cwd: testDir });
 
-  const raw = await readFile(join(testDir, '.dep-fence', 'baseline.json'), 'utf8');
+  const raw = await readFile(join(testDir, '.trustlock', 'baseline.json'), 'utf8');
   const baseline = JSON.parse(raw);
   assert.equal(baseline.packages['lodash'].provenanceStatus, 'unverified');
 });
@@ -488,7 +488,7 @@ test('empty lockfile (0 dependencies) baselines 0 packages', async () => {
 
   assert.equal(process.exitCode, undefined);
 
-  const raw = await readFile(join(testDir, '.dep-fence', 'baseline.json'), 'utf8');
+  const raw = await readFile(join(testDir, '.trustlock', 'baseline.json'), 'utf8');
   const baseline = JSON.parse(raw);
   assert.deepEqual(baseline.packages, {});
 

@@ -13,12 +13,12 @@ Command routing, argument parsing, and user-facing entry points. Wires commands 
 
 ## Entry Points
 - `index.js` — main entry point, command router
-- `commands/init.js` — `dep-fence init`
-- `commands/check.js` — `dep-fence check`
-- `commands/approve.js` — `dep-fence approve`
-- `commands/audit.js` — `dep-fence audit`
-- `commands/clean.js` — `dep-fence clean-approvals`
-- `commands/install-hook.js` — `dep-fence install-hook`
+- `commands/init.js` — `trustlock init`
+- `commands/check.js` — `trustlock check`
+- `commands/approve.js` — `trustlock approve`
+- `commands/audit.js` — `trustlock audit`
+- `commands/clean.js` — `trustlock clean-approvals`
+- `commands/install-hook.js` — `trustlock install-hook`
 - `args.js` — argument parsing wrapper
 
 ## Dependencies

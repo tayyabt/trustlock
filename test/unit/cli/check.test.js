@@ -1,5 +1,5 @@
 /**
- * Unit tests for `dep-fence check` command.
+ * Unit tests for `trustlock check` command.
  *
  * Each test uses a temporary directory with real fixture files and injected
  * mocks for the registry client and writeAndStage (to avoid real git operations).
@@ -12,7 +12,7 @@
  *   AC5  - --json → valid JSON output
  *   AC6  - block output includes per-pkg reasons, clears_at (D4), approval command
  *   AC7  - no lockfile → exit 2
- *   AC8  - no .depfencerc.json → exit 2 with "run dep-fence init"
+ *   AC8  - no .trustlockrc.json → exit 2 with "run trustlock init"
  *   AC9  - no dep changes → exit 0 + "No dependency changes"
  *   AC10 - registry unreachable → exit 0, warnings present, local rules still evaluated
  *   AC11 - writeAndStage called with baseline path after advisory admit
@@ -38,7 +38,7 @@ let testDir;
  * Create a fresh temp directory for each test.
  */
 async function setupTempDir() {
-  const dir = join(tmpdir(), `dep-fence-check-test-${process.pid}-${Date.now()}`);
+  const dir = join(tmpdir(), `trustlock-check-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
   return dir;
 }
@@ -55,8 +55,8 @@ async function writeProjectFixtures(dir, opts = {}) {
     approvals = [],
   } = opts;
 
-  // .depfencerc.json
-  await writeFile(join(dir, '.depfencerc.json'), JSON.stringify(policy));
+  // .trustlockrc.json
+  await writeFile(join(dir, '.trustlockrc.json'), JSON.stringify(policy));
 
   // package.json
   const pkgDeps = Object.fromEntries(Object.entries(packages).map(([n, v]) => [n, v]));
@@ -87,8 +87,8 @@ async function writeProjectFixtures(dir, opts = {}) {
 
   const lockfileHash = createHash('sha256').update(lockfileContent).digest('hex');
 
-  // .dep-fence directory
-  await mkdir(join(dir, '.dep-fence'), { recursive: true });
+  // .trustlock directory
+  await mkdir(join(dir, '.trustlock'), { recursive: true });
 
   // baseline.json
   const baselinePkgs = baselinePackages ?? packages;
@@ -103,10 +103,10 @@ async function writeProjectFixtures(dir, opts = {}) {
     directDependency: true,
   }));
   const baseline = createBaseline(baselineDeps, baselinePackages === null ? lockfileHash : 'old-hash-' + Date.now());
-  await writeFile(join(dir, '.dep-fence', 'baseline.json'), JSON.stringify(baseline));
+  await writeFile(join(dir, '.trustlock', 'baseline.json'), JSON.stringify(baseline));
 
   // approvals.json
-  await writeFile(join(dir, '.dep-fence', 'approvals.json'), JSON.stringify(approvals));
+  await writeFile(join(dir, '.trustlock', 'approvals.json'), JSON.stringify(approvals));
 
   return { lockfileHash, lockfileContent };
 }
@@ -250,13 +250,13 @@ async function runCheck(dir, argValues = {}, injectOpts = {}) {
 // Tests
 // ---------------------------------------------------------------------------
 
-// AC8 — no .depfencerc.json → exit 2 with "run dep-fence init"
-test('AC8: no .depfencerc.json exits 2 with init message', async () => {
+// AC8 — no .trustlockrc.json → exit 2 with "run trustlock init"
+test('AC8: no .trustlockrc.json exits 2 with init message', async () => {
   const dir = await setupTempDir();
   try {
     const { exitCode, stderr } = await runCheck(dir);
     assert.equal(exitCode, 2);
-    assert.ok(stderr.includes('dep-fence init'), `expected init message in stderr, got: ${stderr}`);
+    assert.ok(stderr.includes('trustlock init'), `expected init message in stderr, got: ${stderr}`);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -266,11 +266,11 @@ test('AC8: no .depfencerc.json exits 2 with init message', async () => {
 test('AC7: no lockfile exits 2 with expected filename list', async () => {
   const dir = await setupTempDir();
   try {
-    await writeFile(join(dir, '.depfencerc.json'), JSON.stringify({ cooldown_hours: 72 }));
-    await mkdir(join(dir, '.dep-fence'), { recursive: true });
+    await writeFile(join(dir, '.trustlockrc.json'), JSON.stringify({ cooldown_hours: 72 }));
+    await mkdir(join(dir, '.trustlock'), { recursive: true });
     const baseline = createBaseline([], 'hash0');
-    await writeFile(join(dir, '.dep-fence', 'baseline.json'), JSON.stringify(baseline));
-    await writeFile(join(dir, '.dep-fence', 'approvals.json'), JSON.stringify([]));
+    await writeFile(join(dir, '.trustlock', 'baseline.json'), JSON.stringify(baseline));
+    await writeFile(join(dir, '.trustlock', 'approvals.json'), JSON.stringify([]));
     // No package-lock.json
 
     const { exitCode, stderr } = await runCheck(dir);
@@ -505,7 +505,7 @@ test('AC6: block output includes clears_at and approval command', async () => {
     );
     // approval command should be present
     assert.ok(
-      stdout.includes('dep-fence approve') || stdout.includes('approve'),
+      stdout.includes('trustlock approve') || stdout.includes('approve'),
       `block output should include approval command, got: ${stdout}`
     );
   } finally {
@@ -539,8 +539,8 @@ test('AC6 JSON: block output JSON includes clears_at in finding detail', async (
     assert.equal(parsed[0].checkResult.decision, 'blocked');
     assert.ok(parsed[0].checkResult.approvalCommand, 'blocked package must have approvalCommand');
     assert.ok(
-      parsed[0].checkResult.approvalCommand.includes('dep-fence approve'),
-      'approvalCommand must be a dep-fence approve command'
+      parsed[0].checkResult.approvalCommand.includes('trustlock approve'),
+      'approvalCommand must be a trustlock approve command'
     );
   } finally {
     await rm(dir, { recursive: true, force: true });
@@ -594,15 +594,15 @@ test('--lockfile flag uses the specified lockfile path', async () => {
       baselinePackages: {},
     });
     // Copy policy, baseline, approvals to the root dir (cwd = dir)
-    await writeFile(join(dir, '.depfencerc.json'), JSON.stringify({
+    await writeFile(join(dir, '.trustlockrc.json'), JSON.stringify({
       cooldown_hours: 72, pinning: { required: false }, scripts: { allowlist: [] },
       sources: { allowed: ['registry'] }, provenance: { required_for: [] }, transitive: { max_new: 5 }
     }));
-    await mkdir(join(dir, '.dep-fence'), { recursive: true });
+    await mkdir(join(dir, '.trustlock'), { recursive: true });
     const { readFile: rf } = await import('node:fs/promises');
-    const baseline = await rf(join(subdir, '.dep-fence', 'baseline.json'), 'utf8');
-    await writeFile(join(dir, '.dep-fence', 'baseline.json'), baseline);
-    await writeFile(join(dir, '.dep-fence', 'approvals.json'), JSON.stringify([]));
+    const baseline = await rf(join(subdir, '.trustlock', 'baseline.json'), 'utf8');
+    await writeFile(join(dir, '.trustlock', 'baseline.json'), baseline);
+    await writeFile(join(dir, '.trustlock', 'approvals.json'), JSON.stringify([]));
     await writeFile(join(dir, 'package.json'), JSON.stringify({ name: 'root', version: '1.0.0', dependencies: { lodash: '4.17.21' } }));
 
     const { exitCode } = await runCheck(

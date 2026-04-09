@@ -10,13 +10,13 @@ Approved
 
 ### F1: Story artifact not accessible from this worktree
 - **Severity:** warning
-- **Finding:** `read-input.sh --optional "$task_file" story` returned empty. The story file referenced in the task body (`/Users/tayyabtariq/Documents/projects/.burnish-worktrees/dep-fence/task-010/docs/stories/F06-S01-policy-config-and-data-models.md`) does not exist at that path from this worktree. Review was conducted against the design note's AC mapping, which is comprehensive and consistent with the feature brief reference.
+- **Finding:** `read-input.sh --optional "$task_file" story` returned empty. The story file referenced in the task body (`/Users/tayyabtariq/Documents/projects/.burnish-worktrees/trustlock/task-010/docs/stories/F06-S01-policy-config-and-data-models.md`) does not exist at that path from this worktree. Review was conducted against the design note's AC mapping, which is comprehensive and consistent with the feature brief reference.
 - **Proposed Judgment:** No action required on this task. The story artifact lives in the task-010 worktree; if inter-worktree artifact access is required, a symlink or copy convention should be established. Log as a process observation.
 - **Reference:** Skill step 7 — "If `task_type=DEV_STORY` and `story_path` is empty, treat that as a blocker or review finding."
 
 ### F2: Feature brief not accessible from this worktree
 - **Severity:** warning
-- **Finding:** The feature brief at `/Users/tayyabtariq/Documents/projects/.burnish-worktrees/dep-fence/task-010/docs/feature-briefs/F06-policy-engine.md` does not exist from this worktree. Review relied on the design note's extraction of relevant decisions (edge case #4 forward-compat, edge case #10 `transitive.max_new`).
+- **Finding:** The feature brief at `/Users/tayyabtariq/Documents/projects/.burnish-worktrees/trustlock/task-010/docs/feature-briefs/F06-policy-engine.md` does not exist from this worktree. Review relied on the design note's extraction of relevant decisions (edge case #4 forward-compat, edge case #10 `transitive.max_new`).
 - **Proposed Judgment:** Same as F1 — process observation only. Implementation is consistent with the feature brief decisions documented in the design note.
 - **Reference:** Feature brief cross-reference in design note `docs/design-notes/F06-S01-approach.md`.
 

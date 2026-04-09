@@ -10,7 +10,7 @@ Implement the three remaining command handlers: `audit` (whole-tree trust postur
 **In scope:**
 - `src/cli/commands/audit.js` — full implementation: parse full lockfile, evaluate all packages against policy, print stats + heuristic suggestions
 - `src/cli/commands/clean.js` — full implementation: load approvals, remove expired entries, write back, print counts
-- `src/cli/commands/install-hook.js` — full implementation: create or append `dep-fence check` to `.git/hooks/pre-commit`, make executable
+- `src/cli/commands/install-hook.js` — full implementation: create or append `trustlock check` to `.git/hooks/pre-commit`, make executable
 - `install-hook` flag: `--force` (overwrite pre-existing hook content after warning)
 - `audit` exits 0 always (informational, no enforcement)
 - `clean-approvals` exits 0 always
@@ -21,7 +21,7 @@ Implement the three remaining command handlers: `audit` (whole-tree trust postur
 - Scheduled or automated `clean-approvals` triggering (user runs it manually or via CI; Q2 resolved as manual-only)
 
 ## Entry Points
-- Route / page / screen: `dep-fence audit`, `dep-fence clean-approvals`, `dep-fence install-hook [--force]`
+- Route / page / screen: `trustlock audit`, `trustlock clean-approvals`, `trustlock install-hook [--force]`
 - Trigger / navigation path: Manual on-demand (`audit`, `clean-approvals`); once-per-clone setup (`install-hook`)
 - Starting surface: `src/cli/index.js` routes each command → respective handler
 
@@ -58,21 +58,21 @@ Implement the three remaining command handlers: `audit` (whole-tree trust postur
 - Exit 0 always
 
 **install-hook:**
-- If `.git/hooks/pre-commit` does not exist: create it with shebang + `dep-fence check` line, `chmod +x`
-- If `.git/hooks/pre-commit` exists and already contains `dep-fence check`: print "Hook already installed." and exit 0 (no duplicate, edge case #8)
-- If `.git/hooks/pre-commit` exists without `dep-fence check` and without `--force`: append `dep-fence check` to existing content; do NOT overwrite
+- If `.git/hooks/pre-commit` does not exist: create it with shebang + `trustlock check` line, `chmod +x`
+- If `.git/hooks/pre-commit` exists and already contains `trustlock check`: print "Hook already installed." and exit 0 (no duplicate, edge case #8)
+- If `.git/hooks/pre-commit` exists without `trustlock check` and without `--force`: append `trustlock check` to existing content; do NOT overwrite
 - If `.git/hooks/pre-commit` exists with custom content and `--force`: warn "Overwriting existing pre-commit hook." then overwrite with fresh hook file (edge case #9)
 - Exit 0 on success, exit 2 on filesystem error
 
 ## Acceptance Criteria
-- [ ] `dep-fence audit` prints stats: total packages, per-rule issue counts, flagged packages with heuristic suggestions
-- [ ] `dep-fence audit` exits 0 always (even with policy violations)
-- [ ] `dep-fence clean-approvals` removes expired entries from `approvals.json` and prints counts
-- [ ] `dep-fence clean-approvals` with no expired entries prints "No expired approvals found." and exits 0
-- [ ] `dep-fence install-hook` creates `.git/hooks/pre-commit` with `dep-fence check` and makes it executable
-- [ ] `dep-fence install-hook` when hook already contains `dep-fence check`: prints "Hook already installed." without duplicating (edge case #8)
-- [ ] `dep-fence install-hook` when hook exists without dep-fence: appends without overwriting existing content
-- [ ] `dep-fence install-hook --force` when hook has custom content: warns and overwrites (edge case #9)
+- [ ] `trustlock audit` prints stats: total packages, per-rule issue counts, flagged packages with heuristic suggestions
+- [ ] `trustlock audit` exits 0 always (even with policy violations)
+- [ ] `trustlock clean-approvals` removes expired entries from `approvals.json` and prints counts
+- [ ] `trustlock clean-approvals` with no expired entries prints "No expired approvals found." and exits 0
+- [ ] `trustlock install-hook` creates `.git/hooks/pre-commit` with `trustlock check` and makes it executable
+- [ ] `trustlock install-hook` when hook already contains `trustlock check`: prints "Hook already installed." without duplicating (edge case #8)
+- [ ] `trustlock install-hook` when hook exists without trustlock: appends without overwriting existing content
+- [ ] `trustlock install-hook --force` when hook has custom content: warns and overwrites (edge case #9)
 
 ## Task Breakdown
 1. Implement `src/cli/commands/audit.js` — full lockfile scan + policy evaluation + stats output
@@ -105,7 +105,7 @@ node --test test/unit/cli/install-hook.test.js
 ## Edge Cases to Handle
 - `audit` with registry unreachable: warn per package, continue, exit 0
 - `clean-approvals` with no expired entries: "No expired approvals found.", exit 0
-- `install-hook` when hook already contains `dep-fence check`: no duplicate (edge case #8)
+- `install-hook` when hook already contains `trustlock check`: no duplicate (edge case #8)
 - `install-hook --force` with custom hook content: warn before overwriting (edge case #9)
 - `install-hook` without a `.git/` directory: exit 2 with "Not a git repository"
 

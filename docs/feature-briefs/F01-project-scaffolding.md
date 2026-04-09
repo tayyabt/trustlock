@@ -12,7 +12,7 @@ Set up the project structure, package.json, bin entry point, test harness, and t
 - Sprint Rationale: Foundation layer — every other feature imports from utils; must land first
 
 ## Description
-This feature creates the project skeleton and the three shared utility modules. The package.json declares the `dep-fence` bin entry, sets `"type": "module"` for ES modules, specifies `engines: { node: ">=18.3" }`, and includes no runtime dependencies (ADR-001).
+This feature creates the project skeleton and the three shared utility modules. The package.json declares the `trustlock` bin entry, sets `"type": "module"` for ES modules, specifies `engines: { node: ">=18.3" }`, and includes no runtime dependencies (ADR-001).
 
 The utility modules provide: semver subset (version comparison, range operator detection), timestamp parsing and age calculation, and git operations (child_process wrappers for `git add`, `git config`, hook file manipulation). These are small, focused, zero-dependency modules used across the codebase.
 
@@ -70,5 +70,5 @@ N/A — CLI tool, no UI.
 ## Metadata
 - Agent: pm
 - Date: 2026-04-08
-- Spec source: specs/2026-04-07-dep-fence-full-spec.md
+- Spec source: specs/2026-04-07-trustlock-full-spec.md
 - Sprint: 1

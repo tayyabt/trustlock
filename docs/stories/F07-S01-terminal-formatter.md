@@ -39,7 +39,7 @@ Implement `src/output/terminal.js` — the ANSI-colored terminal formatter that 
 - ANSI color constants must be real string constants (not `''` placeholders)
 - NO_COLOR and TERM=dumb detection must be real environment reads and must suppress all ANSI output when set
 - `formatCheckResults` must produce real per-package sections: decision line (admit/block/warn color), findings list, and the generated approval command for blocked packages
-- Approval command generation must produce a real shell-escaped `dep-fence approve <package>@<version> --override <rules>` string — not a placeholder
+- Approval command generation must produce a real shell-escaped `trustlock approve <package>@<version> --override <rules>` string — not a placeholder
 - `clears_at` human-readable timestamp must call `time.js` (F01-S03) — not inline a raw ISO string
 - `formatAuditReport` must produce real summary stats and real conditional heuristic messages — not hardcoded strings
 - `formatStatusMessage` must return a real formatted string
@@ -55,10 +55,10 @@ Implement `src/output/terminal.js` — the ANSI-colored terminal formatter that 
 - Many findings for one package must all be printed — no truncation
 
 ## Acceptance Criteria
-- [ ] `formatCheckResults(results)` returns a colored string with per-package sections: decision line (colored admit/block), each finding, and a `dep-fence approve ...` command for blocked packages
+- [ ] `formatCheckResults(results)` returns a colored string with per-package sections: decision line (colored admit/block), each finding, and a `trustlock approve ...` command for blocked packages
 - [ ] `formatCheckResults([])` (empty) returns the "No dependency changes" status string
 - [ ] Cooldown findings include the human-readable `clears_at` timestamp (D4) via `time.js`
-- [ ] Generated approval commands are real shell-escaped `dep-fence approve <pkg>@<ver> --override <rules>` strings
+- [ ] Generated approval commands are real shell-escaped `trustlock approve <pkg>@<ver> --override <rules>` strings
 - [ ] `formatAuditReport(report)` returns a string with total packages, provenance %, install scripts list, source type breakdown, age distribution, and applicable heuristic suggestions
 - [ ] `formatStatusMessage(message)` returns the plain-text message with appropriate dim styling
 - [ ] When `NO_COLOR` is set, all functions return output with zero ANSI escape code bytes
@@ -70,7 +70,7 @@ Implement `src/output/terminal.js` — the ANSI-colored terminal formatter that 
 2. Define ANSI color constants (red, green, yellow, dim, reset) and NO_COLOR/TERM detection helper
 3. Implement `formatStatusMessage(message)` — dim-styled single-line output
 4. Implement `formatCheckResults(results)` — iterate results, render per-package sections with color by decision, findings, and approval commands for blocked packages; call `time.js` for `clears_at`
-5. Implement approval command formatter — produce `dep-fence approve <package>@<version> --override <rules>` with shell escaping for reason text
+5. Implement approval command formatter — produce `trustlock approve <package>@<version> --override <rules>` with shell escaping for reason text
 6. Implement `formatAuditReport(report)` — summary stats block plus conditional heuristic messages
 7. Write unit tests in `test/output/terminal.test.js` covering all edge cases
 

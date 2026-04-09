@@ -12,7 +12,7 @@ Approved
 
 ### Finding 1 — Generated approval command uses full rule IDs (out of scope, filed separately)
 - **Severity:** warning
-- **Finding:** `docs/design-notes/F08-S6-approach.md` (Risk 3, lines 107–112) acknowledges that the terminal formatter emits `--override 'execution:scripts'` in the generated approval command, while `dep-fence approve` only accepts short names (`scripts`). Copy-pasting the generated command returns `Error: 'execution:scripts' is not a valid rule name.`
+- **Finding:** `docs/design-notes/F08-S6-approach.md` (Risk 3, lines 107–112) acknowledges that the terminal formatter emits `--override 'execution:scripts'` in the generated approval command, while `trustlock approve` only accepts short names (`scripts`). Copy-pasting the generated command returns `Error: 'execution:scripts' is not a valid rule name.`
 - **Proposed Judgment:** Filed as `docs/bugs/BUG-001-approval-command-uses-full-rule-ids.md`, created task-041 (DEV_BUG_FIX, sprint 2, priority 0). This story's integration tests work around it correctly (they pass `--override scripts` directly). No changes required for task-039 itself.
 - **Reference:** `docs/workflows/cli/blocked-approve.md` Interaction/Messaging section ("ready-to-copy shell command with correct flags"); F08-S6 story "approve + re-check" AC
 
@@ -37,8 +37,8 @@ Approved
 
 ## Acceptance Criteria Judgment
 
-- AC: `init` test → PASS — `test('init: creates .depfencerc.json, baseline.json, approvals.json, .cache/, .gitignore')` asserts all five artifacts with content checks; "Baselined 1 packages" in stdout (lines 250–312)
-- AC: `check` admit test → PASS — `test('check: admit — updates and stages baseline after new safe package is admitted (ADR-002)')` asserts "admitted" in stdout, new-safe-pkg in baseline, and `git diff --cached` shows `.dep-fence/baseline.json` (lines 340–382)
+- AC: `init` test → PASS — `test('init: creates .trustlockrc.json, baseline.json, approvals.json, .cache/, .gitignore')` asserts all five artifacts with content checks; "Baselined 1 packages" in stdout (lines 250–312)
+- AC: `check` admit test → PASS — `test('check: admit — updates and stages baseline after new safe package is admitted (ADR-002)')` asserts "admitted" in stdout, new-safe-pkg in baseline, and `git diff --cached` shows `.trustlock/baseline.json` (lines 340–382)
 - AC: `check` block test → PASS — `test('check: block — blocked package prints reason and approval command, baseline NOT advanced (D1)')` asserts "blocked", "scripted-pkg", "install scripts", approval command hint, safe-pkg at 1.0.0, scripted-pkg absent from baseline (lines 388–440)
 - AC: `approve` + re-check test → PASS — `test('approve + re-check: admitted with approval after scripted-pkg is approved')` asserts exit 0 on approve, "Approved" in stdout, approvals.json entry with correct fields, re-check "admitted" (lines 446–500)
 - AC: `check --enforce` block test → PASS — `test('check --enforce: exits 1 on block, baseline not written (D10)')` asserts exit 1 and byte-identical baseline (lines 506–534)
@@ -46,7 +46,7 @@ Approved
 - AC: `check --dry-run` test → PASS — `test('check --dry-run: no baseline write even when all packages are admitted')` asserts exit 0 and byte-identical baseline (lines 577–611)
 - AC: No-changes test → PASS — `test('check: no-changes — prints "No dependency changes", exit 0')` (lines 318–334)
 - AC: `clean-approvals` test → PASS — `test('clean-approvals: removes expired entries and prints count')` asserts "Removed 1", "1 active", and exactly 1 entry remaining (lines 617–673)
-- AC: `install-hook` test → PASS — `test('install-hook: creates .git/hooks/pre-commit, makes it executable, adds dep-fence check')` asserts file exists, is a file, passes X_OK check, contains "dep-fence check" (lines 679–719)
+- AC: `install-hook` test → PASS — `test('install-hook: creates .git/hooks/pre-commit, makes it executable, adds trustlock check')` asserts file exists, is a file, passes X_OK check, contains "trustlock check" (lines 679–719)
 - AC: Full pipeline test → PASS — `test('full pipeline: init → check (no-changes) → modify lockfile → check (block) → approve → check (admitted with approval)')` covers complete sequence including D1 baseline check and ADR-002 staging after final admission (lines 726–855)
 
 ## Deferred Verification

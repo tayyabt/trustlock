@@ -21,7 +21,7 @@ The JSON formatter outputs `CheckResult[]` directly as structured JSON. Audit ou
 Both formatters respect `NO_COLOR` and `TERM=dumb` environment variables for accessibility. ANSI color codes are manual constants, not a library (ADR-001).
 
 ## User-Facing Behavior
-Developers see formatted output in their terminal after every `check`, `audit`, and other commands. The quality of this output directly affects whether developers find dep-fence useful or annoying.
+Developers see formatted output in their terminal after every `check`, `audit`, and other commands. The quality of this output directly affects whether developers find trustlock useful or annoying.
 
 ## UI Expectations (if applicable)
 N/A — CLI tool terminal output, not web UI.
@@ -73,5 +73,5 @@ N/A — CLI tool terminal output, not web UI.
 ## Metadata
 - Agent: pm
 - Date: 2026-04-08
-- Spec source: specs/2026-04-07-dep-fence-full-spec.md
+- Spec source: specs/2026-04-07-trustlock-full-spec.md
 - Sprint: 2

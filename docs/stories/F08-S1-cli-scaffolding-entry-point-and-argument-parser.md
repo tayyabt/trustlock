@@ -11,7 +11,7 @@ Deliver the CLI entry point (`index.js`), argument parser (`args.js`), and comma
 - `src/cli/index.js` — shebang, bin entry, top-level router, global error handler
 - `src/cli/args.js` — `node:util.parseArgs` wrapper, argument schema for all 6 commands
 - Stub implementations for all 6 command modules (`init`, `check`, `approve`, `audit`, `clean-approvals`, `install-hook`) — enough to route and exit 0 without crashing
-- `package.json` `bin` field wiring: `"dep-fence": "src/cli/index.js"`
+- `package.json` `bin` field wiring: `"trustlock": "src/cli/index.js"`
 - Unknown-command handling: print help text and exit 2
 
 **Not in scope:**
@@ -20,8 +20,8 @@ Deliver the CLI entry point (`index.js`), argument parser (`args.js`), and comma
 - Integration tests
 
 ## Entry Points
-- Route / page / screen: `dep-fence <command>` in the terminal
-- Trigger / navigation path: `npx dep-fence <command>` or global install `dep-fence <command>`
+- Route / page / screen: `trustlock <command>` in the terminal
+- Trigger / navigation path: `npx trustlock <command>` or global install `trustlock <command>`
 - Starting surface: `package.json` `bin` field → `src/cli/index.js`
 
 ## Wiring / Integration Points
@@ -84,7 +84,7 @@ node --test test/unit/cli/args.test.js
 ```
 
 ## Edge Cases to Handle
-- `dep-fence` with no arguments: print help and exit 2
+- `trustlock` with no arguments: print help and exit 2
 - Unknown command: exit 2 with list of valid commands
 - Unhandled async error in a command: caught by top-level handler, printed to stderr, exit 2
 

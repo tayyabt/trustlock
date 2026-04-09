@@ -26,7 +26,7 @@ No blocking findings.
 - AC: `detectFormat()` returns `{ format: "npm", version: 1 }` for v1 → **PASS** — test: "returns { format: 'npm', version: 1 } for lockfileVersion 1"
 - AC: `detectFormat()` returns `{ format: "npm", version: 2 }` for v2 → **PASS** — test: "returns { format: 'npm', version: 2 } for lockfileVersion 2"
 - AC: `detectFormat()` returns `{ format: "npm", version: 3 }` for v3 → **PASS** — test: "returns { format: 'npm', version: 3 } for lockfileVersion 3"
-- AC: Unknown lockfile version (e.g., v4) → exit 2 with message "Unsupported npm lockfile version 4. dep-fence supports v1, v2, v3." → **PASS** — test: "exit 2 for lockfileVersion 4 with exact error message"; both sub-strings asserted
+- AC: Unknown lockfile version (e.g., v4) → exit 2 with message "Unsupported npm lockfile version 4. trustlock supports v1, v2, v3." → **PASS** — test: "exit 2 for lockfileVersion 4 with exact error message"; both sub-strings asserted
 - AC: `parseLockfile()` reads lockfile, detects format, delegates to npm parser → **PASS** — tests: v1/v2/v3 dispatch suite; stub parseNpm returns `[]`, confirmed array returned
 - AC: Missing lockfile → exit 2 with descriptive error → **PASS** — tests: detectFormat and parseLockfile both cover `/nonexistent/` path; message "Lockfile not found" asserted
 - AC: Router imports and calls the npm parser module (wired end-to-end in F02-S03) → **PASS (seam in place)** — `parser.js:11` imports `parseNpm` from `./npm.js`; npm.js is a documented seam stub per story spec "Not in scope: Actual npm parsing logic (F02-S03)"

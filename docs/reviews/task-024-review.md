@@ -10,7 +10,7 @@ Approved
 
 ### Observation: `_gitAdd` is called without `await` in `writeAndStage`
 - **Severity:** suggestion
-- **Finding:** `src/baseline/manager.js:167` — `_gitAdd('.dep-fence/baseline.json')` is called without `await`. The real `gitAdd` is synchronous (`execSync`), so this is currently correct and the `try/catch` works. If a future caller passes an async override, errors would escape the `try/catch` silently.
+- **Finding:** `src/baseline/manager.js:167` — `_gitAdd('.trustlock/baseline.json')` is called without `await`. The real `gitAdd` is synchronous (`execSync`), so this is currently correct and the `try/catch` works. If a future caller passes an async override, errors would escape the `try/catch` silently.
 - **Proposed Judgment:** No action required for v0.1 scope. The parameter is clearly marked `_gitAdd` (internal/test-only). Captured in module pitfalls below.
 - **Reference:** `src/utils/git.js:44` — `export function gitAdd(filePath)` is synchronous.
 
@@ -22,7 +22,7 @@ Approved
 ## Checks Performed
 - [x] Correctness (each acceptance criterion verified individually)
 - [x] Workflow completeness / blocked-state guidance (N/A — internal data layer, no workflow coverage required per feature brief)
-- [x] Architecture compliance (ADR-001 zero-deps: only `node:fs/promises`, `node:path`, project's own `git.js`; ADR-002 auto-stage: `gitAdd('.dep-fence/baseline.json')` called)
+- [x] Architecture compliance (ADR-001 zero-deps: only `node:fs/promises`, `node:path`, project's own `git.js`; ADR-002 auto-stage: `gitAdd('.trustlock/baseline.json')` called)
 - [x] Design compliance (N/A — no UI)
 - [x] Behavioral / interaction rule compliance (D1/D3/D10 correctly delegated to caller; warning-not-throw on git failure as specified)
 - [x] Integration completeness (caller seam F08 correctly deferred with explicit named exports; `gitAdd` wired now)
@@ -36,7 +36,7 @@ Approved
 - AC2: Newly admitted packages get fresh TrustProfile entries with current `admittedAt` → **PASS** — "advanceBaseline gives newly admitted packages a fresh TrustProfile"; `src/baseline/manager.js:126-134`
 - AC3: Old baseline packages not in `admittedDeps` are silently removed → **PASS** — "advanceBaseline drops packages absent from admittedDeps"; algorithm iterates only `admittedDeps`; absent entries are never added to output
 - AC4: Unchanged packages (same name+version) retain original TrustProfile → **PASS** — "advanceBaseline retains original TrustProfile for unchanged packages" uses `deepEqual` against the original profile object
-- AC5: `writeAndStage` writes JSON to disk and calls `gitAdd('.dep-fence/baseline.json')` → **PASS** — "writeAndStage writes JSON to disk and calls gitAdd" verifies file content, 2-space indentation, and `gitAddCalledWith === '.dep-fence/baseline.json'`
+- AC5: `writeAndStage` writes JSON to disk and calls `gitAdd('.trustlock/baseline.json')` → **PASS** — "writeAndStage writes JSON to disk and calls gitAdd" verifies file content, 2-space indentation, and `gitAddCalledWith === '.trustlock/baseline.json'`
 - AC6: If `gitAdd` fails, warns and does not throw → **PASS** — "writeAndStage logs warning when gitAdd fails and does not throw" verifies stderr includes "Warning" and file is still written to disk
 - AC7: Unit tests cover all required scenarios → **PASS** — 18 tests total; 9 new tests covering all 6 ACs plus edge cases (all packages removed, version change, schema_version/created_at preservation)
 
@@ -51,7 +51,7 @@ Approved
 ## Integration / Boundary Judgment
 - Boundary: `writeAndStage` → `gitAdd` from `src/utils/git.js`
 - Judgment: complete
-- Notes: Import wired at `src/baseline/manager.js:21`. `gitAdd` is synchronous; the synchronous `try/catch` correctly wraps it. The `.dep-fence/baseline.json` path is hardcoded per ADR-002. Caller seam (F08) explicitly documented as deferred in both story and design note.
+- Notes: Import wired at `src/baseline/manager.js:21`. `gitAdd` is synchronous; the synchronous `try/catch` correctly wraps it. The `.trustlock/baseline.json` path is hardcoded per ADR-002. Caller seam (F08) explicitly documented as deferred in both story and design note.
 
 ## Test Results
 - Command run: `node --test test/baseline/manager.test.js`

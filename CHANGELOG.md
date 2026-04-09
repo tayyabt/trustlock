@@ -2,7 +2,7 @@
 
 ## [0.1.0] — 2026-04-09
 
-Initial release of dep-fence — a dependency admission controller for npm projects.
+Initial release of trustlock — a dependency admission controller for npm projects.
 
 ### Added
 
@@ -18,12 +18,12 @@ Initial release of dep-fence — a dependency admission controller for npm proje
 - Approval integration: valid, non-expired, rule-scoped approvals convert a blocked package to `admitted_with_approval`
 
 **CLI commands**
-- `dep-fence init`: initialize dep-fence in a project — creates `.depfencerc.json`, baseline, approvals store, cache directory, and `.gitignore`; supports `--strict` and `--no-baseline`
-- `dep-fence check`: evaluate dependency delta against policy; advisory (exit 0) and enforce (`--enforce`, exit 1) modes; supports `--json`, `--dry-run`, `--lockfile`, `--no-cache`
-- `dep-fence approve`: write a scoped, time-limited approval for a blocked package; supports `--override`, `--reason`, `--expires`, `--as`
-- `dep-fence audit`: scan the full dependency tree for trust posture; prints provenance coverage, install-script packages, source breakdown, age distribution
-- `dep-fence clean-approvals`: remove expired approval entries from `.dep-fence/approvals.json`
-- `dep-fence install-hook`: install `dep-fence check` as a Git pre-commit hook; supports `--force`
+- `trustlock init`: initialize trustlock in a project — creates `.trustlockrc.json`, baseline, approvals store, cache directory, and `.gitignore`; supports `--strict` and `--no-baseline`
+- `trustlock check`: evaluate dependency delta against policy; advisory (exit 0) and enforce (`--enforce`, exit 1) modes; supports `--json`, `--dry-run`, `--lockfile`, `--no-cache`
+- `trustlock approve`: write a scoped, time-limited approval for a blocked package; supports `--override`, `--reason`, `--expires`, `--as`
+- `trustlock audit`: scan the full dependency tree for trust posture; prints provenance coverage, install-script packages, source breakdown, age distribution
+- `trustlock clean-approvals`: remove expired approval entries from `.trustlock/approvals.json`
+- `trustlock install-hook`: install `trustlock check` as a Git pre-commit hook; supports `--force`
 
 **Lockfile support**
 - npm lockfile v1, v2, v3 (`package-lock.json`)
@@ -36,9 +36,9 @@ Initial release of dep-fence — a dependency admission controller for npm proje
 - Graceful degradation when registry is unreachable (offline operation)
 
 **Baseline management**
-- Baseline create and read from `.dep-fence/baseline.json`
+- Baseline create and read from `.trustlock/baseline.json`
 - Delta computation (added, changed, removed packages)
-- Auto-stage baseline on admission: `git add .dep-fence/baseline.json` (ADR-002)
+- Auto-stage baseline on admission: `git add .trustlock/baseline.json` (ADR-002)
 - Baseline is never advanced in `--enforce` mode or with `--dry-run` (D10)
 
 **Approval store**
@@ -56,14 +56,14 @@ Initial release of dep-fence — a dependency admission controller for npm proje
 - `README.md`: project overview, installation, quick-start workflows
 - `OVERVIEW.md`: product overview, design rationale, trust signal table
 - `USAGE.md`: full command reference, all flags, exit codes, error messages
-- `POLICY-REFERENCE.md`: complete `.depfencerc.json` field reference
+- `POLICY-REFERENCE.md`: complete `.trustlockrc.json` field reference
 - `ARCHITECTURE.md`: module map, layering rules, data flows, data formats
-- `examples/configs/production.depfencerc.json`: strict production policy
-- `examples/configs/relaxed.depfencerc.json`: permissive greenfield policy with annotations
+- `examples/configs/production.trustlockrc.json`: strict production policy
+- `examples/configs/relaxed.trustlockrc.json`: permissive greenfield policy with annotations
 - `examples/ci/github-actions.yml`: GitHub Actions integration
 - `examples/ci/lefthook.yml`: Lefthook integration
 - `examples/ci/husky/.husky/pre-commit`: Husky pre-commit hook
 
 ### Known issues
 
-- **BUG-001:** `dep-fence check` generates approval commands using full rule IDs (e.g. `--override 'execution:scripts'`) while `dep-fence approve` only accepts short rule names (e.g. `--override scripts`). Copy-pasting the generated command produces `Error: 'execution:scripts' is not a valid rule name.` Workaround: replace the category prefix manually (e.g. `execution:scripts` → `scripts`, `exposure:cooldown` → `cooldown`, `trust:provenance` → `provenance`). Fix targeted for v0.1.1.
+- **BUG-001:** `trustlock check` generates approval commands using full rule IDs (e.g. `--override 'execution:scripts'`) while `trustlock approve` only accepts short rule names (e.g. `--override scripts`). Copy-pasting the generated command produces `Error: 'execution:scripts' is not a valid rule name.` Workaround: replace the category prefix manually (e.g. `execution:scripts` → `scripts`, `exposure:cooldown` → `cooldown`, `trust:provenance` → `provenance`). Fix targeted for v0.1.1.

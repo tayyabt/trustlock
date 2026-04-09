@@ -149,7 +149,7 @@ export function advanceBaseline(baseline, admittedDeps, lockfileHash) {
  * If `gitAdd` fails (e.g., baseline file is in .gitignore), a warning is written to
  * stderr but no exception is raised — the file on disk is still valid.
  *
- * Per ADR-002 the staged path is always `.dep-fence/baseline.json` regardless of where
+ * Per ADR-002 the staged path is always `.trustlock/baseline.json` regardless of where
  * baselinePath is written on disk.
  *
  * @param {Object} baseline  Baseline object to persist
@@ -164,7 +164,7 @@ export async function writeAndStage(baseline, baselinePath, { _gitAdd = gitAdd }
   await rename(tmp, baselinePath);
 
   try {
-    _gitAdd('.dep-fence/baseline.json');
+    _gitAdd('.trustlock/baseline.json');
   } catch {
     process.stderr.write('Warning: could not auto-stage baseline file\n');
   }

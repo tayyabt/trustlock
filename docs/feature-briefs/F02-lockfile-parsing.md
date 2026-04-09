@@ -71,5 +71,5 @@ N/A — CLI tool, no UI.
 ## Metadata
 - Agent: pm
 - Date: 2026-04-08
-- Spec source: specs/2026-04-07-dep-fence-full-spec.md
+- Spec source: specs/2026-04-07-trustlock-full-spec.md
 - Sprint: 1

@@ -53,7 +53,7 @@ Approved (after revision)
 - AC: decide() returns "blocked" when any block uncovered → PASS — decision.js L75-77; decision.test.js 5 tests
 - AC: Warning findings never cause "blocked" → PASS — normalizeSeverity keeps 'warn'; decide() filters only 'block'; decision.test.js warn-only + engine.test.js new-dep test
 - AC: allAdmitted = false when any dep blocked → PASS — engine.js L161; engine.test.js one-blocked test
-- AC: Blocked results include approvalCommand → PASS — engine.js L141-147; engine.test.js asserts dep-fence approve + lodash@4.17.21 + --override cooldown
+- AC: Blocked results include approvalCommand → PASS — engine.js L141-147; engine.test.js asserts trustlock approve + lodash@4.17.21 + --override cooldown
 - AC: Unit tests cover all-admitted, one-blocked, approval intersection, empty delta, warn-only → PASS — 31 combined tests across decision.test.js (15) + engine.test.js (16)
 
 ## Deferred Verification

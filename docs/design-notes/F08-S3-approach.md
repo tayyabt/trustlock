@@ -12,7 +12,7 @@ Validation is performed in-command before calling `writeApproval` to produce the
 
 2. **Reject (not cap) on expiry exceeding max**: The story explicitly says "reject with specific error message (do not silently cap)". `createApproval` caps silently, so `approve.js` checks expiry BEFORE calling `writeApproval` and exits 2 if exceeded.
 
-3. **Read approval config from raw .depfencerc.json**: `max_expiry_days` and `require_reason` are not in the `PolicyConfig` model returned by `loadPolicy()`. The approve command reads `.depfencerc.json` directly as JSON to extract these fields with defaults (require_reason: true, max_expiry_days: 30).
+3. **Read approval config from raw .trustlockrc.json**: `max_expiry_days` and `require_reason` are not in the `PolicyConfig` model returned by `loadPolicy()`. The approve command reads `.trustlockrc.json` directly as JSON to extract these fields with defaults (require_reason: true, max_expiry_days: 30).
 
 4. **`--as` takes strict precedence over git config** (D7): If `--as` is provided, it is used unconditionally. Otherwise, `getGitUserName()` is called. If neither is available, exit 2.
 
@@ -40,7 +40,7 @@ Validation is performed in-command before calling `writeApproval` to produce the
 ## Testing Approach
 
 Unit tests in `test/unit/cli/approve.test.js` using Node.js built-in test runner. Each test:
-- Creates a temp directory with real fixture files (`.depfencerc.json`, `package-lock.json`, `.dep-fence/approvals.json`)
+- Creates a temp directory with real fixture files (`.trustlockrc.json`, `package-lock.json`, `.trustlock/approvals.json`)
 - Injects `_cwd` override to isolate from real project state
 - Captures process.stdout/stderr via `process.stdout.write` and `process.stderr.write` patching
 - Resets `process.exitCode` before each test

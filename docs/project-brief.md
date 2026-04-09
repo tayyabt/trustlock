@@ -1,8 +1,8 @@
-# dep-fence: Project Brief
+# trustlock: Project Brief
 
 ## What it is
 
-dep-fence is a dependency admission controller for Git-based projects. It evaluates trust signals on dependency changes and blocks commits or builds when changes violate the team's declared policy.
+trustlock is a dependency admission controller for Git-based projects. It evaluates trust signals on dependency changes and blocks commits or builds when changes violate the team's declared policy.
 
 ## What it is not
 
@@ -15,7 +15,7 @@ It is not a scanner, vulnerability database, malware detector, license checker, 
 
 ## Core value proposition
 
-Dependency supply chain attacks exploit the gap between "a package was published" and "a team installs it." dep-fence closes that gap by requiring that dependency changes pass a declared trust policy before they enter the codebase.
+Dependency supply chain attacks exploit the gap between "a package was published" and "a team installs it." trustlock closes that gap by requiring that dependency changes pass a declared trust policy before they enter the codebase.
 
 ## Target users
 
@@ -35,13 +35,13 @@ Dependency supply chain attacks exploit the gap between "a package was published
 - **v0.1:** npm only, core policy rules, approval workflow, terminal + JSON output.
 - **v0.2:** pnpm/yarn parsers, publisher change detection, SARIF output, policy profiles, monorepo support.
 - **v0.3:** Python ecosystem (pip/uv), policy inheritance.
-- **v0.4:** Cargo support, UX polish (dep-fence diff, dep-fence why, completions).
+- **v0.4:** Cargo support, UX polish (trustlock diff, trustlock why, completions).
 - **v0.5+:** Optional hosted trust intelligence API (monetization path).
 
 ## Success criteria for v0.1
 
-- A developer can run `dep-fence init` on an npm project and get a working trust baseline.
-- `dep-fence check` catches provenance regression, cooldown violations, undeclared install scripts, and non-registry sources.
-- `dep-fence approve` lets a developer override a block with a scoped, time-limited, attributed approval.
+- A developer can run `trustlock init` on an npm project and get a working trust baseline.
+- `trustlock check` catches provenance regression, cooldown violations, undeclared install scripts, and non-registry sources.
+- `trustlock approve` lets a developer override a block with a scoped, time-limited, attributed approval.
 - The pre-commit hook and CI check work independently with clear, distinct behavior (advisory vs. enforced).
 - The tool is publishable to npm as a standalone package.

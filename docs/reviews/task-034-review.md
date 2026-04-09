@@ -46,7 +46,7 @@ No blocking findings.
 - AC: `node src/cli/index.js install-hook` exits 0 → PASS — verified live
 - AC: `node src/cli/index.js unknowncmd` exits 2 and prints available commands → PASS — verified live; "Unknown command: unknowncmd. Available commands: init, check, approve, audit, clean-approvals, install-hook"
 - AC: Unhandled error in a command stub causes exit 2 → PASS — `main().catch((err) => { process.exitCode = 2; })` pattern verified in `index.js:42-45`; inline simulation confirmed
-- AC: `package.json` `bin` field points to `src/cli/index.js` → PASS — `{"dep-fence": "src/cli/index.js"}` confirmed in `package.json`
+- AC: `package.json` `bin` field points to `src/cli/index.js` → PASS — `{"trustlock": "src/cli/index.js"}` confirmed in `package.json`
 
 ## Deferred Verification
 - Follow-up Verification Task: none

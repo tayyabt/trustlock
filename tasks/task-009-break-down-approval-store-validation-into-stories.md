@@ -10,8 +10,8 @@ Break one feature into executable stories with exact references to the required 
 
 ## Inputs
 feature_brief: docs/feature-briefs/F05-approval-store.md
-feature_validation: docs/architecture/feature-validations/2026-04-07-dep-fence-full-spec.md
-product_review: docs/product-review/2026-04-07-dep-fence-full-spec.md
+feature_validation: docs/architecture/feature-validations/2026-04-07-trustlock-full-spec.md
+product_review: docs/product-review/2026-04-07-trustlock-full-spec.md
 system_overview: docs/architecture/system-overview.md
 adrs: docs/adrs/ADR-*.md
 module_arch: docs/architecture/modules/*.md

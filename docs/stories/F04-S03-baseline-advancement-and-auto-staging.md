@@ -40,7 +40,7 @@ Implement advanceBaseline() to merge newly admitted packages into the baseline a
 - All-or-nothing (D1): the caller (CLI check) is responsible for only calling advanceBaseline when every package is admitted. advanceBaseline itself does not re-check admission — it trusts its inputs.
 - Removed packages (D3): packages present in the old baseline but absent from the admitted results are silently dropped from the new baseline.
 - `advanceBaseline()` updates `lockfile_hash`, `updated_at` timestamp, and merges the packages map.
-- `writeAndStage()` writes JSON with 2-space indentation, then calls `gitAdd('.dep-fence/baseline.json')`. If `gitAdd` fails, it logs a warning but does not throw — the baseline file is still written.
+- `writeAndStage()` writes JSON with 2-space indentation, then calls `gitAdd('.trustlock/baseline.json')`. If `gitAdd` fails, it logs a warning but does not throw — the baseline file is still written.
 - Mode guards (D10): `advanceBaseline()` and `writeAndStage()` do not check `--dry-run` or `--enforce` flags themselves. The caller is responsible for skipping these calls in those modes.
 
 ## Acceptance Criteria
@@ -48,7 +48,7 @@ Implement advanceBaseline() to merge newly admitted packages into the baseline a
 - [ ] Newly admitted packages get fresh TrustProfile entries with current timestamp as `admittedAt`
 - [ ] Packages in old baseline but not in `admittedDeps` and not in the current lockfile are silently removed (D3)
 - [ ] Packages in old baseline that are unchanged (same version, still in lockfile) retain their original TrustProfile
-- [ ] `writeAndStage(baseline, baselinePath)` writes JSON to disk and calls `gitAdd('.dep-fence/baseline.json')`
+- [ ] `writeAndStage(baseline, baselinePath)` writes JSON to disk and calls `gitAdd('.trustlock/baseline.json')`
 - [ ] If `gitAdd` fails, `writeAndStage` logs a warning (e.g., "Warning: could not auto-stage baseline file") but does not throw
 - [ ] Unit tests cover: merge new packages, remove deleted packages, retain unchanged, git add success, git add failure warning
 

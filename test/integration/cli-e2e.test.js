@@ -1,5 +1,5 @@
 /**
- * End-to-end integration tests for dep-fence CLI.
+ * End-to-end integration tests for trustlock CLI.
  *
  * Tests spawn `node src/cli/index.js` as a real child process and verify:
  *   - Exit codes
@@ -7,7 +7,7 @@
  *   - Filesystem state (files created, content correct)
  *   - git staging of baseline.json after admission (ADR-002)
  *
- * Registry isolation: tests pre-populate `.dep-fence/.cache/` with fresh-timestamp
+ * Registry isolation: tests pre-populate `.trustlock/.cache/` with fresh-timestamp
  * JSON files so no real npm registry calls are made during `check` invocations.
  *
  * Block trigger: packages with `hasInstallScripts: true` are blocked by the
@@ -34,7 +34,7 @@ const CLI_PATH     = join(PROJECT_ROOT, 'src', 'cli', 'index.js');
 // ---------------------------------------------------------------------------
 
 /**
- * Spawn `dep-fence` CLI as a child process with the given args and cwd.
+ * Spawn `trustlock` CLI as a child process with the given args and cwd.
  * NO_COLOR=1 is set so terminal output is stripped of ANSI codes for assertions.
  *
  * @param {string[]} args   CLI arguments
@@ -111,7 +111,7 @@ function sha256hex(str) {
 }
 
 /**
- * Pre-populate the dep-fence file cache for a single package so `check` makes no
+ * Pre-populate the trustlock file cache for a single package so `check` makes no
  * real HTTP calls. Writes two cache entries:
  *   1. Full metadata (`<name>.json`)  — used by cooldown rule
  *   2. Attestations (`attestations:<name>@<version>.json`) — used by provenance rule
@@ -144,7 +144,7 @@ async function populateCache(cacheDir, name, version, opts = {}) {
   );
 }
 
-/** Default policy mirrors `dep-fence init` defaults. */
+/** Default policy mirrors `trustlock init` defaults. */
 const DEFAULT_POLICY = {
   cooldown_hours: 72,
   pinning: { required: false },
@@ -155,9 +155,9 @@ const DEFAULT_POLICY = {
 };
 
 /**
- * Set up a fully initialized dep-fence project in `tmpDir` without spawning a CLI
- * subprocess. Creates git repo, package.json, package-lock.json, .depfencerc.json,
- * .dep-fence scaffold (approvals.json, baseline.json, .cache/, .gitignore), and
+ * Set up a fully initialized trustlock project in `tmpDir` without spawning a CLI
+ * subprocess. Creates git repo, package.json, package-lock.json, .trustlockrc.json,
+ * .trustlock scaffold (approvals.json, baseline.json, .cache/, .gitignore), and
  * an initial git commit.
  *
  * @param {string}   tmpDir
@@ -169,7 +169,7 @@ async function setupInitializedProject(tmpDir, opts = {}) {
 
   // Initialize git repo with test identity and no GPG signing.
   execSync('git init', { cwd: tmpDir, stdio: 'ignore' });
-  execSync('git config user.email "test@dep-fence.test"', { cwd: tmpDir, stdio: 'ignore' });
+  execSync('git config user.email "test@trustlock.test"', { cwd: tmpDir, stdio: 'ignore' });
   execSync('git config user.name "Test User"', { cwd: tmpDir, stdio: 'ignore' });
   execSync('git config commit.gpgSign false', { cwd: tmpDir, stdio: 'ignore' });
 
@@ -188,19 +188,19 @@ async function setupInitializedProject(tmpDir, opts = {}) {
   const lockfileContent = await writeLockfile(tmpDir, deps);
   const lockfileHash = sha256hex(lockfileContent);
 
-  // .depfencerc.json
+  // .trustlockrc.json
   await writeFile(
-    join(tmpDir, '.depfencerc.json'),
+    join(tmpDir, '.trustlockrc.json'),
     JSON.stringify({ ...DEFAULT_POLICY, ...policy }, null, 2) + '\n',
     'utf8'
   );
 
-  // .dep-fence/ scaffold
-  const depFenceDir = join(tmpDir, '.dep-fence');
-  const cacheDir    = join(depFenceDir, '.cache');
+  // .trustlock/ scaffold
+  const trustlockDir = join(tmpDir, '.trustlock');
+  const cacheDir    = join(trustlockDir, '.cache');
   await mkdir(cacheDir, { recursive: true });
-  await writeFile(join(depFenceDir, 'approvals.json'), '[]\n', 'utf8');
-  await writeFile(join(depFenceDir, '.gitignore'), '.cache/\n', 'utf8');
+  await writeFile(join(trustlockDir, 'approvals.json'), '[]\n', 'utf8');
+  await writeFile(join(trustlockDir, '.gitignore'), '.cache/\n', 'utf8');
 
   // baseline.json — reflects the current lockfile exactly
   const now      = new Date().toISOString();
@@ -216,7 +216,7 @@ async function setupInitializedProject(tmpDir, opts = {}) {
     };
   }
   await writeFile(
-    join(depFenceDir, 'baseline.json'),
+    join(trustlockDir, 'baseline.json'),
     JSON.stringify({ schema_version: 1, created_at: now, lockfile_hash: lockfileHash, packages }, null, 2) + '\n',
     'utf8'
   );
@@ -238,7 +238,7 @@ async function setupInitializedProject(tmpDir, opts = {}) {
  * @returns {Promise<string>}
  */
 async function makeTmpDir() {
-  const dir = join(tmpdir(), `dep-fence-e2e-${process.pid}-${Date.now()}`);
+  const dir = join(tmpdir(), `trustlock-e2e-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
   return dir;
 }
@@ -247,12 +247,12 @@ async function makeTmpDir() {
 // AC: init test
 // ---------------------------------------------------------------------------
 
-test('init: creates .depfencerc.json, baseline.json, approvals.json, .cache/, .gitignore', async () => {
+test('init: creates .trustlockrc.json, baseline.json, approvals.json, .cache/, .gitignore', async () => {
   const tmpDir = await makeTmpDir();
   try {
-    // Only git + raw project files — no dep-fence scaffold.
+    // Only git + raw project files — no trustlock scaffold.
     execSync('git init', { cwd: tmpDir, stdio: 'ignore' });
-    execSync('git config user.email "test@dep-fence.test"', { cwd: tmpDir, stdio: 'ignore' });
+    execSync('git config user.email "test@trustlock.test"', { cwd: tmpDir, stdio: 'ignore' });
     execSync('git config user.name "Test User"', { cwd: tmpDir, stdio: 'ignore' });
     execSync('git config commit.gpgSign false', { cwd: tmpDir, stdio: 'ignore' });
 
@@ -270,29 +270,29 @@ test('init: creates .depfencerc.json, baseline.json, approvals.json, .cache/, .g
     assert.equal(result.exitCode, 0,
       `init should exit 0; exit code was ${result.exitCode}\nstderr: ${result.stderr}`);
 
-    // .depfencerc.json must exist with valid default policy shape.
-    const policy = JSON.parse(await readFile(join(tmpDir, '.depfencerc.json'), 'utf8'));
+    // .trustlockrc.json must exist with valid default policy shape.
+    const policy = JSON.parse(await readFile(join(tmpDir, '.trustlockrc.json'), 'utf8'));
     assert.equal(typeof policy.cooldown_hours, 'number', 'cooldown_hours must be a number');
     assert.ok(Array.isArray(policy.scripts?.allowlist), 'scripts.allowlist must be an array');
 
-    const depFenceDir = join(tmpDir, '.dep-fence');
+    const trustlockDir = join(tmpDir, '.trustlock');
 
     // approvals.json must exist as empty array.
     assert.deepEqual(
-      JSON.parse(await readFile(join(depFenceDir, 'approvals.json'), 'utf8')),
+      JSON.parse(await readFile(join(trustlockDir, 'approvals.json'), 'utf8')),
       [],
       'approvals.json must start as []'
     );
 
     // .cache/ must exist as a directory.
-    assert.ok((await stat(join(depFenceDir, '.cache'))).isDirectory(), '.cache must be a directory');
+    assert.ok((await stat(join(trustlockDir, '.cache'))).isDirectory(), '.cache must be a directory');
 
     // .gitignore must include .cache/.
-    const gitignore = await readFile(join(depFenceDir, '.gitignore'), 'utf8');
+    const gitignore = await readFile(join(trustlockDir, '.gitignore'), 'utf8');
     assert.ok(gitignore.includes('.cache/'), '.gitignore must include .cache/');
 
     // baseline.json must exist with schema_version 1 and at least 1 package.
-    const baseline = JSON.parse(await readFile(join(depFenceDir, 'baseline.json'), 'utf8'));
+    const baseline = JSON.parse(await readFile(join(trustlockDir, 'baseline.json'), 'utf8'));
     assert.equal(baseline.schema_version, 1, 'schema_version must be 1');
     assert.ok(
       typeof baseline.lockfile_hash === 'string' && baseline.lockfile_hash.length === 64,
@@ -349,7 +349,7 @@ test('check: admit — updates and stages baseline after new safe package is adm
       { name: 'safe-pkg',     version: '1.0.0' },
       { name: 'new-safe-pkg', version: '2.0.0' },
     ]);
-    await populateCache(join(tmpDir, '.dep-fence', '.cache'), 'new-safe-pkg', '2.0.0');
+    await populateCache(join(tmpDir, '.trustlock', '.cache'), 'new-safe-pkg', '2.0.0');
 
     const result = spawnCli(['check'], tmpDir);
 
@@ -362,7 +362,7 @@ test('check: admit — updates and stages baseline after new safe package is adm
 
     // Baseline must be advanced — new-safe-pkg must be in it.
     const baseline = JSON.parse(
-      await readFile(join(tmpDir, '.dep-fence', 'baseline.json'), 'utf8')
+      await readFile(join(tmpDir, '.trustlock', 'baseline.json'), 'utf8')
     );
     assert.ok(
       'new-safe-pkg' in baseline.packages,
@@ -373,7 +373,7 @@ test('check: admit — updates and stages baseline after new safe package is adm
     // ADR-002: baseline.json must be staged via `git add`.
     const staged = execSync('git diff --cached --name-only', { cwd: tmpDir, encoding: 'utf8' });
     assert.ok(
-      staged.includes('.dep-fence/baseline.json'),
+      staged.includes('.trustlock/baseline.json'),
       `baseline.json must be staged after admission; git diff --cached: ${staged}`
     );
   } finally {
@@ -399,8 +399,8 @@ test('check: block — blocked package prints reason and approval command, basel
       { name: 'safe-pkg',     version: '2.0.0' },                               // changed — would admit
       { name: 'scripted-pkg', version: '1.0.0', hasInstallScripts: true },       // blocked by scripts rule
     ]);
-    await populateCache(join(tmpDir, '.dep-fence', '.cache'), 'safe-pkg',     '2.0.0');
-    await populateCache(join(tmpDir, '.dep-fence', '.cache'), 'scripted-pkg', '1.0.0');
+    await populateCache(join(tmpDir, '.trustlock', '.cache'), 'safe-pkg',     '2.0.0');
+    await populateCache(join(tmpDir, '.trustlock', '.cache'), 'scripted-pkg', '1.0.0');
 
     const result = spawnCli(['check'], tmpDir);
 
@@ -418,13 +418,13 @@ test('check: block — blocked package prints reason and approval command, basel
 
     // Output must include a generated approval command.
     assert.ok(
-      result.stdout.includes('Run to approve:') || result.stdout.includes('dep-fence approve'),
+      result.stdout.includes('Run to approve:') || result.stdout.includes('trustlock approve'),
       `stdout must include an approval command hint; got: ${result.stdout}`
     );
 
     // D1: baseline NOT advanced — safe-pkg must still be at 1.0.0 (not 2.0.0).
     const baseline = JSON.parse(
-      await readFile(join(tmpDir, '.dep-fence', 'baseline.json'), 'utf8')
+      await readFile(join(tmpDir, '.trustlock', 'baseline.json'), 'utf8')
     );
     assert.equal(
       baseline.packages['safe-pkg']?.version, '1.0.0',
@@ -455,7 +455,7 @@ test('approve + re-check: admitted with approval after scripted-pkg is approved'
       { name: 'safe-pkg',     version: '1.0.0' },
       { name: 'scripted-pkg', version: '1.0.0', hasInstallScripts: true },
     ]);
-    await populateCache(join(tmpDir, '.dep-fence', '.cache'), 'scripted-pkg', '1.0.0');
+    await populateCache(join(tmpDir, '.trustlock', '.cache'), 'scripted-pkg', '1.0.0');
 
     // First check → blocked (advisory exit 0).
     const blockResult = spawnCli(['check'], tmpDir);
@@ -479,7 +479,7 @@ test('approve + re-check: admitted with approval after scripted-pkg is approved'
 
     // approvals.json must contain the new entry.
     const approvals = JSON.parse(
-      await readFile(join(tmpDir, '.dep-fence', 'approvals.json'), 'utf8')
+      await readFile(join(tmpDir, '.trustlock', 'approvals.json'), 'utf8')
     );
     assert.equal(approvals.length, 1, 'approvals.json must have 1 entry');
     assert.equal(approvals[0].package, 'scripted-pkg');
@@ -514,9 +514,9 @@ test('check --enforce: exits 1 on block, baseline not written (D10)', async () =
       { name: 'safe-pkg',     version: '1.0.0' },
       { name: 'scripted-pkg', version: '1.0.0', hasInstallScripts: true },
     ]);
-    await populateCache(join(tmpDir, '.dep-fence', '.cache'), 'scripted-pkg', '1.0.0');
+    await populateCache(join(tmpDir, '.trustlock', '.cache'), 'scripted-pkg', '1.0.0');
 
-    const baselineBefore = await readFile(join(tmpDir, '.dep-fence', 'baseline.json'), 'utf8');
+    const baselineBefore = await readFile(join(tmpDir, '.trustlock', 'baseline.json'), 'utf8');
 
     const result = spawnCli(['check', '--enforce'], tmpDir);
 
@@ -525,7 +525,7 @@ test('check --enforce: exits 1 on block, baseline not written (D10)', async () =
       `--enforce block must exit 1; got ${result.exitCode}\nstdout: ${result.stdout}\nstderr: ${result.stderr}`);
 
     // D10: baseline must not have changed.
-    const baselineAfter = await readFile(join(tmpDir, '.dep-fence', 'baseline.json'), 'utf8');
+    const baselineAfter = await readFile(join(tmpDir, '.trustlock', 'baseline.json'), 'utf8');
     assert.equal(baselineAfter, baselineBefore,
       'D10: baseline must not be written under --enforce');
   } finally {
@@ -549,7 +549,7 @@ test('check --enforce: exits 0 on pass, baseline NOT written (D10)', async () =>
       { name: 'safe-pkg',     version: '1.0.0' },
       { name: 'new-safe-pkg', version: '3.0.0' },
     ]);
-    await populateCache(join(tmpDir, '.dep-fence', '.cache'), 'new-safe-pkg', '3.0.0');
+    await populateCache(join(tmpDir, '.trustlock', '.cache'), 'new-safe-pkg', '3.0.0');
 
     const result = spawnCli(['check', '--enforce'], tmpDir);
 
@@ -559,7 +559,7 @@ test('check --enforce: exits 0 on pass, baseline NOT written (D10)', async () =>
 
     // D10: --enforce never advances baseline, even on pass.
     const baseline = JSON.parse(
-      await readFile(join(tmpDir, '.dep-fence', 'baseline.json'), 'utf8')
+      await readFile(join(tmpDir, '.trustlock', 'baseline.json'), 'utf8')
     );
     assert.ok(
       !('new-safe-pkg' in baseline.packages),
@@ -586,9 +586,9 @@ test('check --dry-run: no baseline write even when all packages are admitted', a
       { name: 'safe-pkg',    version: '1.0.0' },
       { name: 'dry-run-pkg', version: '4.0.0' },
     ]);
-    await populateCache(join(tmpDir, '.dep-fence', '.cache'), 'dry-run-pkg', '4.0.0');
+    await populateCache(join(tmpDir, '.trustlock', '.cache'), 'dry-run-pkg', '4.0.0');
 
-    const baselineBefore = await readFile(join(tmpDir, '.dep-fence', 'baseline.json'), 'utf8');
+    const baselineBefore = await readFile(join(tmpDir, '.trustlock', 'baseline.json'), 'utf8');
 
     const result = spawnCli(['check', '--dry-run'], tmpDir);
 
@@ -596,7 +596,7 @@ test('check --dry-run: no baseline write even when all packages are admitted', a
       `--dry-run must exit 0; got ${result.exitCode}\nstderr: ${result.stderr}`);
 
     // Baseline file must be byte-for-byte identical.
-    const baselineAfter = await readFile(join(tmpDir, '.dep-fence', 'baseline.json'), 'utf8');
+    const baselineAfter = await readFile(join(tmpDir, '.trustlock', 'baseline.json'), 'utf8');
     assert.equal(baselineAfter, baselineBefore, '--dry-run must not write baseline');
 
     // dry-run-pkg must NOT appear in baseline.
@@ -643,7 +643,7 @@ test('clean-approvals: removes expired entries and prints count', async () => {
       },
     ];
     await writeFile(
-      join(tmpDir, '.dep-fence', 'approvals.json'),
+      join(tmpDir, '.trustlock', 'approvals.json'),
       JSON.stringify(approvals, null, 2),
       'utf8'
     );
@@ -663,7 +663,7 @@ test('clean-approvals: removes expired entries and prints count', async () => {
 
     // approvals.json must have exactly the 1 active entry remaining.
     const remaining = JSON.parse(
-      await readFile(join(tmpDir, '.dep-fence', 'approvals.json'), 'utf8')
+      await readFile(join(tmpDir, '.trustlock', 'approvals.json'), 'utf8')
     );
     assert.equal(remaining.length, 1, 'exactly 1 approval must remain');
     assert.equal(remaining[0].package, 'active-pkg');
@@ -676,12 +676,12 @@ test('clean-approvals: removes expired entries and prints count', async () => {
 // AC: install-hook test
 // ---------------------------------------------------------------------------
 
-test('install-hook: creates .git/hooks/pre-commit, makes it executable, adds dep-fence check', async () => {
+test('install-hook: creates .git/hooks/pre-commit, makes it executable, adds trustlock check', async () => {
   const tmpDir = await makeTmpDir();
   try {
-    // install-hook only needs a git repository — no dep-fence scaffold required.
+    // install-hook only needs a git repository — no trustlock scaffold required.
     execSync('git init', { cwd: tmpDir, stdio: 'ignore' });
-    execSync('git config user.email "test@dep-fence.test"', { cwd: tmpDir, stdio: 'ignore' });
+    execSync('git config user.email "test@trustlock.test"', { cwd: tmpDir, stdio: 'ignore' });
     execSync('git config user.name "Test User"', { cwd: tmpDir, stdio: 'ignore' });
 
     const result = spawnCli(['install-hook'], tmpDir);
@@ -707,11 +707,11 @@ test('install-hook: creates .git/hooks/pre-commit, makes it executable, adds dep
       assert.fail('.git/hooks/pre-commit must be executable');
     }
 
-    // File must contain the dep-fence check line.
+    // File must contain the trustlock check line.
     const hookContent = await readFile(hookPath, 'utf8');
     assert.ok(
-      hookContent.includes('dep-fence check'),
-      `pre-commit hook must contain "dep-fence check"; got:\n${hookContent}`
+      hookContent.includes('trustlock check'),
+      `pre-commit hook must contain "trustlock check"; got:\n${hookContent}`
     );
   } finally {
     await rm(tmpDir, { recursive: true, force: true });
@@ -728,7 +728,7 @@ test('full pipeline: init → check (no-changes) → modify lockfile → check (
   try {
     // ── Step 1: bootstrap git repo + project files ────────────────────────
     execSync('git init', { cwd: tmpDir, stdio: 'ignore' });
-    execSync('git config user.email "test@dep-fence.test"', { cwd: tmpDir, stdio: 'ignore' });
+    execSync('git config user.email "test@trustlock.test"', { cwd: tmpDir, stdio: 'ignore' });
     execSync('git config user.name "Test User"', { cwd: tmpDir, stdio: 'ignore' });
     execSync('git config commit.gpgSign false', { cwd: tmpDir, stdio: 'ignore' });
 
@@ -739,17 +739,17 @@ test('full pipeline: init → check (no-changes) → modify lockfile → check (
     );
     const initialLockfileContent = await writeLockfile(tmpDir, [{ name: 'safe-pkg', version: '1.0.0' }]);
 
-    // ── Step 2: dep-fence init --no-baseline (no registry calls) ──────────
+    // ── Step 2: trustlock init --no-baseline (no registry calls) ──────────
     const initResult = spawnCli(['init', '--no-baseline'], tmpDir);
     assert.equal(initResult.exitCode, 0,
       `init --no-baseline should exit 0\nstderr: ${initResult.stderr}`);
 
     // Verify scaffold was created.
-    const depFenceDir = join(tmpDir, '.dep-fence');
-    await stat(join(depFenceDir, 'approvals.json'));
-    await stat(join(depFenceDir, '.cache'));
-    await stat(join(depFenceDir, '.gitignore'));
-    await stat(join(tmpDir, '.depfencerc.json'));
+    const trustlockDir = join(tmpDir, '.trustlock');
+    await stat(join(trustlockDir, 'approvals.json'));
+    await stat(join(trustlockDir, '.cache'));
+    await stat(join(trustlockDir, '.gitignore'));
+    await stat(join(tmpDir, '.trustlockrc.json'));
 
     // ── Step 3: manually create baseline (--no-baseline skipped it) ───────
     const lockfileHash = sha256hex(initialLockfileContent);
@@ -766,17 +766,17 @@ test('full pipeline: init → check (no-changes) → modify lockfile → check (
       },
     };
     await writeFile(
-      join(depFenceDir, 'baseline.json'),
+      join(trustlockDir, 'baseline.json'),
       JSON.stringify(initialBaseline, null, 2) + '\n',
       'utf8'
     );
 
     // Pre-populate cache for safe-pkg.
-    await populateCache(join(depFenceDir, '.cache'), 'safe-pkg', '1.0.0');
+    await populateCache(join(trustlockDir, '.cache'), 'safe-pkg', '1.0.0');
 
     // Commit the initialized state.
     execSync('git add .', { cwd: tmpDir, stdio: 'ignore' });
-    execSync('git commit -m "dep-fence init"', { cwd: tmpDir, stdio: 'ignore' });
+    execSync('git commit -m "trustlock init"', { cwd: tmpDir, stdio: 'ignore' });
 
     // ── Step 4: check on unchanged lockfile → "No dependency changes" ─────
     const noChangesResult = spawnCli(['check'], tmpDir);
@@ -791,7 +791,7 @@ test('full pipeline: init → check (no-changes) → modify lockfile → check (
       { name: 'safe-pkg',     version: '1.0.0' },
       { name: 'scripted-pkg', version: '1.0.0', hasInstallScripts: true },
     ]);
-    await populateCache(join(depFenceDir, '.cache'), 'scripted-pkg', '1.0.0');
+    await populateCache(join(trustlockDir, '.cache'), 'scripted-pkg', '1.0.0');
 
     // ── Step 6: check → blocked by scripts rule ───────────────────────────
     const blockResult = spawnCli(['check'], tmpDir);
@@ -803,7 +803,7 @@ test('full pipeline: init → check (no-changes) → modify lockfile → check (
 
     // D1: baseline not advanced — scripted-pkg absent.
     const baselineAfterBlock = JSON.parse(
-      await readFile(join(depFenceDir, 'baseline.json'), 'utf8')
+      await readFile(join(trustlockDir, 'baseline.json'), 'utf8')
     );
     assert.ok(
       !('scripted-pkg' in baselineAfterBlock.packages),
@@ -835,7 +835,7 @@ test('full pipeline: init → check (no-changes) → modify lockfile → check (
 
     // Baseline must now include scripted-pkg (approval covered the block → D1 fully admitted).
     const baselineAfterAdmit = JSON.parse(
-      await readFile(join(depFenceDir, 'baseline.json'), 'utf8')
+      await readFile(join(trustlockDir, 'baseline.json'), 'utf8')
     );
     assert.ok(
       'scripted-pkg' in baselineAfterAdmit.packages,
@@ -846,7 +846,7 @@ test('full pipeline: init → check (no-changes) → modify lockfile → check (
     // ADR-002: baseline.json must be staged after successful admission.
     const staged = execSync('git diff --cached --name-only', { cwd: tmpDir, encoding: 'utf8' });
     assert.ok(
-      staged.includes('.dep-fence/baseline.json'),
+      staged.includes('.trustlock/baseline.json'),
       `baseline.json must be staged after full admission\ngit diff --cached: ${staged}`
     );
   } finally {

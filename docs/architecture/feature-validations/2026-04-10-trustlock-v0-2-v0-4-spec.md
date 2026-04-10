@@ -2,7 +2,7 @@
 
 ## Verdict
 
-**APPROVED with constraints** — no architectural blockers. All 9 features (F09–F17) are consistent with the system overview, data model, and ADRs (ADR-001 through ADR-006). Story breakdown may proceed with the constraints listed below. Four new constraints (C-NEW-1 through C-NEW-4) are binding on story breakdown in addition to the 12 carry-forward constraints from the spec review (C1–C12).
+**APPROVED with constraints** — no architectural blockers. All 9 features (F09–F17) are consistent with the system overview, data model, and ADRs (ADR-001 through ADR-006). Story breakdown may proceed with the constraints listed below. Five new constraints (C-NEW-1 through C-NEW-5) are binding on story breakdown in addition to the 12 carry-forward constraints from the spec review (C1–C12).
 
 ---
 
@@ -24,7 +24,7 @@
 The v0.2–v0.3 features extend the existing layer order without introducing violations or circular dependencies:
 
 ```
-utils (F01, F09) 
+utils (F01, F09)
   ↓
 lockfile (F02, F11, F16.parsers) / registry (F03, F12, F16.pypi) / approvals (F05)
   ↓
@@ -77,30 +77,31 @@ All 12 constraints from the architecture spec review are reflected in the featur
 | C11 — built-in `relaxed` bypasses floor; user-defined does not | F14 | AC items 3–5 cover all three cases. |
 | C12 — uv source.path excluded entirely | F16 | AC item 3 confirms; edge case 4 confirms. |
 
-### Sprint Sequencing — Confirmed
+### Sprint Sequencing — Confirmed with Correction
 
 **Sprint 3 (v0.2):**
 - F09 must land first. F10, F11, F12, F14 are correctly blocked on F09 in all four briefs.
-- F10 and F11 and F12 and F14 can proceed in parallel once F09 ships — correctly stated.
-- F13 depends on F10's JSON schema v2 being stable — correctly stated.
+- F11, F12 can proceed in parallel once F09 ships — correctly stated.
+- **Corrected sequencing for F10, F14, F13:** F10 must land before F14, and F13 must be last. See C-NEW-5 for the args.js ownership conflict that drives this ordering.
 - F14 must not couple its floor enforcement logic to `loader.js` (Sprint 4). F14 brief explicitly notes this decoupling requirement.
 
 **Sprint 4 (v0.3):**
 - F15 (`loader.js`) must land before any policy-touching v0.3 story — correctly stated. F16 and F17 are independent of F15.
+- F15's "all commands await loadPolicy()" rule has one explicit exception: F17 (`cross-audit.js`) must NOT call `loadPolicy()` (C-NEW-4). Story breakdown for F15 must document this carve-out.
 - F16 is parallel with F15 once `registry/client.js` interface is stable — correctly stated.
-- F17 is standalone with no dependency on F15 or F16 — correctly stated.
+- F17 is standalone with no dependency on F15 or F16 — correctly stated. Benefits from but does not strictly require F16's parsers.
 
 ### Workflow Coverage — Confirmed
 
 | Feature | Workflow Required | Coverage |
 |---|---|---|
 | F09 | No — CLI infrastructure change only | Existing command workflows cover the surface change (adding `--project-dir`). Correct. |
-| F10 | Yes — blocked-approve and check-admit flows change | F10 brief lists `blocked-approve.md` and `check-admit.md` as requiring update. |
+| F10 | Yes — blocked-approve and check-admit flows change | F10 brief lists `blocked-approve.md` and `check-admit.md` as requiring update. Both docs reviewed and consistent with F10's output redesign spec. |
 | F11 | No — parser change is invisible to user | Correct. |
 | F12 | No — publisher-change block surfaces via F10's blocked-approve workflow | Correct. F10's workflow update covers the elevated `⚠` treatment. |
 | F13 | No — CI-only output mode with no interactive flow | Correct. |
 | F14 | No — config flag addition with no new interaction pattern | Correct. |
-| F15 | Yes — org-policy-setup is a new admin flow | F15 brief documents `org-policy-setup` workflow. |
+| F15 | Yes — org-policy-setup is a new admin flow | `org-policy-setup.md` workflow reviewed and confirmed consistent with F15's load-order spec and all six failure modes (URL-based, local path, floor enforcement, unreachable+cache, unreachable+no-cache, chained extends). |
 | F16 | No — parser change is invisible to user; init-onboarding workflow covers Python init identically to npm | Correct. |
 | F17 | No — passive informational command with no side effects | Correct. |
 
@@ -116,7 +117,7 @@ These constraints are additions to the C1–C12 carry-forward set. All are bindi
 
 ### C-NEW-1: F11 yarn install scripts — lockfile parser must NOT import registry
 
-**Applies to:** task-051 (F11 story breakdown)
+**Applies to:** F11 story breakdown (task-051)
 
 The F11 brief states that when `dependenciesMeta[pkg].built` is absent from a yarn berry lockfile, the check "falls back to registry API (ADR-003 cache-first)". This registry fallback must NOT be implemented inside `src/lockfile/yarn.js`.
 
@@ -128,7 +129,7 @@ The F11 brief states that when `dependenciesMeta[pkg].built` is absent from a ya
 
 ### C-NEW-2: F14 profile overlay must be designed for clean composition with F15
 
-**Applies to:** task-054 (F14 story breakdown)
+**Applies to:** F14 story breakdown (task-054)
 
 F14 ships in Sprint 3 (synchronous) and F15 ships in Sprint 4 (async `loader.js`). F15 must incorporate F14's profile overlay logic without a full rewrite. To enable this, F14's implementation must export the floor enforcement logic and profile merge as standalone functions in `builtin-profiles.js` (or a peer module), so `loader.js` can import and call them in step 4 of the ADR-005 merge sequence.
 
@@ -141,7 +142,7 @@ F14 ships in Sprint 3 (synchronous) and F15 ships in Sprint 4 (async `loader.js`
 
 ### C-NEW-3: F16 registry routing — ecosystem dispatch must be explicit
 
-**Applies to:** task-056 (F16 story breakdown)
+**Applies to:** F16 story breakdown (task-056)
 
 `src/registry/pypi.js` is a new adapter parallel to `src/registry/npm-registry.js`. The check flow (step 5a in system-overview.md) fetches registry metadata for each changed package. With F16, that step must dispatch to the correct adapter based on the package ecosystem.
 
@@ -151,7 +152,7 @@ F14 ships in Sprint 3 (synchronous) and F15 ships in Sprint 4 (async `loader.js`
 
 ### C-NEW-4: F17 must NOT call `loadPolicy()`
 
-**Applies to:** task-057 (F17 story breakdown)
+**Applies to:** F17 story breakdown (task-057)
 
 `trustlock audit --compare` reads `.trustlockrc.json` from each project directory to extract `scripts.allowlist` for the allowlist comparison section (D6). It must read the file directly using `fs.readFile` and parse the JSON — it must NOT call `loadPolicy()` (F15's async loader).
 
@@ -159,21 +160,39 @@ F14 ships in Sprint 3 (synchronous) and F15 ships in Sprint 4 (async `loader.js`
 
 **AC addition required in F17 story:** `cross-audit.js` reads `.trustlockrc.json` files directly via `fs.readFile`. `loadPolicy()` is not called. A test confirms that a directory with a malformed `extends` URL in `.trustlockrc.json` does not cause an error or network call during `--compare`.
 
+**Note for F15 story breakdown:** F15's AC states "All commands `await loadPolicy()` before any delta computation." F17 is the explicit exception to this rule. F15 story breakdown must document the carve-out explicitly — `loadPolicy()` is called by `check.js`, `audit.js` (single-project), `approve.js`, and `init.js`, but NOT by `cross-audit.js`.
+
+### C-NEW-5: args.js flag ownership conflict between F10 and F14 — must be resolved in story breakdown
+
+**Applies to:** F10 story breakdown and F14 story breakdown (task-054)
+
+F10's layering note states `src/cli/args.js (--quiet, --profile flags)`. F14's layering note states `src/cli/args.js (--profile flag)`. These briefs directly contradict each other on ownership of the `--profile` flag. Both cannot independently add `--profile` — the second story to merge will produce a conflict.
+
+**Correct flag ownership:**
+- **F10 story owns in args.js:** `--quiet` flag, `--sarif` flag, and the `--json`/`--sarif` mutual exclusion gate. F10 does NOT add `--profile`. The `--profile` mention in F10's layering note is incorrect.
+- **F14 story owns in args.js:** `--profile` flag only, building on the F10-modified args.js.
+
+**Required Sprint 3 implementation sequencing:** F09 → (F11, F12 parallel) → F10 → F14 → F13 (last). F10 must precede F14 because (a) F13 depends on F10's `--sarif` flag and mutual exclusion gate, and (b) F14 must build on the F10-modified args.js to avoid a merge conflict. F13 is last because it depends on F10's JSON schema v2 being stable (C5).
+
+**AC addition required in F10 story:** F10 adds `--quiet` and `--sarif` to args.js, and the `--json`/`--sarif` mutual exclusion gate. It does NOT add `--profile`. The layering note in the F10 brief that includes `--profile` is superseded by this constraint.
+
+**AC addition required in F14 story:** F14 adds `--profile` to args.js. The story is written to build on the F10-modified version of args.js (assumes `--quiet`, `--sarif`, and mutual exclusion are already present).
+
 ---
 
 ## Gaps Flagged (Non-Blocking)
 
 ### G-NEW-1: Feature inventory document not updated to include F09–F17
 
-`docs/feature-briefs/00-feature-inventory.md` was not updated by task-047. It still reflects only F01–F08 (date: 2026-04-08). The individual feature brief files (F09–F17) exist and are the authoritative source for story breakdown. The inventory file is documentation only.
+`docs/feature-briefs/00-feature-inventory.md` reflects only F01–F08 (date: 2026-04-08). The individual feature brief files (F09–F17) exist and are the authoritative source for story breakdown. The inventory file is documentation only.
 
 **Required follow-up:** Any story breakdown task that references the inventory should use the individual feature brief files (F09–F17.md) as the authoritative source. The inventory document should be updated during or after story breakdown to include F09–F17 rows and the Sprint 3–4 summary from the replan doc.
 
-### G-NEW-2: F13 `--quiet --sarif` interaction is unresolved
+### G-NEW-2: F13 `--quiet --sarif` interaction is unresolved in the brief
 
 F13 edge case 7 notes that the `--quiet --sarif` interaction is an "implementation-time decision" with a PM assumption that `--quiet` takes precedence and suppresses SARIF output. This must not remain unresolved at story breakdown time — an undecided behavior in acceptance criteria creates a gap in CI integration tests.
 
-**Required follow-up:** Story breakdown for F13 (task-053) must document the chosen behavior explicitly in the AC: either `--quiet` suppresses SARIF (SARIF consumers must not use `--quiet`) or `--quiet` does not suppress SARIF (stdout is clean SARIF even with `--quiet`). The PM assumption (suppress) is architecturally acceptable — it just must be explicit.
+**Required follow-up:** Story breakdown for F13 must document the chosen behavior explicitly in the AC: either `--quiet` suppresses SARIF (SARIF consumers must not use `--quiet`) or `--quiet` does not suppress SARIF (stdout is clean SARIF even with `--quiet`). The PM assumption (suppress) is architecturally acceptable — it just must be explicit.
 
 ---
 
@@ -190,15 +209,16 @@ None. No feature in F09–F17 requires a new ADR or an architecture revision. AD
 | C-NEW-1 (yarn install scripts — no registry import from lockfile module) | story breakdown (task-051) | F11 story AC |
 | C-NEW-2 (F14 profile overlay exports for F15 composition) | story breakdown (task-054) | F14 story AC |
 | C-NEW-3 (F16 ecosystem dispatch in registry/client.js) | story breakdown (task-056) | F16 story AC |
-| C-NEW-4 (F17 must not call loadPolicy) | story breakdown (task-057) | F17 story AC |
+| C-NEW-4 (F17 must not call loadPolicy; F15 must document carve-out) | story breakdown (task-054, task-057) | F17 story AC; F15 story AC |
+| C-NEW-5 (args.js flag ownership — F10 owns --quiet/--sarif/mutex; F14 owns --profile; sequencing F09→F10→F14→F13) | story breakdown (F10 and task-054) | F10 story AC; F14 story AC |
 | G-NEW-1 (feature inventory update) | any story breakdown task or housekeeping | documentation only |
-| G-NEW-2 (F13 --quiet --sarif behavior must be explicit in AC) | story breakdown (task-053) | F13 story AC |
+| G-NEW-2 (F13 --quiet --sarif behavior must be explicit in AC) | story breakdown (F13) | F13 story AC |
 
 ---
 
 ## Metadata
 - Agent: architect-feature-validate
 - Date: 2026-04-10
-- Task: task-048
+- Task: task-049
 - Spec: 2026-04-10-trustlock-v0.2-v0.4-spec.md
 - Features validated: F09–F17 (9 features, Sprints 3–4)

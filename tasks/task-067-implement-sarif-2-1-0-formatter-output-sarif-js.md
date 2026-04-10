@@ -18,3 +18,5 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F13-S1-approach.md
 review_artifact: docs/reviews/task-067-review.md
+source_files: src/output/sarif.js
+test_files: test/unit/output/sarif.test.js

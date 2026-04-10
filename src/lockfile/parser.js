@@ -9,8 +9,10 @@
 import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 import { parseNpm } from './npm.js';
+import { parsePnpm, _parseLockfileVersion as _parsePnpmVersion } from './pnpm.js';
 
 const SUPPORTED_NPM_VERSIONS = new Set([1, 2, 3]);
+const SUPPORTED_PNPM_VERSIONS = new Set([5, 6, 9]);
 
 /**
  * Determine format and version from a parsed lockfile object and filename.
@@ -32,7 +34,7 @@ function _detectFromParsed(parsed, filename) {
     return { format: 'npm', version };
   }
 
-  // pnpm-lock.yaml and yarn.lock support deferred to v0.2
+  // yarn.lock support deferred to v0.2 (F11-S2)
   console.error(`Unrecognized lockfile format: ${filename}`);
   process.exit(2);
 }
@@ -44,12 +46,26 @@ function _detectFromParsed(parsed, filename) {
  * @returns {Promise<{ format: string, version: number }>}
  */
 export async function detectFormat(lockfilePath) {
+  const filename = basename(lockfilePath);
+
   let content;
   try {
     content = await readFile(lockfilePath, 'utf8');
   } catch {
     console.error(`Lockfile not found: ${lockfilePath}`);
     process.exit(2);
+  }
+
+  // pnpm branch — YAML, not JSON (auto-detect: pnpm-lock.yaml; or --lockfile <any>.yaml)
+  if (filename === 'pnpm-lock.yaml' || filename.endsWith('.yaml')) {
+    const version = _parsePnpmVersion(content);
+    if (!SUPPORTED_PNPM_VERSIONS.has(version)) {
+      console.error(
+        `Unsupported pnpm lockfile version ${version}. trustlock supports v5, v6, v9.`
+      );
+      process.exit(2);
+    }
+    return { format: 'pnpm', version };
   }
 
   let parsed;
@@ -60,7 +76,7 @@ export async function detectFormat(lockfilePath) {
     process.exit(2);
   }
 
-  return _detectFromParsed(parsed, basename(lockfilePath));
+  return _detectFromParsed(parsed, filename);
 }
 
 /**
@@ -73,7 +89,9 @@ export async function detectFormat(lockfilePath) {
  * @param {string} packageJsonPath   - Path to the companion package.json.
  * @returns {Promise<ResolvedDependency[]>}
  */
-export async function parseLockfile(lockfilePath, packageJsonPath) {
+export async function parseLockfile(lockfilePath, packageJsonPathOrProjectRoot) {
+  const filename = basename(lockfilePath);
+
   // Read lockfile
   let lockfileContent;
   try {
@@ -83,7 +101,14 @@ export async function parseLockfile(lockfilePath, packageJsonPath) {
     process.exit(2);
   }
 
-  // Parse JSON
+  // pnpm branch — YAML, not JSON; second argument is projectRoot (string | null)
+  // Auto-detect: pnpm-lock.yaml by convention; any .yaml file via --lockfile override
+  if (filename === 'pnpm-lock.yaml' || filename.endsWith('.yaml')) {
+    // parsePnpm validates the version and calls process.exit(2) if unsupported
+    return parsePnpm(lockfileContent, packageJsonPathOrProjectRoot);
+  }
+
+  // npm branch — Parse JSON
   let parsed;
   try {
     parsed = JSON.parse(lockfileContent);
@@ -93,9 +118,10 @@ export async function parseLockfile(lockfilePath, packageJsonPath) {
   }
 
   // Detect format (exits on unsupported version)
-  const { format } = _detectFromParsed(parsed, basename(lockfilePath));
+  const { format } = _detectFromParsed(parsed, filename);
 
-  // Read package.json (needed by parsers for directDependency classification)
+  // Read package.json (needed by npm parser for directDependency classification)
+  const packageJsonPath = packageJsonPathOrProjectRoot;
   let packageJsonContent;
   try {
     packageJsonContent = await readFile(packageJsonPath, 'utf8');
@@ -108,7 +134,7 @@ export async function parseLockfile(lockfilePath, packageJsonPath) {
     return parseNpm(lockfileContent, packageJsonContent);
   }
 
-  // Unreachable in v0.1: _detectFromParsed exits on non-npm formats
+  // Unreachable: _detectFromParsed exits on non-npm formats
   /* c8 ignore next 2 */
   console.error(`Unsupported format: ${format}`);
   /* c8 ignore next */

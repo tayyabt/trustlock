@@ -15,6 +15,7 @@ export function parseArgs(argv = process.argv.slice(2)) {
       'enforce':      { type: 'boolean', default: false },
       'json':         { type: 'boolean', default: false },
       'sarif':        { type: 'boolean', default: false },
+      'profile':      { type: 'string' },
       'quiet':        { type: 'boolean', default: false },
       'dry-run':      { type: 'boolean', default: false },
       'lockfile':     { type: 'string' },

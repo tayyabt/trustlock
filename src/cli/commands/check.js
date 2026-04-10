@@ -16,6 +16,7 @@ import { createHash } from 'node:crypto';
 
 import { parseLockfile } from '../../lockfile/parser.js';
 import { loadPolicy } from '../../policy/config.js';
+import { applyProfileOverlay, isBuiltinProfile } from '../../policy/builtin-profiles.js';
 import { readBaseline, advanceBaseline, writeAndStage } from '../../baseline/manager.js';
 import { computeDelta } from '../../baseline/diff.js';
 import { readApprovals } from '../../approvals/store.js';
@@ -34,6 +35,13 @@ import { resolvePaths, getRelativePath } from '../../utils/paths.js';
 const EXPECTED_LOCKFILES = ['package-lock.json'];
 
 /**
+ * Mandatory ecosystem warning emitted when provenance.required_for: ["*"] is active.
+ * Not suppressible by --quiet (F14-S2, ADR-005 step 4).
+ */
+const PROVENANCE_ALL_WARNING =
+  'Warning: ~85-90% of npm packages have no provenance. All packages are required to have provenance under the active profile.';
+
+/**
  * Run the `check` command.
  *
  * @param {{ values: object, positionals: string[] }} args  Parsed CLI args
@@ -50,6 +58,7 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   const dryRun      = values['dry-run']  ?? false;
   const lockfileArg = values['lockfile'] ?? null;
   const noCache     = values['no-cache'] ?? false;
+  const profileName = values['profile']  ?? null;
 
   // ── Resolve projectRoot and gitRoot ─────────────────────────────────────────
   let projectRoot, gitRoot;
@@ -80,6 +89,30 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
     }
     process.exitCode = 2;
     return;
+  }
+
+  // ── 1b. Apply profile overlay (F14-S2) ────────────────────────────────────
+  // NOTE: In Sprint 4, loader.js (F15) will own this call; check.js will then
+  // receive the overlaid config from loadPolicy and stop calling applyProfileOverlay.
+  let hasProvenanceAllWarning = false;
+  if (profileName !== null) {
+    const userDefinedProfiles = policy.profiles ?? {};
+    const userDefinedExists = Object.prototype.hasOwnProperty.call(userDefinedProfiles, profileName);
+    // User-defined presence wins over built-in by name (edge case: user-defined "relaxed" is not built-in)
+    const isBuiltin = !userDefinedExists && isBuiltinProfile(profileName);
+
+    if (!userDefinedExists && !isBuiltinProfile(profileName)) {
+      process.stderr.write(
+        `Profile "${profileName}" not found in .trustlockrc.json or built-in profiles.\n`
+      );
+      process.exitCode = 2;
+      return;
+    }
+
+    // applyProfileOverlay throws on floor violation; propagates to top-level error handler → exit 2
+    const overlayResult = applyProfileOverlay(policy, profileName, userDefinedProfiles, isBuiltin);
+    policy = overlayResult.config;
+    hasProvenanceAllWarning = overlayResult.warnings.includes('provenance-all');
   }
 
   // ── 2. Load baseline ───────────────────────────────────────────────────────
@@ -140,9 +173,16 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
 
   // ── 8. No dependency changes ──────────────────────────────────────────────
   if (delta.shortCircuited || (delta.added.length === 0 && delta.changed.length === 0)) {
+    // Mandatory provenance-all warning: not suppressible by --quiet in terminal mode
+    if (hasProvenanceAllWarning && !json && !sarif) {
+      process.stdout.write(PROVENANCE_ALL_WARNING + '\n');
+    }
     if (!quiet) {
       if (json) {
-        const emptyGrouped = { blocked: [], admitted_with_approval: [], new_packages: [], admitted: [] };
+        const emptyBase = { blocked: [], admitted_with_approval: [], new_packages: [], admitted: [] };
+        const emptyGrouped = hasProvenanceAllWarning
+          ? { ...emptyBase, warnings: [PROVENANCE_ALL_WARNING] }
+          : emptyBase;
         process.stdout.write(formatJson(emptyGrouped) + '\n');
       } else if (sarif) {
         const emptyGrouped = { blocked: [], admitted_with_approval: [], new_packages: [], admitted: [] };
@@ -264,6 +304,11 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   const wallTimeMs = Date.now() - startTime;
 
   // ── 12. Format and write output ───────────────────────────────────────────
+  // Mandatory provenance-all warning: not suppressible by --quiet in terminal mode (F14-S2)
+  if (hasProvenanceAllWarning && !json && !sarif) {
+    process.stdout.write(PROVENANCE_ALL_WARNING + '\n');
+  }
+
   if (!quiet) {
     if (json) {
       const jsonGroupedWithSummary = {
@@ -274,6 +319,7 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
           admitted: jsonGrouped.admitted.length + jsonGrouped.admitted_with_approval.length,
           wall_time_ms: wallTimeMs,
         },
+        ...(hasProvenanceAllWarning ? { warnings: [PROVENANCE_ALL_WARNING] } : {}),
       };
       process.stdout.write(formatJson(jsonGroupedWithSummary) + '\n');
     } else if (sarif) {

@@ -19,3 +19,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F10-S2-approach.md
 review_artifact: docs/reviews/task-061-review.md
+source_files: src/output/terminal.js
+test_files: src/output/__tests__/terminal.test.js, test/output/terminal.test.js
+docs_updates: docs/design-notes/F10-S2-approach.md, docs/reviews/task-061-review.md

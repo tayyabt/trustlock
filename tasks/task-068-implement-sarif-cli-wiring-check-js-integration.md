@@ -18,3 +18,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F13-S2-approach.md
 review_artifact: docs/reviews/task-068-review.md
+source_files: src/utils/paths.js, src/cli/args.js, src/output/sarif.js, src/cli/commands/check.js
+test_files: test/unit/output/sarif.test.js, test/integration/check.sarif.test.js
+docs_updates: docs/design-notes/F13-S2-approach.md, docs/reviews/task-068-review.md

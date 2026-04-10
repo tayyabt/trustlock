@@ -18,3 +18,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F10-S3-approach.md
 review_artifact: docs/reviews/task-062-review.md
+source_files: src/output/json.js
+test_files: src/output/__tests__/json.test.js, test/output/json.test.js
+docs_updates: docs/design-notes/F10-S3-approach.md, docs/reviews/task-062-review.md

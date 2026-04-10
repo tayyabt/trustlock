@@ -1,0 +1,28 @@
+lockfileVersion: '9.0'
+
+packages:
+
+  lodash@4.17.21:
+    name: lodash
+    version: 4.17.21
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZkFekkLKFiJCMSBB69A==}
+
+  '@babel/core@7.24.0':
+    name: '@babel/core'
+    version: 7.24.0
+    resolution: {integrity: sha512-guv9-Qjcp0O+u5TkGAOojtylsAkWzaW5kFJP7GKKFsYlbUHbhzFSMaGJoIrQ7h3aFBQu7C+6Rfp2lPTkIb5A==}
+    requiresBuild: true
+
+  express@4.18.2:
+    name: express
+    version: 4.18.2
+    resolution: {integrity: sha512-5/PsL6iGOs/rsbKmhMbRSL2YDutNq7FxlMT3jJSIhQCBlp/z1dM+xbRpLtMBlPTk2mGqFMM8XGMeMU6yLNdg==}
+    hasBin: true
+
+snapshots:
+
+  lodash@4.17.21: {}
+
+  '@babel/core@7.24.0': {}
+
+  express@4.18.2: {}

@@ -154,15 +154,28 @@ describe('detectFormat — file and parse errors', () => {
     });
   });
 
-  test('exit 2 for unrecognized filename (e.g. pnpm-lock.yaml)', async () => {
+  test('exit 2 for pnpm-lock.yaml with unsupported lockfileVersion', async () => {
     await withTempDir(async (dir) => {
       const lockfilePath = path.join(dir, 'pnpm-lock.yaml');
-      await writeFile(lockfilePath, '{}', 'utf8');
+      await writeFile(lockfilePath, 'lockfileVersion: 99\n', 'utf8');
       const messages = await expectExit2(() => detectFormat(lockfilePath));
       assert.ok(
-        messages.some((m) => m.includes('Unrecognized lockfile format')),
-        `Expected "Unrecognized lockfile format", got: ${JSON.stringify(messages)}`
+        messages.some((m) => m.includes('Unsupported pnpm lockfile version 99')),
+        `Expected "Unsupported pnpm lockfile version 99", got: ${JSON.stringify(messages)}`
       );
+      assert.ok(
+        messages.some((m) => m.includes('trustlock supports v5, v6, v9')),
+        `Expected "trustlock supports v5, v6, v9", got: ${JSON.stringify(messages)}`
+      );
+    });
+  });
+
+  test('detects pnpm-lock.yaml with lockfileVersion 5', async () => {
+    await withTempDir(async (dir) => {
+      const lockfilePath = path.join(dir, 'pnpm-lock.yaml');
+      await writeFile(lockfilePath, 'lockfileVersion: 5\n\npackages:\n', 'utf8');
+      const result = await detectFormat(lockfilePath);
+      assert.deepEqual(result, { format: 'pnpm', version: 5 });
     });
   });
 });

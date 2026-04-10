@@ -21,6 +21,10 @@
    - Why it happens: If a test mocks `process.exit` without making it throw, the real `process.exit` is bypassed but the async function continues executing. The test suite may abort or give false passes.
    - How to avoid it: Mock `process.exit` to throw (`throw Object.assign(new Error(...), { exitCode: code })`). Use `assert.rejects()` to capture the error and check `err.exitCode === 2`. Always restore both `process.exit` and `console.error` in `afterEach`.
 
+6. `.endsWith('.yaml')` routes ALL YAML filenames to the pnpm parser
+   - Why it happens: `parser.js` uses `filename.endsWith('.yaml')` (not `=== 'pnpm-lock.yaml'`) to support `--lockfile <any>.yaml` override. This is intentional for v0.2, but means any future YAML-format lockfile (if introduced) would silently enter the pnpm code path and produce confusing errors or wrong output.
+   - How to avoid it: If a second YAML-based lockfile format is ever added (e.g. a hypothetical v0.3 format), add content-based disambiguation before the version dispatch — check for a distinguishing top-level key before calling `_parseLockfileVersion`. Files: `src/lockfile/parser.js:60,106`
+
 ## Regression Traps
 - Adding v2/v3 parsing must not break v1. Each version path is independent.
 - Changing `ResolvedDependency` model fields requires updating ALL parsers — the common model is a contract.

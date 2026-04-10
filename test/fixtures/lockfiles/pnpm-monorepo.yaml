@@ -1,0 +1,57 @@
+lockfileVersion: '9.0'
+
+importers:
+
+  .:
+    dependencies:
+      shared-lib:
+        specifier: ^1.0.0
+        version: 1.0.0
+
+  packages/backend:
+    dependencies:
+      express:
+        specifier: ^4.18.2
+        version: 4.18.2
+    devDependencies:
+      jest:
+        specifier: ^29.0.0
+        version: 29.0.0
+
+  packages/frontend:
+    dependencies:
+      react:
+        specifier: ^18.0.0
+        version: 18.0.0
+
+packages:
+
+  express@4.18.2:
+    name: express
+    version: 4.18.2
+    resolution: {integrity: sha512-5/PsL6iGOs/rsbKmhMbRSL2YDutNq7FxlMT3jJSIhQCBlp/z1dM+xbRpLtMBlPTk2mGqFMM8XGMeMU6yLNdg==}
+
+  jest@29.0.0:
+    name: jest
+    version: 29.0.0
+    resolution: {integrity: sha512-jest000IntegrityHash}
+
+  react@18.0.0:
+    name: react
+    version: 18.0.0
+    resolution: {integrity: sha512-ei+vSGFGBkHMSAUWE0wgzDnKXgLHHPpM5N0I9MKzDxzEz6LBbwPuDMSB0ADRJ/lKt3FJwRxzRE6s2i3N8QKQ==}
+
+  shared-lib@1.0.0:
+    name: shared-lib
+    version: 1.0.0
+    resolution: {integrity: sha512-abc123SharedLibIntegrityHash}
+
+snapshots:
+
+  express@4.18.2: {}
+
+  jest@29.0.0: {}
+
+  react@18.0.0: {}
+
+  shared-lib@1.0.0: {}

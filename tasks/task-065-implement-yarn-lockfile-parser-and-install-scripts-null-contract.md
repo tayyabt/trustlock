@@ -18,3 +18,5 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F11-S2-approach.md
 review_artifact: docs/reviews/task-065-review.md
+source_files: src/lockfile/yarn.js, src/lockfile/parser.js, src/policy/rules/scripts.js
+test_files: test/lockfile/yarn.test.js, test/policy/rules/scripts.test.js, test/fixtures/lockfiles/yarn-classic-v1.lock, test/fixtures/lockfiles/yarn-berry-v2.lock, test/fixtures/lockfiles/yarn-berry-with-built.lock

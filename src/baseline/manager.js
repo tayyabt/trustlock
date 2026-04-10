@@ -154,17 +154,17 @@ export function advanceBaseline(baseline, admittedDeps, lockfileHash) {
  *
  * @param {Object} baseline  Baseline object to persist
  * @param {string} baselinePath  Path to write the baseline JSON file
- * @param {{ _gitAdd?: function }} [opts]  Internal — override gitAdd for unit tests
+ * @param {{ _gitAdd?: function, gitRoot?: string }} [opts]  Internal — override gitAdd for unit tests; gitRoot sets cwd for git add
  * @returns {Promise<void>}
  */
-export async function writeAndStage(baseline, baselinePath, { _gitAdd = gitAdd } = {}) {
+export async function writeAndStage(baseline, baselinePath, { _gitAdd = gitAdd, gitRoot } = {}) {
   const dir = dirname(baselinePath);
   const tmp = join(dir, `.baseline-tmp.${process.pid}`);
   await writeFile(tmp, JSON.stringify(baseline, null, 2) + '\n', 'utf8');
   await rename(tmp, baselinePath);
 
   try {
-    _gitAdd('.trustlock/baseline.json');
+    _gitAdd('.trustlock/baseline.json', { gitRoot });
   } catch {
     process.stderr.write('Warning: could not auto-stage baseline file\n');
   }

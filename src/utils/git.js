@@ -39,10 +39,12 @@ function runGit(cmd, opts = {}) {
 /**
  * Stage a file with `git add`.
  * @param {string} filePath — path to stage (passed directly to git add)
- * @throws if git is not installed or the current directory is not a git repo
+ * @param {{ gitRoot?: string }} [opts]  gitRoot sets cwd for the git command
+ * @throws if git is not installed or the repository cannot be found
  */
-export function gitAdd(filePath) {
-  runGit(`git add -- ${JSON.stringify(filePath)}`);
+export function gitAdd(filePath, { gitRoot } = {}) {
+  const cmdOpts = gitRoot ? { cwd: gitRoot } : {};
+  runGit(`git add -- ${JSON.stringify(filePath)}`, cmdOpts);
 }
 
 /**

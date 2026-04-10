@@ -12,13 +12,14 @@ export function parseArgs(argv = process.argv.slice(2)) {
     allowPositionals: true,
     options: {
       // check / shared flags
-      'enforce':     { type: 'boolean', default: false },
-      'json':        { type: 'boolean', default: false },
-      'dry-run':     { type: 'boolean', default: false },
-      'lockfile':    { type: 'string' },
-      'no-cache':    { type: 'boolean', default: false },
-      'no-baseline': { type: 'boolean', default: false },
-      'strict':      { type: 'boolean', default: false },
+      'enforce':      { type: 'boolean', default: false },
+      'json':         { type: 'boolean', default: false },
+      'dry-run':      { type: 'boolean', default: false },
+      'lockfile':     { type: 'string' },
+      'project-dir':  { type: 'string' },
+      'no-cache':     { type: 'boolean', default: false },
+      'no-baseline':  { type: 'boolean', default: false },
+      'strict':       { type: 'boolean', default: false },
       // approve flags
       'override':    { type: 'string',  multiple: true },
       'reason':      { type: 'string' },

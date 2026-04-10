@@ -39,6 +39,8 @@ let origStderrWrite;
 async function setupTempDir() {
   const dir = join(tmpdir(), `trustlock-approve-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
+  // Create fake .git/ so resolvePaths() succeeds (dir acts as both projectRoot and gitRoot)
+  await mkdir(join(dir, '.git'), { recursive: true });
   return dir;
 }
 

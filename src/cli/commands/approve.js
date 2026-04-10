@@ -15,6 +15,7 @@ import { parseLockfile } from '../../lockfile/parser.js';
 import { writeApproval } from '../../approvals/store.js';
 import { VALID_RULE_NAMES, parseDuration } from '../../approvals/models.js';
 import { getGitUserName } from '../../utils/git.js';
+import { resolvePaths } from '../../utils/paths.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -91,7 +92,16 @@ async function loadApprovalConfig(configPath) {
  */
 export async function run(args, { _cwd } = {}) {
   const { values, positionals } = args;
-  const cwd = _cwd ?? process.cwd();
+
+  // ── Resolve projectRoot ──────────────────────────────────────────────────────
+  let projectRoot;
+  try {
+    ({ projectRoot } = await resolvePaths(values, { _cwd }));
+  } catch (err) {
+    process.stderr.write(`${err.message}\n`);
+    process.exitCode = 2;
+    return;
+  }
 
   // ── 1. Parse <pkg>@<ver> positional ───────────────────────────────────────
   // positionals[0] is "approve"; positionals[1] is the package spec
@@ -130,7 +140,7 @@ export async function run(args, { _cwd } = {}) {
     .filter(Boolean);
 
   // ── 3. Load approval-specific config ─────────────────────────────────────
-  const configPath = join(cwd, '.trustlockrc.json');
+  const configPath = join(projectRoot, '.trustlockrc.json');
   let approvalConfig;
   try {
     approvalConfig = await loadApprovalConfig(configPath);
@@ -198,8 +208,8 @@ export async function run(args, { _cwd } = {}) {
   }
 
   // ── 8. Parse lockfile (exits 2 internally on fatal errors) ────────────────
-  const lockfilePath   = join(cwd, 'package-lock.json');
-  const packageJsonPath = join(cwd, 'package.json');
+  const lockfilePath   = join(projectRoot, 'package-lock.json');
+  const packageJsonPath = join(projectRoot, 'package.json');
   const lockfileDeps = await parseLockfile(lockfilePath, packageJsonPath);
 
   // ── 9. Validate package exists in lockfile ────────────────────────────────
@@ -213,7 +223,7 @@ export async function run(args, { _cwd } = {}) {
   }
 
   // ── 10. Write approval entry ──────────────────────────────────────────────
-  const approvalsPath = join(cwd, '.trustlock', 'approvals.json');
+  const approvalsPath = join(projectRoot, '.trustlock', 'approvals.json');
   let approval;
   try {
     approval = await writeApproval(

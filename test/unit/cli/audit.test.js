@@ -153,6 +153,8 @@ function makeArgs() {
 beforeEach(async () => {
   testDir = join(tmpdir(), `trustlock-audit-test-${process.pid}-${Date.now()}`);
   await mkdir(testDir, { recursive: true });
+  // Create fake .git/ so resolvePaths() succeeds (testDir acts as both projectRoot and gitRoot)
+  await mkdir(join(testDir, '.git'), { recursive: true });
   captureOutput();
   process.exitCode = 0;
 });

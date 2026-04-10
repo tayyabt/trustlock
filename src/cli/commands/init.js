@@ -19,6 +19,7 @@ import { createHash } from 'node:crypto';
 import { parseLockfile } from '../../lockfile/parser.js';
 import { createRegistryClient } from '../../registry/client.js';
 import { createBaseline, writeAndStage } from '../../baseline/manager.js';
+import { resolvePaths } from '../../utils/paths.js';
 
 const SUPPORTED_NPM_VERSIONS = new Set([1, 2, 3]);
 
@@ -51,12 +52,21 @@ const STRICT_POLICY = {
 export async function run(args, { _registryClient, _cwd } = {}) {
   const strict = args.values['strict'] ?? false;
   const noBaseline = args.values['no-baseline'] ?? false;
-  const cwd = _cwd ?? process.cwd();
 
-  const trustlockDir = join(cwd, '.trustlock');
-  const configPath = join(cwd, '.trustlockrc.json');
-  const lockfilePath = join(cwd, 'package-lock.json');
-  const packageJsonPath = join(cwd, 'package.json');
+  // ── Resolve projectRoot and gitRoot ─────────────────────────────────────────
+  let projectRoot, gitRoot;
+  try {
+    ({ projectRoot, gitRoot } = await resolvePaths(args.values, { _cwd }));
+  } catch (err) {
+    process.stderr.write(`${err.message}\n`);
+    process.exitCode = 2;
+    return;
+  }
+
+  const trustlockDir = join(projectRoot, '.trustlock');
+  const configPath = join(projectRoot, '.trustlockrc.json');
+  const lockfilePath = join(projectRoot, 'package-lock.json');
+  const packageJsonPath = join(projectRoot, 'package.json');
   const approvalsPath = join(trustlockDir, 'approvals.json');
   const cachePath = join(trustlockDir, '.cache');
   const gitignorePath = join(trustlockDir, '.gitignore');
@@ -160,7 +170,7 @@ export async function run(args, { _registryClient, _cwd } = {}) {
     }
   }
 
-  await writeAndStage(baseline, baselinePath);
+  await writeAndStage(baseline, baselinePath, { gitRoot });
 
   process.stdout.write(
     `Baselined ${deps.length} packages. Detected npm lockfile v${lockfileVersion}. ` +

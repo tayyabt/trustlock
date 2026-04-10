@@ -26,6 +26,7 @@ import {
   formatStatusMessage,
 } from '../../output/terminal.js';
 import { formatCheckResults as formatJson } from '../../output/json.js';
+import { resolvePaths } from '../../utils/paths.js';
 
 /** Lockfiles searched in auto-detection order (D5: single lockfile in v0.1). */
 const EXPECTED_LOCKFILES = ['package-lock.json'];
@@ -44,12 +45,21 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   const lockfileArg = values['lockfile'] ?? null;
   const noCache = values['no-cache'] ?? false;
 
-  const cwd            = _cwd ?? process.cwd();
-  const configPath     = join(cwd, '.trustlockrc.json');
-  const baselinePath   = join(cwd, '.trustlock', 'baseline.json');
-  const approvalsPath  = join(cwd, '.trustlock', 'approvals.json');
-  const cacheDir       = join(cwd, '.trustlock', '.cache');
-  const packageJsonPath = join(cwd, 'package.json');
+  // ── Resolve projectRoot and gitRoot ─────────────────────────────────────────
+  let projectRoot, gitRoot;
+  try {
+    ({ projectRoot, gitRoot } = await resolvePaths(values, { _cwd }));
+  } catch (err) {
+    process.stderr.write(`${err.message}\n`);
+    process.exitCode = 2;
+    return;
+  }
+
+  const configPath     = join(projectRoot, '.trustlockrc.json');
+  const baselinePath   = join(projectRoot, '.trustlock', 'baseline.json');
+  const approvalsPath  = join(projectRoot, '.trustlock', 'approvals.json');
+  const cacheDir       = join(projectRoot, '.trustlock', '.cache');
+  const packageJsonPath = join(projectRoot, 'package.json');
 
   // ── 1. Load policy ─────────────────────────────────────────────────────────
   let policy;
@@ -84,10 +94,11 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   // ── 3. Resolve lockfile path ───────────────────────────────────────────────
   let lockfilePath;
   if (lockfileArg) {
-    lockfilePath = resolve(cwd, lockfileArg);
+    // --lockfile is resolved relative to projectRoot
+    lockfilePath = resolve(projectRoot, lockfileArg);
   } else {
     lockfilePath = null;
-    for (const candidate of EXPECTED_LOCKFILES.map((f) => join(cwd, f))) {
+    for (const candidate of EXPECTED_LOCKFILES.map((f) => join(projectRoot, f))) {
       try {
         await readFile(candidate, 'utf8');
         lockfilePath = candidate;
@@ -172,7 +183,7 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   // --dry-run: never advance
   if (!anyBlocked && !enforce && !dryRun) {
     const newBaseline = advanceBaseline(baseline, currentDeps, lockfileHash);
-    await _writeAndStage(newBaseline, baselinePath);
+    await _writeAndStage(newBaseline, baselinePath, { gitRoot });
   }
 
   // ── 14. Set exit code ─────────────────────────────────────────────────────

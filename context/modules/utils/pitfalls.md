@@ -31,8 +31,13 @@
      project's git tree. The existing test uses a date-stamped subdir of `os.tmpdir()` which is
      safe in all standard environments.
 
+5. **Test files for `src/utils/` modules must go in `test/unit/utils/`, not `src/utils/__tests__/`**
+   - Why it happens: Story F10-S1's verification section explicitly specified `src/utils/__tests__/progress.test.js`, causing the developer to place the test there. Global conventions require `test/` mirroring source structure.
+   - How to avoid it: All new utility tests belong at `test/unit/utils/<module>.test.js`. Story specs and task output bindings that reference `src/**/__tests__/` paths are incorrect; flag them before implementation.
+   - Files affected: `src/utils/__tests__/progress.test.js` (needs relocation to `test/unit/utils/progress.test.js`)
+
 ## Metadata
 - Agent: reviewer
 - Date: 2026-04-10
 - Module: utils
-- Source: task-059 review (F09-S1 Monorepo Root Resolution)
+- Source: task-059 review (F09-S1 Monorepo Root Resolution), task-060 review (F10-S1 progress counter)

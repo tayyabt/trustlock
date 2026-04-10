@@ -26,7 +26,8 @@ import {
   formatStatusMessage,
 } from '../../output/terminal.js';
 import { formatCheckResults as formatJson } from '../../output/json.js';
-import { resolvePaths } from '../../utils/paths.js';
+import { formatSarifReport } from '../../output/sarif.js';
+import { resolvePaths, getRelativePath } from '../../utils/paths.js';
 
 /** Lockfiles searched in auto-detection order (D5: single lockfile in v0.1). */
 const EXPECTED_LOCKFILES = ['package-lock.json'];
@@ -39,11 +40,13 @@ const EXPECTED_LOCKFILES = ['package-lock.json'];
  */
 export async function run(args, { _writeAndStage = writeAndStage, _registryClient = null, _cwd } = {}) {
   const { values } = args;
-  const enforce = values['enforce'] ?? false;
-  const json    = values['json']    ?? false;
-  const dryRun  = values['dry-run'] ?? false;
+  const enforce     = values['enforce']  ?? false;
+  const json        = values['json']     ?? false;
+  const sarif       = values['sarif']    ?? false;
+  const quiet       = values['quiet']    ?? false;
+  const dryRun      = values['dry-run']  ?? false;
   const lockfileArg = values['lockfile'] ?? null;
-  const noCache = values['no-cache'] ?? false;
+  const noCache     = values['no-cache'] ?? false;
 
   // ── Resolve projectRoot and gitRoot ─────────────────────────────────────────
   let projectRoot, gitRoot;
@@ -116,6 +119,9 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
     }
   }
 
+  // ── 3b. Compute lockfileUri (relative to projectRoot) for SARIF output ──────
+  const lockfileUri = getRelativePath(lockfilePath, projectRoot);
+
   // ── 4. Parse lockfile (parseLockfile calls process.exit(2) on fatal errors) ─
   const currentDeps = await parseLockfile(lockfilePath, packageJsonPath);
 
@@ -170,6 +176,20 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   // ── 11. Format and write output ───────────────────────────────────────────
   if (json) {
     process.stdout.write(formatJson(results) + '\n');
+  } else if (sarif) {
+    // --sarif branch: emit SARIF 2.1.0 to stdout unless --quiet suppresses it (G-NEW-2).
+    // Terminal formatter is NOT called when --sarif is active.
+    if (!quiet) {
+      const groupedResults = {
+        blocked: results.filter((r) => r.checkResult.decision === 'blocked'),
+        admitted_with_approval: results.filter(
+          (r) => r.checkResult.decision === 'admitted_with_approval'
+        ),
+        new_packages: [],
+        admitted: results.filter((r) => r.checkResult.decision === 'admitted'),
+      };
+      process.stdout.write(formatSarifReport(groupedResults, lockfileUri) + '\n');
+    }
   } else {
     process.stdout.write(formatTerminal(results));
   }

@@ -8,7 +8,22 @@
  */
 
 import { stat } from 'node:fs/promises';
-import { join, resolve, isAbsolute } from 'node:path';
+import { join, resolve, isAbsolute, relative } from 'node:path';
+
+/**
+ * Compute a path relative to `projectRoot`.
+ *
+ * Used to produce `artifactLocation.uri` values in SARIF output and other
+ * contexts where a project-relative path is required.
+ *
+ * @param {string} absolutePath  Absolute path to the target file.
+ * @param {string} projectRoot   Absolute path to the project root directory.
+ * @returns {string}  Relative path from `projectRoot` to `absolutePath`, using
+ *   forward slashes (POSIX convention for URI compatibility).
+ */
+export function getRelativePath(absolutePath, projectRoot) {
+  return relative(projectRoot, absolutePath).replace(/\\/g, '/');
+}
 
 /**
  * Resolve projectRoot and gitRoot from parsed CLI options.

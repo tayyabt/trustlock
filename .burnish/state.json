@@ -10,7 +10,7 @@
     "2026-04-07-trustlock-full-spec",
     "2026-04-10-trustlock-v0.2-v0.4-spec"
   ],
-  "next_task_id": 64,
+  "next_task_id": 66,
   "git_policy": {
     "branch_mode": "per_task",
     "branch_pattern": "burnish/{work_id}-{slug}",

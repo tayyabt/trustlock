@@ -353,10 +353,11 @@ test('confirmation output format is correct', async () => {
 
   assert.equal(process.exitCode, 0);
   const out = stdoutLines.join('');
-  // Format: "Approved <pkg>@<ver> (overrides: <rules>). Expires: <ISO>Z"
-  assert.ok(out.startsWith('Approved axios@1.14.1 (overrides: cooldown). Expires:'), `Unexpected output: ${out}`);
-  // expires_at ends with Z (ISO UTC)
-  assert.ok(out.trim().endsWith('Z'), `Expected output to end with Z, got: ${out}`);
+  // v0.2 format: "✓ Approval recorded." header, structured fields, "Commit this file." in terminal mode
+  assert.ok(out.includes('Approval recorded'), `Expected "Approval recorded" in output, got: ${out}`);
+  assert.ok(out.includes('axios@1.14.1'), `Expected "axios@1.14.1" in output, got: ${out}`);
+  assert.ok(out.includes('Test User'), `Expected approver "Test User" in output, got: ${out}`);
+  assert.ok(out.includes('Commit this file'), `Expected "Commit this file." in terminal mode, got: ${out}`);
 });
 
 test('--override supports comma-separated values', async () => {

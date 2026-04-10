@@ -473,7 +473,7 @@ test('approve + re-check: admitted with approval after scripted-pkg is approved'
     assert.equal(approveResult.exitCode, 0,
       `approve should exit 0; got ${approveResult.exitCode}\nstderr: ${approveResult.stderr}`);
     assert.ok(
-      approveResult.stdout.includes('Approved'),
+      approveResult.stdout.includes('Approval recorded'),
       `approve must print "Approved"; got: ${approveResult.stdout}`
     );
 
@@ -820,7 +820,7 @@ test('full pipeline: init → check (no-changes) → modify lockfile → check (
     assert.equal(approveResult.exitCode, 0,
       `approve should exit 0\nstderr: ${approveResult.stderr}`);
     assert.ok(
-      approveResult.stdout.includes('Approved'),
+      approveResult.stdout.includes('Approval recorded'),
       `approve must print "Approved"\nstdout: ${approveResult.stdout}`
     );
 

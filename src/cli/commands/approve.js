@@ -16,6 +16,7 @@ import { writeApproval } from '../../approvals/store.js';
 import { VALID_RULE_NAMES, parseDuration } from '../../approvals/models.js';
 import { getGitUserName } from '../../utils/git.js';
 import { resolvePaths } from '../../utils/paths.js';
+import { formatApproveConfirmation } from '../../output/terminal.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -92,6 +93,7 @@ async function loadApprovalConfig(configPath) {
  */
 export async function run(args, { _cwd } = {}) {
   const { values, positionals } = args;
+  const jsonMode = values['json'] ?? false;
 
   // ── Resolve projectRoot ──────────────────────────────────────────────────────
   let projectRoot;
@@ -246,8 +248,18 @@ export async function run(args, { _cwd } = {}) {
   }
 
   // ── 11. Print confirmation ────────────────────────────────────────────────
-  const overrideList = approval.overrides.join(', ');
+  const terminalMode = !jsonMode;
   process.stdout.write(
-    `Approved ${pkgName}@${pkgVersion} (overrides: ${overrideList}). Expires: ${approval.expires_at}\n`
+    formatApproveConfirmation(
+      {
+        package: pkgName,
+        version: pkgVersion,
+        overrides: approval.overrides,
+        approver,
+        expires_at: approval.expires_at,
+        reason,
+      },
+      terminalMode,
+    )
   );
 }

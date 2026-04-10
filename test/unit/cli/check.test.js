@@ -446,8 +446,8 @@ test('AC4: --dry-run does not advance baseline even if all admitted', async () =
   }
 });
 
-// AC5 — --json → valid JSON output
-test('AC5: --json outputs valid parseable JSON', async () => {
+// AC5 — --json → valid JSON output (schema_version 2)
+test('AC5: --json outputs valid parseable schema_version 2 JSON', async () => {
   const dir = await setupTempDir();
   try {
     await writeProjectFixtures(dir, {
@@ -471,10 +471,15 @@ test('AC5: --json outputs valid parseable JSON', async () => {
     } catch (e) {
       assert.fail(`stdout is not valid JSON: ${e.message}\nstdout: ${stdout}`);
     }
-    assert.ok(Array.isArray(parsed), 'JSON output must be an array');
-    assert.equal(parsed.length, 1, 'one package evaluated');
-    assert.equal(parsed[0].name, 'lodash');
-    assert.equal(parsed[0].checkResult.decision, 'admitted');
+    // schema_version 2: grouped object, not a flat array
+    assert.equal(parsed.schema_version, 2, 'JSON output must have schema_version 2');
+    assert.ok('blocked' in parsed, 'must have blocked key');
+    assert.ok('admitted_with_approval' in parsed, 'must have admitted_with_approval key');
+    assert.ok('new_packages' in parsed, 'must have new_packages key');
+    assert.ok('admitted' in parsed, 'must have admitted key');
+    // lodash is a new package (delta.added) and admitted
+    assert.equal(parsed.new_packages.length, 1, 'lodash is a new package');
+    assert.equal(parsed.new_packages[0].name, 'lodash');
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -515,8 +520,8 @@ test('AC6: block output includes clears_at and approval command', async () => {
   }
 });
 
-// AC6 (JSON variant) — JSON block output includes clears_at in finding.detail
-test('AC6 JSON: block output JSON includes clears_at in finding detail', async () => {
+// AC6 (JSON variant) — schema_version 2: blocked entry has rules and approve_command
+test('AC6 JSON: schema_version 2 blocked entry has rules and approve_command', async () => {
   const dir = await setupTempDir();
   try {
     await writeProjectFixtures(dir, {
@@ -534,16 +539,14 @@ test('AC6 JSON: block output JSON includes clears_at in finding detail', async (
     );
 
     const parsed = JSON.parse(stdout.trim());
-    const findings = parsed[0].checkResult.findings;
-    const cooldownFinding = findings.find((f) => f.rule === 'exposure:cooldown');
-    assert.ok(cooldownFinding, 'should have a cooldown finding');
-    assert.ok(cooldownFinding.detail?.clears_at, 'cooldown finding must include clears_at (D4)');
-    assert.equal(parsed[0].checkResult.decision, 'blocked');
-    assert.ok(parsed[0].checkResult.approvalCommand, 'blocked package must have approvalCommand');
-    assert.ok(
-      parsed[0].checkResult.approvalCommand.includes('trustlock approve'),
-      'approvalCommand must be a trustlock approve command'
-    );
+    assert.equal(parsed.schema_version, 2, 'must be schema_version 2');
+    assert.equal(parsed.blocked.length, 1, 'one blocked entry');
+    const entry = parsed.blocked[0];
+    assert.equal(entry.name, 'lodash');
+    assert.ok(Array.isArray(entry.rules), 'blocked entry must have rules array');
+    assert.ok(entry.rules.length > 0, 'rules must be non-empty');
+    assert.ok(typeof entry.approve_command === 'string', 'approve_command must be a string');
+    assert.ok(entry.approve_command.includes('trustlock approve'), 'approve_command must be a trustlock approve command');
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

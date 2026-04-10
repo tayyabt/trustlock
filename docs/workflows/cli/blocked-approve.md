@@ -31,7 +31,8 @@
        BLOCKED
        ──────────────────────────────────────────────────────────────
        axios 1.14.0 → 1.14.1                         cooldown · provenance
-         Published 2h ago — policy requires 72h. Clears Thu Apr 10 02:21 UTC.
+         Published 2h ago — policy requires 72h.
+           Clears: April 10, 2026 at 02:21 UTC
          Provenance present in 1.14.0, absent in 1.14.1.
          ▶  trustlock approve axios@1.14.1 --override cooldown,provenance --reason "..." --expires 7d
      ```
@@ -39,15 +40,15 @@
   8. If approving: developer copies the generated command, replaces `"..."` with a reason, runs it
   9. Tool validates inputs, records approval in `.trustlock/approvals.json`, prints:
      ```
-     ✓  Approval recorded
+     ✓ Approval recorded.
 
-        Package:   axios@1.14.1
-        Overrides: cooldown, provenance
-        Reason:    "Verified safe by team review"
-        Approved:  tayyab
-        Expires:   Sun Apr 17 2026 10:30 UTC  (7 days)
+       Package:   axios@1.14.1
+       Overrides: cooldown, provenance
+       Approver:  tayyab
+       Expires:   April 17, 2026 at 10:30 UTC
+       Reason:    Verified safe by team review
 
-        .trustlock/approvals.json updated. Commit this file.
+     Commit this file.
      ```
   10. Developer stages the approval file (`git add .trustlock/approvals.json`)
   11. Developer re-commits — hook runs again
@@ -68,7 +69,7 @@
 
 - Wait-for-cooldown path:
   1. Steps 1–6 same as above
-  2. Developer decides to wait; cooldown clear timestamp is shown exactly: `Clears Thu Apr 10 02:21 UTC`
+  2. Developer decides to wait; absolute cooldown clear timestamp is shown: `Clears: April 10, 2026 at 02:21 UTC`
   3. After cooldown clears, developer re-runs `trustlock check` — cooldown rule passes; package admitted
 
 - Multiple rules on one package:

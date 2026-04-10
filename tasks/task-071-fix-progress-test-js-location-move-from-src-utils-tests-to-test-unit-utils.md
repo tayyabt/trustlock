@@ -19,3 +19,4 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/task-071-approach.md
 review_artifact: docs/reviews/task-071-review.md
+test_files: test/unit/utils/progress.test.js

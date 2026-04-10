@@ -7,10 +7,9 @@
   "current_sprint": 2,
   "orchestrator_mode": "manual",
   "specs_seeded": [
-    "2026-04-07-trustlock-full-spec",
-    "2026-04-07-dep-fence-full-spec"
+    "2026-04-07-trustlock-full-spec"
   ],
-  "next_task_id": 47,
+  "next_task_id": 44,
   "git_policy": {
     "branch_mode": "per_task",
     "branch_pattern": "burnish/{work_id}-{slug}",

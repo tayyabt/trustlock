@@ -19,3 +19,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F10-S4-approach.md
 review_artifact: docs/reviews/task-063-review.md
+source_files: src/utils/progress.js, src/output/terminal.js, src/output/json.js, src/cli/commands/check.js, src/cli/commands/approve.js, src/cli/commands/audit.js, src/cli/commands/init.js
+test_files: src/cli/__tests__/args.test.js, src/cli/__tests__/check.integration.test.js, test/unit/cli/check.test.js, test/unit/cli/approve.test.js, test/unit/cli/audit.test.js, test/integration/cli-e2e.test.js
+docs_updates: docs/design-notes/F10-S4-approach.md, docs/reviews/task-063-review.md, docs/workflows/cli/blocked-approve.md

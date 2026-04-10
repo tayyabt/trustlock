@@ -14,6 +14,8 @@ export function parseArgs(argv = process.argv.slice(2)) {
       // check / shared flags
       'enforce':      { type: 'boolean', default: false },
       'json':         { type: 'boolean', default: false },
+      'sarif':        { type: 'boolean', default: false },
+      'quiet':        { type: 'boolean', default: false },
       'dry-run':      { type: 'boolean', default: false },
       'lockfile':     { type: 'string' },
       'project-dir':  { type: 'string' },
@@ -29,6 +31,13 @@ export function parseArgs(argv = process.argv.slice(2)) {
       'force':       { type: 'boolean', default: false },
     },
   });
+
+  // Mutual exclusion: --json and --sarif cannot be used together (F13/C3).
+  if (values.json && values.sarif) {
+    process.stderr.write('Cannot use --json and --sarif together.\n');
+    process.exitCode = 2;
+    process.exit(2);
+  }
 
   return { values, positionals };
 }

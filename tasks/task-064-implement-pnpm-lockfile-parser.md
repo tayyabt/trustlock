@@ -18,3 +18,5 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F11-S1-approach.md
 review_artifact: docs/reviews/task-064-review.md
+source_files: src/lockfile/pnpm.js, src/lockfile/parser.js
+test_files: test/lockfile/pnpm.test.js, test/lockfile/parser.test.js, test/fixtures/lockfiles/pnpm-v5.yaml, test/fixtures/lockfiles/pnpm-v6.yaml, test/fixtures/lockfiles/pnpm-v9.yaml, test/fixtures/lockfiles/pnpm-monorepo.yaml

@@ -7,9 +7,10 @@
   "current_sprint": 2,
   "orchestrator_mode": "manual",
   "specs_seeded": [
-    "2026-04-07-trustlock-full-spec"
+    "2026-04-07-trustlock-full-spec",
+    "2026-04-10-trustlock-v0.2-v0.4-spec"
   ],
-  "next_task_id": 44,
+  "next_task_id": 47,
   "git_policy": {
     "branch_mode": "per_task",
     "branch_pattern": "burnish/{work_id}-{slug}",
@@ -17,7 +18,7 @@
     "auto_squash_merge_on_review_approval": true
   },
   "autonomy": {
-    "default": "autonomous",
+    "default": "supervised",
     "overrides": {}
   },
   "last_action": null,

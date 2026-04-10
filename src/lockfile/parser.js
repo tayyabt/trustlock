@@ -10,6 +10,7 @@ import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 import { parseNpm } from './npm.js';
 import { parsePnpm, _parseLockfileVersion as _parsePnpmVersion } from './pnpm.js';
+import { parseYarn } from './yarn.js';
 
 const SUPPORTED_NPM_VERSIONS = new Set([1, 2, 3]);
 const SUPPORTED_PNPM_VERSIONS = new Set([5, 6, 9]);
@@ -34,7 +35,7 @@ function _detectFromParsed(parsed, filename) {
     return { format: 'npm', version };
   }
 
-  // yarn.lock support deferred to v0.2 (F11-S2)
+  // yarn.lock is handled before _detectFromParsed (it is not JSON)
   console.error(`Unrecognized lockfile format: ${filename}`);
   process.exit(2);
 }
@@ -66,6 +67,13 @@ export async function detectFormat(lockfilePath) {
       process.exit(2);
     }
     return { format: 'pnpm', version };
+  }
+
+  // yarn branch — custom text format, not JSON; detect berry vs classic by __metadata presence
+  // Also handles .lock extension for --lockfile overrides (same as pnpm with .yaml).
+  if (filename === 'yarn.lock' || (filename.endsWith('.lock') && filename !== 'package-lock.json')) {
+    const isBerry = /^__metadata:/m.test(content);
+    return { format: 'yarn', version: isBerry ? 2 : 1 };
   }
 
   let parsed;
@@ -106,6 +114,22 @@ export async function parseLockfile(lockfilePath, packageJsonPathOrProjectRoot) 
   if (filename === 'pnpm-lock.yaml' || filename.endsWith('.yaml')) {
     // parsePnpm validates the version and calls process.exit(2) if unsupported
     return parsePnpm(lockfileContent, packageJsonPathOrProjectRoot);
+  }
+
+  // yarn branch — custom text format, not JSON
+  // Auto-detect: yarn.lock by convention; any .lock file via --lockfile override.
+  // Second argument: path to package.json for dev/prod classification, or null to skip.
+  // Detection: __metadata: present → berry v2+; absent → classic v1.
+  if (filename === 'yarn.lock' || (filename.endsWith('.lock') && filename !== 'package-lock.json')) {
+    let packageJsonContent = null;
+    if (packageJsonPathOrProjectRoot) {
+      try {
+        packageJsonContent = await readFile(packageJsonPathOrProjectRoot, 'utf8');
+      } catch {
+        // package.json not found or not readable — skip classification (all prod)
+      }
+    }
+    return parseYarn(lockfileContent, packageJsonContent);
   }
 
   // npm branch — Parse JSON

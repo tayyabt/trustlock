@@ -140,3 +140,36 @@ test('scripts: all Finding fields present on block finding', () => {
   assert.equal(typeof f.message, 'string');
   assert.equal(typeof f.detail, 'object');
 });
+
+// ---------------------------------------------------------------------------
+// C-NEW-1: hasInstallScripts === null defers to registryData.hasScripts
+// ---------------------------------------------------------------------------
+
+test('scripts: admits (skips) when hasInstallScripts null and registryData is null', () => {
+  // Pre-existing behavior must be preserved: registry unavailable → do not block
+  const findings = evaluate(depUnknown, null, null, policyNoAllowlist);
+  assert.equal(findings.length, 0);
+});
+
+test('scripts: blocks when hasInstallScripts null and registryData.hasScripts is true', () => {
+  const findings = evaluate(depUnknown, null, { hasScripts: true }, policyNoAllowlist);
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].rule, 'execution:scripts');
+  assert.equal(findings[0].severity, 'error');
+  assert.ok(findings[0].message.includes('axios@1.6.0'), 'message must include pkg@version');
+});
+
+test('scripts: admits when hasInstallScripts null and registryData.hasScripts is false', () => {
+  const findings = evaluate(depUnknown, null, { hasScripts: false }, policyNoAllowlist);
+  assert.equal(findings.length, 0);
+});
+
+test('scripts: admits when hasInstallScripts null, registry hasScripts true, but pkg in allowlist', () => {
+  const findings = evaluate(
+    { name: 'axios', version: '1.6.0', hasInstallScripts: null },
+    null,
+    { hasScripts: true },
+    { scripts: { allowlist: ['axios'] } }
+  );
+  assert.equal(findings.length, 0);
+});

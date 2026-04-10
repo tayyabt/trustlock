@@ -20,6 +20,7 @@ import { createRegistryClient } from '../../registry/client.js';
 import { evaluate } from '../../policy/engine.js';
 import { calculateAgeInHours } from '../../utils/time.js';
 import { formatAuditReport, formatStatusMessage } from '../../output/terminal.js';
+import { formatAuditReport as formatAuditJson } from '../../output/json.js';
 
 /** Lockfiles searched in auto-detection order (D5: single lockfile in v0.1). */
 const EXPECTED_LOCKFILES = ['package-lock.json'];
@@ -31,6 +32,8 @@ const EXPECTED_LOCKFILES = ['package-lock.json'];
  * @param {{ _registryClient?: object, _cwd?: string }} [_opts]  Injectable overrides for tests
  */
 export async function run(args, { _registryClient = null, _cwd } = {}) {
+  const json = args.values['json'] ?? false;
+
   // ── Resolve projectRoot ──────────────────────────────────────────────────────
   let projectRoot;
   try {
@@ -152,10 +155,13 @@ export async function run(args, { _registryClient = null, _cwd } = {}) {
   const provenanceCount = [...registryData.values()].filter((m) => m.hasProvenance).length;
   const provenancePct   = totalPackages > 0 ? (provenanceCount / totalPackages) * 100 : 0;
 
-  // Install scripts: packages where hasInstallScripts === true (v3 lockfiles only)
-  const packagesWithInstallScripts = allDeps
+  // Install scripts: separate allowlisted from unallowlisted (v3 lockfiles only)
+  const scriptAllowlist = new Set(policy.scripts?.allowlist ?? []);
+  const allWithInstallScripts = allDeps
     .filter((d) => d.hasInstallScripts === true)
     .map((d) => d.name);
+  const unallowlistedInstallScripts = allWithInstallScripts.filter((n) => !scriptAllowlist.has(n));
+  const allowlistedInstallScripts   = allWithInstallScripts.filter((n) => scriptAllowlist.has(n));
 
   // Source type breakdown
   const sourceTypeCounts = {};
@@ -197,15 +203,20 @@ export async function run(args, { _registryClient = null, _cwd } = {}) {
   const report = {
     totalPackages,
     provenancePct,
-    packagesWithInstallScripts,
+    blockOnRegression,
+    unallowlistedInstallScripts,
+    allowlistedInstallScripts,
     sourceTypeCounts,
     ageDistribution: { under24h, under72h, over72h },
     cooldownViolationCount,
-    blockOnRegression,
   };
 
   // ── 8. Print audit stats ──────────────────────────────────────────────────
-  process.stdout.write(formatAuditReport(report));
+  if (json) {
+    process.stdout.write(formatAuditJson(report) + '\n');
+  } else {
+    process.stdout.write(formatAuditReport(report));
+  }
 
   // ── 9. Print blocked packages with approval commands ──────────────────────
   const blocked = results.filter((r) => r.checkResult.decision === 'blocked');

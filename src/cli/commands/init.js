@@ -20,6 +20,7 @@ import { parseLockfile } from '../../lockfile/parser.js';
 import { createRegistryClient } from '../../registry/client.js';
 import { createBaseline, writeAndStage } from '../../baseline/manager.js';
 import { resolvePaths } from '../../utils/paths.js';
+import { createProgress } from '../../utils/progress.js';
 
 const SUPPORTED_NPM_VERSIONS = new Set([1, 2, 3]);
 
@@ -151,9 +152,12 @@ export async function run(args, { _registryClient, _cwd } = {}) {
 
   const registry = _registryClient ?? createRegistryClient({ cacheDir: cachePath });
 
+  // Progress counter: always fires during init, no threshold (init always shows progress)
+  const progress = createProgress(deps.length, process.stderr);
+
   for (const dep of deps) {
     const profile = baseline.packages[dep.name];
-    if (!profile) continue;
+    if (!profile) { progress.tick(); continue; }
 
     const { data, warnings } = await registry.getAttestations(dep.name, dep.version);
 
@@ -168,7 +172,11 @@ export async function run(args, { _registryClient, _cwd } = {}) {
       // data === null, no warning → 404, package has no SLSA attestations
       profile.provenanceStatus = 'unverified';
     }
+
+    progress.tick();
   }
+
+  progress.done();
 
   await writeAndStage(baseline, baselinePath, { gitRoot });
 

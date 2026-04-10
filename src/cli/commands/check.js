@@ -27,6 +27,7 @@ import {
 } from '../../output/terminal.js';
 import { formatCheckResults as formatJson } from '../../output/json.js';
 import { formatSarifReport } from '../../output/sarif.js';
+import { createProgress } from '../../utils/progress.js';
 import { resolvePaths, getRelativePath } from '../../utils/paths.js';
 
 /** Lockfiles searched in auto-detection order (D5: single lockfile in v0.1). */
@@ -39,6 +40,8 @@ const EXPECTED_LOCKFILES = ['package-lock.json'];
  * @param {{ _writeAndStage?: Function, _registryClient?: object, _cwd?: string }} [_opts]  Injectable overrides for tests
  */
 export async function run(args, { _writeAndStage = writeAndStage, _registryClient = null, _cwd } = {}) {
+  const startTime = Date.now();
+
   const { values } = args;
   const enforce     = values['enforce']  ?? false;
   const json        = values['json']     ?? false;
@@ -137,10 +140,16 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
 
   // ── 8. No dependency changes ──────────────────────────────────────────────
   if (delta.shortCircuited || (delta.added.length === 0 && delta.changed.length === 0)) {
-    if (json) {
-      process.stdout.write(formatJson([]) + '\n');
-    } else {
-      process.stdout.write(formatStatusMessage('No dependency changes'));
+    if (!quiet) {
+      if (json) {
+        const emptyGrouped = { blocked: [], admitted_with_approval: [], new_packages: [], admitted: [] };
+        process.stdout.write(formatJson(emptyGrouped) + '\n');
+      } else if (sarif) {
+        const emptyGrouped = { blocked: [], admitted_with_approval: [], new_packages: [], admitted: [] };
+        process.stdout.write(formatSarifReport(emptyGrouped, lockfileUri) + '\n');
+      } else {
+        process.stdout.write(formatStatusMessage('No dependency changes'));
+      }
     }
     return;
   }
@@ -151,6 +160,12 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
     ...delta.added,
     ...delta.changed.map((c) => c.dep),
   ];
+
+  // Wire progress counter: fires only when >= 5 packages need fetch and !quiet (D1)
+  const fetchCount = depsToEvaluate.length;
+  const progress = (fetchCount >= 5 && !quiet)
+    ? createProgress(fetchCount, process.stderr)
+    : null;
 
   const metadataMap = new Map();
   await Promise.all(
@@ -165,22 +180,105 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
       const warnings = [...new Set([...fullMeta.warnings, ...attestResult.warnings])];
 
       metadataMap.set(dep.name, { publishedAt, hasProvenance, warnings });
+
+      if (progress) progress.tick();
     })
   );
+
+  if (progress) progress.done();
 
   // ── 10. Evaluate policy ───────────────────────────────────────────────────
   const { results, allAdmitted } = await evaluate(
     delta, policy, baseline, approvals, metadataMap, { packageJsonPath }
   );
 
-  // ── 11. Format and write output ───────────────────────────────────────────
-  if (json) {
-    process.stdout.write(formatJson(results) + '\n');
-  } else if (sarif) {
-    // --sarif branch: emit SARIF 2.1.0 to stdout unless --quiet suppresses it (G-NEW-2).
-    // Terminal formatter is NOT called when --sarif is active.
-    if (!quiet) {
-      const groupedResults = {
+  // ── 11. Build grouped results (grouping decisions made once) ──────────────
+  const newPackageNames = new Set(delta.added.map((d) => d.name));
+  const now = new Date();
+
+  // Terminal-format grouped results (used for default terminal and SARIF branches)
+  const terminalGrouped = {
+    blocked: [],
+    admitted_with_approval: [],
+    new_packages: [],
+    admitted: [],
+  };
+
+  // JSON-format grouped results (used for --json branch; schema_version 2 shape)
+  const jsonGrouped = {
+    blocked: [],
+    admitted_with_approval: [],
+    new_packages: [],
+    admitted: [],
+  };
+
+  for (const r of results) {
+    const { decision, findings, approvalCommand } = r.checkResult;
+
+    if (decision === 'blocked') {
+      const change = delta.changed.find((c) => c.dep.name === r.name);
+      const oldVersion = change?.previousProfile?.version ?? undefined;
+      const blockFindings = findings.filter((f) => f.severity === 'block');
+      const rules = blockFindings.map((f) => f.rule);
+
+      terminalGrouped.blocked.push({
+        name: r.name,
+        version: r.version,
+        oldVersion,
+        findings,
+      });
+      jsonGrouped.blocked.push({
+        name: r.name,
+        version: r.version,
+        from_version: oldVersion ?? '',
+        rules,
+        approve_command: approvalCommand ?? '',
+      });
+
+    } else if (decision === 'admitted_with_approval') {
+      // Look up the active approval for this package to get approver/expires/reason
+      const approval = approvals.find(
+        (a) => a.package === r.name && a.version === r.version && new Date(a.expires_at) > now
+      );
+      const approvalEntry = {
+        name: r.name,
+        version: r.version,
+        approver: approval?.approver ?? '',
+        expires_at: approval?.expires_at ?? '',
+        reason: approval?.reason ?? '',
+      };
+      terminalGrouped.admitted_with_approval.push(approvalEntry);
+      jsonGrouped.admitted_with_approval.push({ ...approvalEntry });
+
+    } else if (decision === 'admitted') {
+      if (newPackageNames.has(r.name)) {
+        terminalGrouped.new_packages.push({ name: r.name, version: r.version });
+        jsonGrouped.new_packages.push({ name: r.name, version: r.version, admitted: true });
+      } else {
+        terminalGrouped.admitted.push({ name: r.name, version: r.version });
+        jsonGrouped.admitted.push({ name: r.name, version: r.version });
+      }
+    }
+  }
+
+  const wallTimeMs = Date.now() - startTime;
+
+  // ── 12. Format and write output ───────────────────────────────────────────
+  if (!quiet) {
+    if (json) {
+      const jsonGroupedWithSummary = {
+        ...jsonGrouped,
+        summary: {
+          changed: results.length,
+          blocked: jsonGrouped.blocked.length,
+          admitted: jsonGrouped.admitted.length + jsonGrouped.admitted_with_approval.length,
+          wall_time_ms: wallTimeMs,
+        },
+      };
+      process.stdout.write(formatJson(jsonGroupedWithSummary) + '\n');
+    } else if (sarif) {
+      // SARIF formatter reads entry.checkResult.findings — pass original DependencyCheckResult shape
+      const sarifGrouped = {
         blocked: results.filter((r) => r.checkResult.decision === 'blocked'),
         admitted_with_approval: results.filter(
           (r) => r.checkResult.decision === 'admitted_with_approval'
@@ -188,16 +286,16 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
         new_packages: [],
         admitted: results.filter((r) => r.checkResult.decision === 'admitted'),
       };
-      process.stdout.write(formatSarifReport(groupedResults, lockfileUri) + '\n');
+      process.stdout.write(formatSarifReport(sarifGrouped, lockfileUri) + '\n');
+    } else {
+      process.stdout.write(formatTerminal(terminalGrouped, wallTimeMs));
     }
-  } else {
-    process.stdout.write(formatTerminal(results));
   }
 
-  // ── 12. Determine overall admission outcome ───────────────────────────────
+  // ── 13. Determine overall admission outcome ───────────────────────────────
   const anyBlocked = !allAdmitted;
 
-  // ── 13. Advance baseline (D1, D10, --dry-run guards) ─────────────────────
+  // ── 14. Advance baseline (D1, D10, --dry-run guards) ─────────────────────
   // D1: any blocked → do not advance for any
   // D10: --enforce → never advance
   // --dry-run: never advance
@@ -206,7 +304,7 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
     await _writeAndStage(newBaseline, baselinePath, { gitRoot });
   }
 
-  // ── 14. Set exit code ─────────────────────────────────────────────────────
+  // ── 15. Set exit code ─────────────────────────────────────────────────────
   // Advisory mode: always exit 0 even with blocks
   // --enforce: exit 1 when any blocked
   // --dry-run: exit 0 even with blocks

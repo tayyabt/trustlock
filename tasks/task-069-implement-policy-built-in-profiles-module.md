@@ -18,3 +18,5 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F14-S1-approach.md
 review_artifact: docs/reviews/task-069-review.md
+source_files: src/policy/builtin-profiles.js
+test_files: test/policy/builtin-profiles.test.js

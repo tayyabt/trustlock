@@ -40,6 +40,8 @@ let testDir;
 async function setupTempDir() {
   const dir = join(tmpdir(), `trustlock-check-test-${process.pid}-${Date.now()}`);
   await mkdir(dir, { recursive: true });
+  // Create fake .git/ so resolvePaths() succeeds (dir acts as both projectRoot and gitRoot)
+  await mkdir(join(dir, '.git'), { recursive: true });
   return dir;
 }
 

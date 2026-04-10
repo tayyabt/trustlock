@@ -11,6 +11,7 @@
 
 import { join } from 'node:path';
 import { readFile } from 'node:fs/promises';
+import { resolvePaths } from '../../utils/paths.js';
 
 import { parseLockfile } from '../../lockfile/parser.js';
 import { loadPolicy } from '../../policy/config.js';
@@ -30,11 +31,20 @@ const EXPECTED_LOCKFILES = ['package-lock.json'];
  * @param {{ _registryClient?: object, _cwd?: string }} [_opts]  Injectable overrides for tests
  */
 export async function run(args, { _registryClient = null, _cwd } = {}) {
-  const cwd           = _cwd ?? process.cwd();
-  const configPath    = join(cwd, '.trustlockrc.json');
-  const approvalsPath = join(cwd, '.trustlock', 'approvals.json');
-  const cacheDir      = join(cwd, '.trustlock', '.cache');
-  const packageJsonPath = join(cwd, 'package.json');
+  // ── Resolve projectRoot ──────────────────────────────────────────────────────
+  let projectRoot;
+  try {
+    ({ projectRoot } = await resolvePaths(args.values, { _cwd }));
+  } catch (err) {
+    process.stderr.write(`${err.message}\n`);
+    process.exitCode = 2;
+    return;
+  }
+
+  const configPath    = join(projectRoot, '.trustlockrc.json');
+  const approvalsPath = join(projectRoot, '.trustlock', 'approvals.json');
+  const cacheDir      = join(projectRoot, '.trustlock', '.cache');
+  const packageJsonPath = join(projectRoot, 'package.json');
 
   // ── 1. Load policy ─────────────────────────────────────────────────────────
   let policy;
@@ -53,7 +63,7 @@ export async function run(args, { _registryClient = null, _cwd } = {}) {
 
   // ── 2. Resolve lockfile path ───────────────────────────────────────────────
   let lockfilePath = null;
-  for (const candidate of EXPECTED_LOCKFILES.map((f) => join(cwd, f))) {
+  for (const candidate of EXPECTED_LOCKFILES.map((f) => join(projectRoot, f))) {
     try {
       await readFile(candidate, 'utf8');
       lockfilePath = candidate;

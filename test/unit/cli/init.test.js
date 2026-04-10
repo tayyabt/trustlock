@@ -38,6 +38,8 @@ let origStderrWrite;
 beforeEach(async () => {
   testDir = join(tmpdir(), `trustlock-init-test-${process.pid}-${Date.now()}`);
   await mkdir(testDir, { recursive: true });
+  // Create fake .git/ so resolvePaths() succeeds (testDir acts as both projectRoot and gitRoot)
+  await mkdir(join(testDir, '.git'), { recursive: true });
 
   stdoutChunks = [];
   stderrChunks = [];

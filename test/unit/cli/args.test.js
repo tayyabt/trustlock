@@ -43,6 +43,29 @@ describe('parseArgs', () => {
     assert.equal(result.values.lockfile, 'path/to/package-lock.json');
   });
 
+  it('parses --project-dir string flag', () => {
+    const result = parseArgs(['check', '--project-dir', 'packages/backend']);
+    assert.equal(result.values['project-dir'], 'packages/backend');
+  });
+
+  it('parses --project-dir with absolute path', () => {
+    const result = parseArgs(['init', '--project-dir', '/home/user/repo/packages/api']);
+    assert.equal(result.values['project-dir'], '/home/user/repo/packages/api');
+  });
+
+  it('--project-dir not provided results in undefined', () => {
+    const result = parseArgs(['check']);
+    assert.equal(result.values['project-dir'], undefined);
+  });
+
+  it('--profile is NOT a valid flag (belongs to F14, not this story)', () => {
+    assert.throws(
+      () => parseArgs(['check', '--profile', 'strict']),
+      TypeError,
+      '--profile should not be accepted (belongs to F14)'
+    );
+  });
+
   it('parses --reason, --expires, --as string flags', () => {
     const result = parseArgs(['approve', 'pkg@1.0.0', '--reason', 'needed for CI', '--expires', '30d', '--as', 'alice']);
     assert.equal(result.values.reason, 'needed for CI');

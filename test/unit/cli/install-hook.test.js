@@ -222,15 +222,15 @@ test('AC4: hook exists with custom content + --force → warns + overwrites (edg
   assert.ok(await isExecutable(hookPath), 'Overwritten hook should be executable');
 });
 
-test('AC5: no .git/ directory → exit 2 with "Not a git repository"', async () => {
-  // testDir exists but has no .git/ entry — no injection, let real check run
+test('AC5: no .git/ directory → exit 2 with "not a git repository"', async () => {
+  // testDir exists but has no .git/ entry — resolvePaths walks up and finds nothing
   await run(makeArgs(), { _cwd: testDir });
 
   assert.equal(process.exitCode, 2);
   const errOut = stderrLines.join('');
   assert.ok(
-    errOut.includes('Not a git repository'),
-    `Expected "Not a git repository" error, got: ${errOut}`
+    errOut.toLowerCase().includes('not a git repository'),
+    `Expected "not a git repository" error, got: ${errOut}`
   );
   assert.equal(stdoutLines.length, 0, 'Should produce no stdout on fatal error');
 });
@@ -262,4 +262,73 @@ test('hook containing trustlock check is not modified even with --force', async 
 
   const content = await readFile(join(testDir, '.git', 'hooks', 'pre-commit'), 'utf8');
   assert.equal(content, existingHook);
+});
+
+// ---------------------------------------------------------------------------
+// Monorepo: --project-dir embedded in hook script
+// ---------------------------------------------------------------------------
+
+test('flat repo (projectRoot === gitRoot) — hook has no --project-dir flag', async () => {
+  await setupGitDir(); // .git/ in testDir (projectRoot === gitRoot)
+
+  await run(makeArgs(), { _cwd: testDir, _resolveGitCommonDir: fakeResolveGitDir });
+
+  assert.equal(process.exitCode, 0);
+  const hookPath = join(testDir, '.git', 'hooks', 'pre-commit');
+  const content  = await readFile(hookPath, 'utf8');
+
+  assert.ok(content.includes('trustlock check'), 'Hook should contain trustlock check');
+  assert.ok(!content.includes('--project-dir'), 'Flat repo hook should not have --project-dir');
+});
+
+test('monorepo — hook embeds --project-dir with relative path from gitRoot to projectRoot', async () => {
+  // gitRoot is testDir, projectRoot is testDir/packages/backend
+  const subPackage = join(testDir, 'packages', 'backend');
+  await mkdir(subPackage, { recursive: true });
+  // .git/ is in testDir (gitRoot)
+  const hooksDir = join(testDir, '.git', 'hooks');
+  await mkdir(hooksDir, { recursive: true });
+
+  // fakeResolveGitDir will be called with gitRoot (= testDir) and return testDir/.git
+  await run(makeArgs(), { _cwd: subPackage, _resolveGitCommonDir: fakeResolveGitDir });
+
+  assert.equal(process.exitCode, 0, `Expected exit 0, stderr: ${stderrLines.join('')}`);
+
+  const hookPath = join(testDir, '.git', 'hooks', 'pre-commit');
+  const content  = await readFile(hookPath, 'utf8');
+
+  assert.ok(content.includes('trustlock check'), 'Hook should contain trustlock check');
+  assert.ok(
+    content.includes('--project-dir'),
+    `Monorepo hook should have --project-dir, got: ${content}`
+  );
+  assert.ok(
+    content.includes('packages/backend'),
+    `Hook should embed relative path 'packages/backend', got: ${content}`
+  );
+});
+
+test('monorepo path with spaces — correctly single-quoted in hook script', async () => {
+  // projectRoot is testDir/my packages/backend (path contains a space)
+  const subPackage = join(testDir, 'my packages', 'backend');
+  await mkdir(subPackage, { recursive: true });
+  const hooksDir = join(testDir, '.git', 'hooks');
+  await mkdir(hooksDir, { recursive: true });
+
+  await run(makeArgs(), { _cwd: subPackage, _resolveGitCommonDir: fakeResolveGitDir });
+
+  assert.equal(process.exitCode, 0, `Expected exit 0, stderr: ${stderrLines.join('')}`);
+
+  const hookPath = join(testDir, '.git', 'hooks', 'pre-commit');
+  const content  = await readFile(hookPath, 'utf8');
+
+  // The path with spaces must be quoted — check for single-quoted segment
+  assert.ok(
+    content.includes("'my packages/backend'"),
+    `Expected single-quoted path in hook, got: ${content}`
+  );
+  assert.ok(
+    content.includes('--project-dir'),
+    `Hook should have --project-dir flag, got: ${content}`
+  );
 });

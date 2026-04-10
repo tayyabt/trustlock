@@ -78,6 +78,7 @@ export function formatCheckResults(groupedResults) {
   const admitted_with_approval = groupedResults.admitted_with_approval ?? [];
   const new_packages           = groupedResults.new_packages           ?? [];
   const admitted               = groupedResults.admitted               ?? [];
+  const warnings               = groupedResults.warnings               ?? [];
 
   const inSummary = groupedResults.summary ?? {};
   const summary = {
@@ -87,18 +88,20 @@ export function formatCheckResults(groupedResults) {
     wall_time_ms: inSummary.wall_time_ms ?? 0,
   };
 
-  return JSON.stringify(
-    {
-      schema_version: 2,
-      summary,
-      blocked,
-      admitted_with_approval,
-      new_packages,
-      admitted,
-    },
-    null,
-    2,
-  );
+  const output = {
+    schema_version: 2,
+    summary,
+    blocked,
+    admitted_with_approval,
+    new_packages,
+    admitted,
+  };
+
+  if (warnings.length > 0) {
+    output.warnings = warnings;
+  }
+
+  return JSON.stringify(output, null, 2);
 }
 
 /**

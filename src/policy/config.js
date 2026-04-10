@@ -91,6 +91,14 @@ export async function loadPolicy(configPath) {
   const provenance = mergeNested(DEFAULTS.provenance, parsed.provenance);
   const transitive = mergeNested(DEFAULTS.transitive, parsed.transitive);
 
+  // Preserve user-defined profiles map for --profile resolution in check.js (F14-S2).
+  const profiles =
+    parsed.profiles !== null &&
+    typeof parsed.profiles === 'object' &&
+    !Array.isArray(parsed.profiles)
+      ? parsed.profiles
+      : undefined;
+
   return {
     cooldown_hours,
     pinning,
@@ -98,5 +106,6 @@ export async function loadPolicy(configPath) {
     sources,
     provenance,
     transitive,
+    ...(profiles !== undefined ? { profiles } : {}),
   };
 }

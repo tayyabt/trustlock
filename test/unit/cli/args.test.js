@@ -58,12 +58,9 @@ describe('parseArgs', () => {
     assert.equal(result.values['project-dir'], undefined);
   });
 
-  it('--profile is NOT a valid flag (belongs to F14, not this story)', () => {
-    assert.throws(
-      () => parseArgs(['check', '--profile', 'strict']),
-      TypeError,
-      '--profile should not be accepted (belongs to F14)'
-    );
+  it('parses --profile string flag (F14-S2)', () => {
+    const result = parseArgs(['check', '--profile', 'strict']);
+    assert.equal(result.values.profile, 'strict');
   });
 
   it('parses --reason, --expires, --as string flags', () => {

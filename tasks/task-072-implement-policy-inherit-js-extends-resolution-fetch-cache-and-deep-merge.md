@@ -19,3 +19,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F15-S1-approach.md
 review_artifact: docs/reviews/task-072-review.md
+source_files: src/policy/inherit.js
+test_files: test/policy/inherit.test.js
+docs_updates: docs/design-notes/F15-S1-approach.md, docs/reviews/task-072-review.md

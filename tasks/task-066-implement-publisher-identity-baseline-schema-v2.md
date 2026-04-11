@@ -9,8 +9,8 @@ Implement the story exactly as specified and prepare it for review.
 - The design note records the implementation and verification mapping.
 
 ## Inputs
-story: /Users/tayyabtariq/Documents/projects/.burnish-worktrees/trustlock/task-053/docs/stories/F12-S01-publisher-identity-baseline-schema-v2.md
-feature_brief: /Users/tayyabtariq/Documents/projects/.burnish-worktrees/trustlock/task-053/docs/feature-briefs/F12-publisher-identity-baseline-v2.md
+story: docs/stories/F12-S01-publisher-identity-baseline-schema-v2.md
+feature_brief: docs/feature-briefs/F12-publisher-identity-baseline-v2.md
 system_overview: docs/architecture/system-overview.md
 global_conventions: context/global/conventions.md
 global_architecture: context/global/architecture.md

@@ -1,0 +1,32 @@
+__metadata:
+  version: 6
+  cacheKey: 8
+
+"lodash@npm:^4.17.21":
+  version: 4.17.21
+  resolution: "lodash@npm:4.17.21"
+  checksum: 10/v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZkFekkLKFiJCMSBB69A==
+  languageName: node
+  linkType: hard
+
+"my-workspace@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "my-workspace@workspace:."
+  languageName: unknown
+  linkType: soft
+
+"express@npm:^4.18.2":
+  version: 4.18.2
+  resolution: "express@npm:4.18.2"
+  dependencies:
+    lodash: "npm:^4.17.21"
+  checksum: 10/5/PsL6iGOs/rsbKmhMbRSL2YDutNq7FxlMT3jJSIhQCBlp/z1dM+xbRpLtMBlPTk2mGqFMM8XGMeMU6yLNdg==
+  languageName: node
+  linkType: hard
+
+"jest@npm:^29.0.0":
+  version: 29.0.0
+  resolution: "jest@npm:29.0.0"
+  checksum: 10/abc123def456abc123def456abc123def456abc123def456abc123def456abc123==
+  languageName: node
+  linkType: hard

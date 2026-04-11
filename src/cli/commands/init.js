@@ -17,6 +17,7 @@ import { mkdir, writeFile, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { parseLockfile } from '../../lockfile/parser.js';
+import { loadPolicy } from '../../policy/loader.js';
 import { createRegistryClient } from '../../registry/client.js';
 import { createBaseline, writeAndStage } from '../../baseline/manager.js';
 import { resolvePaths, detectMonorepoWorkspaces } from '../../utils/paths.js';
@@ -153,6 +154,16 @@ export async function run(args, { _registryClient, _cwd } = {}) {
   }
 
   // ── Baseline creation ────────────────────────────────────────────────────────
+
+  // Load and validate merged policy (ADR-005) before beginning any baseline work.
+  // Catches extends floor violations or missing org policy on first run.
+  try {
+    await loadPolicy({ configPath, cacheDir: cachePath, profile: null });
+  } catch (err) {
+    process.stderr.write(`${err.message}\n`);
+    process.exitCode = 2;
+    return;
+  }
 
   // parseLockfile re-reads the file; version already validated above so no exit
   const deps = await parseLockfile(lockfilePath, packageJsonPath);

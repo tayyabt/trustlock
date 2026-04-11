@@ -10,8 +10,8 @@
  */
 
 import { join } from 'node:path';
-import { readFile } from 'node:fs/promises';
 import { parseLockfile } from '../../lockfile/parser.js';
+import { loadPolicy } from '../../policy/loader.js';
 import { writeApproval } from '../../approvals/store.js';
 import { VALID_RULE_NAMES, parseDuration } from '../../approvals/models.js';
 import { getGitUserName } from '../../utils/git.js';
@@ -43,46 +43,6 @@ function parsePackageSpec(spec) {
 
   if (!name || !version) return null;
   return { name, version };
-}
-
-/**
- * Load approval-specific fields from .trustlockrc.json.
- * Returns defaults when fields are absent.
- *
- * @param {string} configPath
- * @returns {Promise<{ require_reason: boolean, max_expiry_days: number }>}
- * @throws {{ message: string, exitCode: 2 }}
- */
-async function loadApprovalConfig(configPath) {
-  let raw;
-  try {
-    raw = await readFile(configPath, 'utf8');
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      throw Object.assign(
-        new Error('No .trustlockrc.json found. Run `trustlock init` first.'),
-        { exitCode: 2 }
-      );
-    }
-    throw err;
-  }
-
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (err) {
-    throw Object.assign(
-      new Error(`Failed to parse .trustlockrc.json: ${err.message}`),
-      { exitCode: 2 }
-    );
-  }
-
-  return {
-    require_reason:
-      typeof parsed.require_reason === 'boolean' ? parsed.require_reason : true,
-    max_expiry_days:
-      typeof parsed.max_expiry_days === 'number' ? parsed.max_expiry_days : 30,
-  };
 }
 
 /**
@@ -141,17 +101,26 @@ export async function run(args, { _cwd } = {}) {
     .flatMap((o) => o.split(',').map((s) => s.trim()))
     .filter(Boolean);
 
-  // ── 3. Load approval-specific config ─────────────────────────────────────
+  // ── 3. Load merged policy (ADR-005 three-step merge: extends → repo → profile) ─
   const configPath = join(projectRoot, '.trustlockrc.json');
-  let approvalConfig;
+  const cacheDir   = join(projectRoot, '.trustlock', '.cache');
+  let policy;
   try {
-    approvalConfig = await loadApprovalConfig(configPath);
+    policy = await loadPolicy({ configPath, cacheDir, profile: null });
   } catch (err) {
-    process.stderr.write(`${err.message}\n`);
+    const isMissing = err.exitCode === 2 && err.cause?.code === 'ENOENT';
+    if (isMissing) {
+      process.stderr.write('No .trustlockrc.json found. Run `trustlock init` first.\n');
+    } else {
+      process.stderr.write(`${err.message}\n`);
+    }
     process.exitCode = 2;
     return;
   }
-  const { require_reason, max_expiry_days } = approvalConfig;
+  // Approval-specific fields pass through the normalization step in loader.js.
+  // Apply defaults here in case they're absent from the config.
+  const require_reason  = typeof policy.require_reason  === 'boolean' ? policy.require_reason  : true;
+  const max_expiry_days = typeof policy.max_expiry_days === 'number'  ? policy.max_expiry_days : 30;
 
   // ── 4. Validate --override rule names ─────────────────────────────────────
   const invalidRules = overrides.filter((r) => !VALID_RULE_NAMES.has(r));

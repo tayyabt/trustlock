@@ -15,8 +15,7 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
 import { parseLockfile } from '../../lockfile/parser.js';
-import { loadPolicy } from '../../policy/config.js';
-import { applyProfileOverlay, isBuiltinProfile } from '../../policy/builtin-profiles.js';
+import { loadPolicy } from '../../policy/loader.js';
 import { readBaseline, advanceBaseline, writeAndStage } from '../../baseline/manager.js';
 import { computeDelta } from '../../baseline/diff.js';
 import { readApprovals } from '../../approvals/store.js';
@@ -76,10 +75,10 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   const cacheDir       = join(projectRoot, '.trustlock', '.cache');
   const packageJsonPath = join(projectRoot, 'package.json');
 
-  // ── 1. Load policy ─────────────────────────────────────────────────────────
+  // ── 1. Load policy (ADR-005 three-step merge: extends → repo → profile) ──────
   let policy;
   try {
-    policy = await loadPolicy(configPath);
+    policy = await loadPolicy({ configPath, cacheDir, profile: profileName });
   } catch (err) {
     const isMissing = err.exitCode === 2 && err.cause?.code === 'ENOENT';
     if (isMissing) {
@@ -91,29 +90,11 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
     return;
   }
 
-  // ── 1b. Apply profile overlay (F14-S2) ────────────────────────────────────
-  // NOTE: In Sprint 4, loader.js (F15) will own this call; check.js will then
-  // receive the overlaid config from loadPolicy and stop calling applyProfileOverlay.
-  let hasProvenanceAllWarning = false;
-  if (profileName !== null) {
-    const userDefinedProfiles = policy.profiles ?? {};
-    const userDefinedExists = Object.prototype.hasOwnProperty.call(userDefinedProfiles, profileName);
-    // User-defined presence wins over built-in by name (edge case: user-defined "relaxed" is not built-in)
-    const isBuiltin = !userDefinedExists && isBuiltinProfile(profileName);
-
-    if (!userDefinedExists && !isBuiltinProfile(profileName)) {
-      process.stderr.write(
-        `Profile "${profileName}" not found in .trustlockrc.json or built-in profiles.\n`
-      );
-      process.exitCode = 2;
-      return;
-    }
-
-    // applyProfileOverlay throws on floor violation; propagates to top-level error handler → exit 2
-    const overlayResult = applyProfileOverlay(policy, profileName, userDefinedProfiles, isBuiltin);
-    policy = overlayResult.config;
-    hasProvenanceAllWarning = overlayResult.warnings.includes('provenance-all');
-  }
+  // Provenance-all warning: required_for: ["*"] is active (F14-S2, ADR-005 step 4).
+  // loader.js owns the profile overlay; check.js inspects the merged result.
+  const hasProvenanceAllWarning =
+    Array.isArray(policy.provenance?.required_for) &&
+    policy.provenance.required_for.includes('*');
 
   // ── 2. Load baseline ───────────────────────────────────────────────────────
   const baseline = await readBaseline(baselinePath);

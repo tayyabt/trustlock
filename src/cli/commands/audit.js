@@ -14,7 +14,7 @@ import { readFile } from 'node:fs/promises';
 import { resolvePaths, detectMonorepoWorkspaces } from '../../utils/paths.js';
 
 import { parseLockfile } from '../../lockfile/parser.js';
-import { loadPolicy } from '../../policy/config.js';
+import { loadPolicy } from '../../policy/loader.js';
 import { readApprovals } from '../../approvals/store.js';
 import { createRegistryClient } from '../../registry/client.js';
 import { evaluate } from '../../policy/engine.js';
@@ -49,10 +49,10 @@ export async function run(args, { _registryClient = null, _cwd } = {}) {
   const cacheDir      = join(projectRoot, '.trustlock', '.cache');
   const packageJsonPath = join(projectRoot, 'package.json');
 
-  // ── 1. Load policy ─────────────────────────────────────────────────────────
+  // ── 1. Load policy (ADR-005 three-step merge: extends → repo → profile) ──────
   let policy;
   try {
-    policy = await loadPolicy(configPath);
+    policy = await loadPolicy({ configPath, cacheDir, profile: null });
   } catch (err) {
     const isMissing = err.exitCode === 2 && err.cause?.code === 'ENOENT';
     if (isMissing) {

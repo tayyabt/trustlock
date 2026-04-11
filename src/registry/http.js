@@ -40,7 +40,7 @@ function classifyHttpError(statusCode) {
  * @param {object} [opts._https] - Injectable https module (for unit tests only)
  * @returns {Promise<object>}
  */
-export function httpGetJson(url, { timeoutMs = 30_000, _https: httpsModule = https } = {}) {
+export function httpGetJson(url, { timeoutMs = 30_000, _https: httpsModule = https, headers: extraHeaders = {} } = {}) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const done = (fn, val) => {
@@ -53,7 +53,7 @@ export function httpGetJson(url, { timeoutMs = 30_000, _https: httpsModule = htt
     const { hostname, pathname, search } = new URL(url);
 
     const req = httpsModule.get(
-      { hostname, path: pathname + search, headers: { Accept: 'application/json' } },
+      { hostname, path: pathname + search, headers: { Accept: 'application/json', ...extraHeaders } },
       (res) => {
         if (res.statusCode !== 200) {
           res.resume();

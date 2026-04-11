@@ -1,0 +1,60 @@
+{
+  "info": {
+    "name": "requests",
+    "version": "2.28.0",
+    "summary": "Python HTTP for Humans.",
+    "author": "Kenneth Reitz",
+    "author_email": "me@kennethreitz.org",
+    "maintainer": "Kenneth Reitz",
+    "maintainer_email": "me@kennethreitz.org",
+    "license": "Apache 2.0",
+    "home_page": "https://requests.readthedocs.io",
+    "package_url": "https://pypi.org/project/requests/",
+    "project_url": "https://pypi.org/project/requests/",
+    "release_url": "https://pypi.org/project/requests/2.28.0/"
+  },
+  "urls": [
+    {
+      "comment_text": "",
+      "digests": {
+        "blake2b_256": "ca03f4b03f83a73cb4b08f97c56d2943a3f2e8f4d7b15b5f6d6e7a9c12345678",
+        "md5": "abc123",
+        "sha256": "e5549aa9c300c8fb9e3b5e3a5b6a7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4"
+      },
+      "filename": "requests-2.28.0-py3-none-any.whl",
+      "has_sig": false,
+      "md5_digest": "abc123",
+      "packagetype": "bdist_wheel",
+      "python_version": "py3",
+      "requires_python": ">=3.7",
+      "size": 62817,
+      "upload_time": "2022-06-29T15:14:30",
+      "upload_time_iso_8601": "2022-06-29T15:14:30.000000Z",
+      "url": "https://files.pythonhosted.org/packages/ca/03/requests-2.28.0-py3-none-any.whl",
+      "yanked": false,
+      "yanked_reason": null,
+      "uploader": "ken-reitz"
+    },
+    {
+      "comment_text": "",
+      "digests": {
+        "blake2b_256": "de04g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v0w1x2y3z4a5b6c7d8e9f0a1b2c3d4",
+        "md5": "def456",
+        "sha256": "b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6"
+      },
+      "filename": "requests-2.28.0.tar.gz",
+      "has_sig": false,
+      "md5_digest": "def456",
+      "packagetype": "sdist",
+      "python_version": "source",
+      "requires_python": ">=3.7",
+      "size": 109673,
+      "upload_time": "2022-06-29T15:12:00",
+      "upload_time_iso_8601": "2022-06-29T15:12:00.000000Z",
+      "url": "https://files.pythonhosted.org/packages/de/04/requests-2.28.0.tar.gz",
+      "yanked": false,
+      "yanked_reason": null,
+      "uploader": "ken-reitz"
+    }
+  ]
+}

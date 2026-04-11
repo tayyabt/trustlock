@@ -385,3 +385,152 @@ test('scoped package name (@scope/pkg) used as cache key without mangling by cli
   // The cache key should be the raw package name; cache.js encodes it for filenames.
   assert.equal(cache.written[0].key, '@babel/core');
 });
+
+// ---------------------------------------------------------------------------
+// Ecosystem dispatch — C-NEW-3 (b): client routes based on dep.ecosystem
+// ---------------------------------------------------------------------------
+
+test('fetchPackageMetadata: ecosystem "pypi" dispatches to PyPI adapter', async () => {
+  const pypiData = { publisherAccount: 'ken-reitz', publishedAt: '2022-06-29T15:12:00.000000Z', hasAttestations: true };
+  const cache = mockCache({});
+  let pypiCalled = false;
+  const client = createRegistryClient({
+    _cache: cache,
+    _fetchFullMetadata: async () => { throw new Error('npm should not be called'); },
+    _fetchVersionMetadata: mockFetch({}),
+    _fetchAttestations: mockFetch(null),
+    _fetchPypiVersionMetadata: async (name, version) => {
+      pypiCalled = true;
+      assert.equal(name, 'requests');
+      assert.equal(version, '2.28.0');
+      return pypiData;
+    },
+  });
+
+  const result = await client.fetchPackageMetadata({ name: 'requests', version: '2.28.0', ecosystem: 'pypi' });
+  assert.deepEqual(result, { data: pypiData, warnings: [] });
+  assert.equal(pypiCalled, true, 'PyPI adapter was not called');
+});
+
+test('fetchPackageMetadata: ecosystem "pypi" writes cache key pypi/{name}/{version}', async () => {
+  const pypiData = { publisherAccount: 'ken-reitz', publishedAt: '2022-06-29T15:12:00.000000Z', hasAttestations: false };
+  const cache = mockCache({});
+  const client = createRegistryClient({
+    _cache: cache,
+    _fetchFullMetadata: mockFetch({}),
+    _fetchVersionMetadata: mockFetch({}),
+    _fetchAttestations: mockFetch(null),
+    _fetchPypiVersionMetadata: mockFetch(pypiData),
+  });
+
+  await client.fetchPackageMetadata({ name: 'requests', version: '2.28.0', ecosystem: 'pypi' });
+  assert.equal(cache.written.length, 1);
+  assert.equal(cache.written[0].key, 'pypi/requests/2.28.0');
+});
+
+test('fetchPackageMetadata: ecosystem "npm" dispatches to npm (full-packument) path', async () => {
+  const npmData = { name: 'lodash', time: { '4.17.21': '2021-01-01T00:00:00.000Z' } };
+  const cache = mockCache({});
+  let npmCalled = false;
+  const client = createRegistryClient({
+    _cache: cache,
+    _fetchFullMetadata: async (name) => {
+      npmCalled = true;
+      assert.equal(name, 'lodash');
+      return npmData;
+    },
+    _fetchVersionMetadata: mockFetch({}),
+    _fetchAttestations: mockFetch(null),
+    _fetchPypiVersionMetadata: async () => { throw new Error('pypi should not be called'); },
+  });
+
+  const result = await client.fetchPackageMetadata({ name: 'lodash', version: '4.17.21', ecosystem: 'npm' });
+  assert.deepEqual(result, { data: npmData, warnings: [] });
+  assert.equal(npmCalled, true, 'npm adapter was not called');
+  // Cache key must be the package name, not pypi/{name}/{version}
+  assert.equal(cache.written[0].key, 'lodash');
+});
+
+test('fetchPackageMetadata: absent ecosystem defaults to npm path (backward compat)', async () => {
+  const npmData = { name: 'express', time: {} };
+  const cache = mockCache({});
+  let npmCalled = false;
+  const client = createRegistryClient({
+    _cache: cache,
+    _fetchFullMetadata: async () => { npmCalled = true; return npmData; },
+    _fetchVersionMetadata: mockFetch({}),
+    _fetchAttestations: mockFetch(null),
+    _fetchPypiVersionMetadata: async () => { throw new Error('pypi should not be called'); },
+  });
+
+  // No ecosystem field — must fall through to npm
+  const result = await client.fetchPackageMetadata({ name: 'express', version: '4.18.2' });
+  assert.deepEqual(result, { data: npmData, warnings: [] });
+  assert.equal(npmCalled, true);
+});
+
+test('fetchPackageMetadata: string argument (legacy form) uses npm path unchanged', async () => {
+  const npmData = { name: 'lodash', time: {} };
+  const cache = mockCache({});
+  const client = createRegistryClient({
+    _cache: cache,
+    _fetchFullMetadata: mockFetch(npmData),
+    _fetchVersionMetadata: mockFetch({}),
+    _fetchAttestations: mockFetch(null),
+    _fetchPypiVersionMetadata: async () => { throw new Error('pypi should not be called'); },
+  });
+
+  const result = await client.fetchPackageMetadata('lodash');
+  assert.deepEqual(result, { data: npmData, warnings: [] });
+  assert.equal(cache.written[0].key, 'lodash');
+});
+
+test('fetchPackageMetadata: pypi degradation — no cache + failed fetch returns null with warning', async () => {
+  const cache = mockCache({});
+  const client = createRegistryClient({
+    _cache: cache,
+    _fetchFullMetadata: mockFetch({}),
+    _fetchVersionMetadata: mockFetch({}),
+    _fetchAttestations: mockFetch(null),
+    _fetchPypiVersionMetadata: mockFetchFail('NETWORK_TIMEOUT'),
+  });
+
+  const result = await client.fetchPackageMetadata({ name: 'requests', version: '2.28.0', ecosystem: 'pypi' });
+  assert.deepEqual(result, { data: null, warnings: ['skipped: registry unreachable'] });
+});
+
+test('fetchPackageMetadata: pypi stale cache returned with warning when fetch fails', async () => {
+  const staleData = { publisherAccount: 'old-author', publishedAt: '2022-01-01T00:00:00.000000Z', hasAttestations: false };
+  const cache = mockCache({ 'pypi/requests/2.28.0': { data: staleData, fresh: false } });
+  const client = createRegistryClient({
+    _cache: cache,
+    _fetchFullMetadata: mockFetch({}),
+    _fetchVersionMetadata: mockFetch({}),
+    _fetchAttestations: mockFetch(null),
+    _fetchPypiVersionMetadata: mockFetchFail('NETWORK_ERROR'),
+  });
+
+  const result = await client.fetchPackageMetadata({ name: 'requests', version: '2.28.0', ecosystem: 'pypi' });
+  assert.equal(result.data, staleData);
+  assert.deepEqual(result.warnings, ['stale registry data']);
+});
+
+// ---------------------------------------------------------------------------
+// Existing npm path — AC: unchanged after adding ecosystem dispatch
+// ---------------------------------------------------------------------------
+
+test('existing npm fetchPackageMetadata(name-string) is unchanged after ecosystem dispatch added', async () => {
+  const packageData = { name: 'lodash', time: { '4.17.21': '2021-01-01T00:00:00.000Z' } };
+  const cache = mockCache({ lodash: { data: packageData, fresh: true } });
+  let fetchCalled = false;
+  const client = createRegistryClient({
+    _cache: cache,
+    _fetchFullMetadata: async () => { fetchCalled = true; return {}; },
+    _fetchVersionMetadata: mockFetch({}),
+    _fetchAttestations: mockFetch(null),
+  });
+
+  const result = await client.fetchPackageMetadata('lodash');
+  assert.deepEqual(result, { data: packageData, warnings: [] });
+  assert.equal(fetchCalled, false, 'HTTP should not be called on fresh cache hit');
+});

@@ -1,6 +1,7 @@
 import { createCache } from './cache.js';
 import { fetchFullMetadata, fetchVersionMetadata as fetchVersionMeta } from './npm-registry.js';
 import { fetchAttestations as fetchAttestationsHttp } from './provenance.js';
+import { fetchVersionMetadata as fetchPypiVersionMeta } from './pypi.js';
 
 const TTL_FULL_METADATA_MS = 1 * 60 * 60 * 1000;     // 1 hour
 const TTL_VERSION_METADATA_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -65,6 +66,7 @@ function createSemaphore(maxConcurrent) {
  * @param {Function} [options._fetchFullMetadata] - Injectable (tests only).
  * @param {Function} [options._fetchVersionMetadata] - Injectable (tests only).
  * @param {Function} [options._fetchAttestations] - Injectable (tests only).
+ * @param {Function} [options._fetchPypiVersionMetadata] - Injectable PyPI adapter (tests only).
  * @returns {{ fetchPackageMetadata: Function, getVersionMetadata: Function, getAttestations: Function }}
  */
 export function createRegistryClient({
@@ -74,11 +76,13 @@ export function createRegistryClient({
   _fetchFullMetadata,
   _fetchVersionMetadata,
   _fetchAttestations,
+  _fetchPypiVersionMetadata,
 } = {}) {
   const cache = _cache ?? createCache(cacheDir);
   const doFetchFullMetadata = _fetchFullMetadata ?? fetchFullMetadata;
   const doFetchVersionMetadata = _fetchVersionMetadata ?? fetchVersionMeta;
   const doFetchAttestations = _fetchAttestations ?? fetchAttestationsHttp;
+  const doFetchPypiVersionMetadata = _fetchPypiVersionMetadata ?? fetchPypiVersionMeta;
 
   const semaphore = createSemaphore(CONCURRENCY_LIMIT);
 
@@ -128,13 +132,42 @@ export function createRegistryClient({
   }
 
   /**
-   * Fetch full packument for a package (includes `time` object for cooldown).
-   * Cache key: package name. TTL: 1 hour.
+   * Fetch package metadata with ecosystem-based dispatch.
    *
-   * @param {string} name
+   * Accepts either a plain string `name` (backward-compatible npm path) or a
+   * `ResolvedDependency`-shaped object `{ name, version, ecosystem }`:
+   *
+   *   - `ecosystem === 'pypi'` → PyPI JSON API; cache key `pypi/{name}/{version}`;
+   *     returns `{ publisherAccount, publishedAt, hasAttestations }`.
+   *   - `ecosystem === 'npm'`, absent, or undefined → npm full-packument path
+   *     (existing behaviour); cache key is the package name; TTL 1 hour.
+   *
+   * @param {string | { name: string, version?: string, ecosystem?: string }} nameOrDep
    * @returns {Promise<{ data: object|null, warnings: string[] }>}
    */
-  async function fetchPackageMetadata(name) {
+  async function fetchPackageMetadata(nameOrDep) {
+    // Support both the legacy string form and the new dep-object form.
+    if (typeof nameOrDep === 'string') {
+      return withDegradation(
+        nameOrDep,
+        TTL_FULL_METADATA_MS,
+        () => doFetchFullMetadata(nameOrDep),
+      );
+    }
+
+    const { name, version, ecosystem } = nameOrDep;
+
+    if (ecosystem === 'pypi') {
+      // PyPI path: version-specific metadata; 24-hour TTL (immutable once published).
+      return withDegradation(
+        `pypi/${name}/${version}`,
+        TTL_VERSION_METADATA_MS,
+        () => doFetchPypiVersionMetadata(name, version),
+      );
+    }
+
+    // Default: npm full-packument path (handles absent/undefined ecosystem for
+    // backward compatibility with any callers that predate the ecosystem field).
     return withDegradation(
       name,
       TTL_FULL_METADATA_MS,

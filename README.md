@@ -1,6 +1,6 @@
 # trustlock
 
-A dependency admission controller for npm projects. trustlock evaluates trust signals on dependency changes and makes binary admit/block decisions based on a declared policy — before those changes land in CI or are committed.
+A dependency admission controller for npm, pnpm, yarn, and Python projects. trustlock evaluates trust signals on dependency changes and makes binary admit/block decisions based on a declared policy — before those changes land in CI or are committed.
 
 ## How it works
 
@@ -10,13 +10,14 @@ trustlock runs as a **Git pre-commit hook** (advisory mode) and a **CI check** (
 - **Enforce (`--enforce`):** blocks on violations, exits 1, never advances the baseline.
 
 Trust signals evaluated per-package:
-- **Cooldown** — how long since the version was published to npm
+- **Cooldown** — how long since the version was published to the registry
 - **Provenance** — whether the package has SLSA attestations
-- **Pinning** — whether `package.json` uses exact versions
+- **Pinning** — whether the lockfile uses exact versions
 - **Install scripts** — whether the package runs install-time scripts
-- **Sources** — whether the package comes from the npm registry, a git URL, a local path, or a URL
+- **Sources** — whether the package comes from the registry, a git URL, a local path, or a URL
 - **New dependencies** — first-time additions to the project
 - **Transitive surprise** — unexpected jump in transitive dependency count
+- **Publisher change** — whether the package's publisher identity changed between versions
 
 ## Installation
 
@@ -26,12 +27,22 @@ npm install -g trustlock
 
 Requires Node.js >= 18.3.
 
+## Supported lockfiles
+
+| Lockfile | Ecosystem | Versions |
+|----------|-----------|---------|
+| `package-lock.json` | npm | v1, v2, v3 |
+| `pnpm-lock.yaml` | pnpm | v5, v6, v9 |
+| `yarn.lock` | yarn | classic (v1), berry (v2/v3) |
+| `requirements.txt` | Python (pip) | — |
+| `uv.lock` | Python (uv) | — |
+
 ## Quick start
 
 ### Workflow 1 — Onboarding a project
 
 ```bash
-# 1. Initialize trustlock in your project (requires package-lock.json)
+# 1. Initialize trustlock in your project
 trustlock init
 
 # 2. Install the Git pre-commit hook
@@ -84,6 +95,13 @@ trustlock check
 # ✔ new-hotness@1.0.0 — admitted with approval
 ```
 
+### Workflow 4 — Compare dependency posture across projects
+
+```bash
+# Detect version drift and provenance inconsistencies across monorepo packages
+trustlock audit --compare packages/frontend packages/backend packages/shared
+```
+
 ## Commands
 
 | Command | Description |
@@ -92,8 +110,36 @@ trustlock check
 | `trustlock check` | Evaluate dependency changes against policy |
 | `trustlock approve <pkg>@<ver>` | Approve a blocked package |
 | `trustlock audit` | Scan the full dependency tree for trust posture |
+| `trustlock audit --compare <dir...>` | Compare dependency posture across multiple projects |
 | `trustlock clean-approvals` | Remove expired approval entries |
 | `trustlock install-hook` | Install the Git pre-commit hook |
+
+## Policy profiles
+
+trustlock ships two built-in profiles selectable with `--profile`:
+
+| Profile | Effect |
+|---------|--------|
+| `strict` | 168h cooldown, provenance required for all packages |
+| `relaxed` | 24h cooldown, no block on provenance regression or publisher change |
+
+```bash
+# Use strict profile in CI
+trustlock check --enforce --profile strict
+```
+
+## Org policy inheritance
+
+Teams can centralize policy in a shared URL and extend it per repo:
+
+```json
+{
+  "extends": "https://policy.example.com/trustlockrc.json",
+  "cooldown_hours": 96
+}
+```
+
+Repo configs can only tighten org policy — floor enforcement prevents repos from reducing org-mandated thresholds.
 
 ## Documentation
 

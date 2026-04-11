@@ -10,6 +10,8 @@ import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 import { parseNpm } from './npm.js';
 import { parsePnpm, _parseLockfileVersion as _parsePnpmVersion } from './pnpm.js';
+import { parseRequirements } from './requirements.js';
+import { parseUv } from './uv.js';
 
 const SUPPORTED_NPM_VERSIONS = new Set([1, 2, 3]);
 const SUPPORTED_PNPM_VERSIONS = new Set([5, 6, 9]);
@@ -68,6 +70,16 @@ export async function detectFormat(lockfilePath) {
     return { format: 'pnpm', version };
   }
 
+  // requirements.txt branch — Python pip format
+  if (filename === 'requirements.txt' || filename.endsWith('.txt')) {
+    return { format: 'requirements', version: 1 };
+  }
+
+  // uv.lock branch — Python uv format (TOML)
+  if (filename === 'uv.lock') {
+    return { format: 'uv', version: 1 };
+  }
+
   let parsed;
   try {
     parsed = JSON.parse(content);
@@ -106,6 +118,17 @@ export async function parseLockfile(lockfilePath, packageJsonPathOrProjectRoot) 
   if (filename === 'pnpm-lock.yaml' || filename.endsWith('.yaml')) {
     // parsePnpm validates the version and calls process.exit(2) if unsupported
     return parsePnpm(lockfileContent, packageJsonPathOrProjectRoot);
+  }
+
+  // requirements.txt branch — Python pip format; no companion file needed
+  // Detection order: package-lock.json > pnpm-lock.yaml > yarn.lock > requirements.txt > uv.lock
+  if (filename === 'requirements.txt' || filename.endsWith('.txt')) {
+    return parseRequirements(lockfileContent);
+  }
+
+  // uv.lock branch — Python uv TOML format; no companion file needed
+  if (filename === 'uv.lock') {
+    return parseUv(lockfileContent);
   }
 
   // npm branch — Parse JSON

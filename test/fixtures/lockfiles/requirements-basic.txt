@@ -1,0 +1,13 @@
+# Basic requirements.txt fixture — exact pins, hash, URL requirement
+# Used by: test/lockfile/requirements.test.js
+
+requests==2.31.0 \
+    --hash=sha256:58cd2187423839b6c2bba2df86b1c42bb50b7f939dd12ee8d6d8d55b99ae7949
+
+Pillow==9.5.0
+
+my_package==1.0.0
+
+some-tool==0.8.3
+
+direct-dep @ https://example.com/direct-dep-1.0.0.tar.gz

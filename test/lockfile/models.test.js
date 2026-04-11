@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateDependency, SOURCE_TYPES } from '../../src/lockfile/models.js';
+import { validateDependency, SOURCE_TYPES, ECOSYSTEMS } from '../../src/lockfile/models.js';
 
 describe('SOURCE_TYPES', () => {
   it('exports all four source type constants', () => {
@@ -8,6 +8,13 @@ describe('SOURCE_TYPES', () => {
     assert.equal(SOURCE_TYPES.git, 'git');
     assert.equal(SOURCE_TYPES.file, 'file');
     assert.equal(SOURCE_TYPES.url, 'url');
+  });
+});
+
+describe('ECOSYSTEMS', () => {
+  it('exports npm and pypi ecosystem constants', () => {
+    assert.equal(ECOSYSTEMS.npm, 'npm');
+    assert.equal(ECOSYSTEMS.pypi, 'pypi');
   });
 });
 
@@ -21,6 +28,7 @@ describe('validateDependency()', () => {
     hasInstallScripts: false,
     sourceType: 'registry',
     directDependency: true,
+    ecosystem: 'npm',
   };
 
   it('returns a valid ResolvedDependency for a fully-populated input', () => {
@@ -33,6 +41,7 @@ describe('validateDependency()', () => {
     assert.equal(result.hasInstallScripts, false);
     assert.equal(result.sourceType, 'registry');
     assert.equal(result.directDependency, true);
+    assert.equal(result.ecosystem, 'npm');
   });
 
   it('throws a descriptive error when name is missing', () => {
@@ -138,5 +147,63 @@ describe('validateDependency()', () => {
     const result = validateDependency({ ...base, directDependency: 0 });
     assert.equal(typeof result.directDependency, 'boolean');
     assert.equal(result.directDependency, false);
+  });
+
+  // ── AC14: ecosystem field (C-NEW-3) ──────────────────────────────────────────
+
+  it('AC14: throws a descriptive error when ecosystem is missing', () => {
+    const dep = { ...base, ecosystem: undefined };
+    assert.throws(
+      () => validateDependency(dep),
+      (err) => {
+        assert.ok(err.message.includes('"ecosystem"'), `Expected "ecosystem" in error: ${err.message}`);
+        return true;
+      }
+    );
+  });
+
+  it('AC14: throws a descriptive error for an invalid ecosystem value', () => {
+    const dep = { ...base, ecosystem: 'crates' };
+    assert.throws(
+      () => validateDependency(dep),
+      (err) => {
+        assert.ok(err.message.includes('"crates"'), `Expected invalid value in error: ${err.message}`);
+        assert.ok(
+          err.message.includes('npm') && err.message.includes('pypi'),
+          `Expected valid options in error: ${err.message}`
+        );
+        return true;
+      }
+    );
+  });
+
+  it('AC14: accepts ecosystem "npm"', () => {
+    const result = validateDependency({ ...base, ecosystem: 'npm' });
+    assert.equal(result.ecosystem, 'npm');
+  });
+
+  it('AC14: accepts ecosystem "pypi"', () => {
+    const result = validateDependency({ ...base, ecosystem: 'pypi' });
+    assert.equal(result.ecosystem, 'pypi');
+  });
+
+  it('pinned defaults to true when omitted', () => {
+    const result = validateDependency(base);
+    assert.equal(result.pinned, true);
+  });
+
+  it('pinned: false is preserved', () => {
+    const result = validateDependency({ ...base, pinned: false });
+    assert.equal(result.pinned, false);
+  });
+
+  it('via defaults to null when omitted', () => {
+    const result = validateDependency(base);
+    assert.equal(result.via, null);
+  });
+
+  it('via value is preserved', () => {
+    const result = validateDependency({ ...base, via: 'requests' });
+    assert.equal(result.via, 'requests');
   });
 });

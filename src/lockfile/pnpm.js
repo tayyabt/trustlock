@@ -13,7 +13,7 @@
  * Pure function — no I/O, no network, no imports from src/registry/.
  */
 
-import { validateDependency, SOURCE_TYPES } from './models.js';
+import { validateDependency, SOURCE_TYPES, ECOSYSTEMS } from './models.js';
 
 const SUPPORTED_VERSIONS = new Set([5, 6, 9]);
 
@@ -252,6 +252,7 @@ function _buildDep(pkg) {
     hasInstallScripts,
     sourceType,
     directDependency: false, // pnpm lockfile does not mark direct vs transitive
+    ecosystem: ECOSYSTEMS.npm,
   });
 }
 

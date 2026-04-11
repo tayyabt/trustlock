@@ -1,0 +1,25 @@
+version = 1
+requires-python = ">=3.11"
+
+[[package]]
+name = "requests"
+version = "2.31.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+  { name = "certifi" },
+  { name = "charset-normalizer" },
+  { name = "idna" },
+  { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/requests-2.31.0.tar.gz", hash = "sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1" }
+
+[[package]]
+name = "certifi"
+version = "2023.7.22"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/certifi-2023.7.22.tar.gz", hash = "sha256:539cc1d13202e33ca466e88b2807e29f4c13049d6d87031a3c110744495cb082" }
+
+[[package]]
+name = "my-git-dep"
+version = "0.1.0"
+source = { git = "https://github.com/example/my-git-dep.git?rev=abc123" }

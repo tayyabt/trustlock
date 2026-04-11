@@ -10,6 +10,9 @@
  *   hasInstallScripts {boolean|null}  True/false from v3; null from v1/v2 (unavailable)
  *   sourceType      {string}          One of SOURCE_TYPES values
  *   directDependency {boolean}        True if listed directly in package.json
+ *   ecosystem       {string}          One of ECOSYSTEMS values — registry dispatch discriminant
+ *   pinned          {boolean}         True for exact-version pins; false for ranges (Python parsers)
+ *   via             {string|null}     pip-compile "# via" annotation (Python only); null otherwise
  */
 
 /** Source type constants — use these instead of raw strings. */
@@ -19,6 +22,14 @@ export const SOURCE_TYPES = {
   file: 'file',
   url: 'url',
 };
+
+/** Ecosystem discriminant — used by registry/client.js to route to the correct adapter. */
+export const ECOSYSTEMS = {
+  npm: 'npm',
+  pypi: 'pypi',
+};
+
+const VALID_ECOSYSTEMS = new Set(Object.values(ECOSYSTEMS));
 
 const VALID_SOURCE_TYPES = new Set(Object.values(SOURCE_TYPES));
 
@@ -53,6 +64,17 @@ export function validateDependency(dep) {
     );
   }
 
+  if (!dep.ecosystem || typeof dep.ecosystem !== 'string') {
+    throw new Error('validateDependency: missing required field "ecosystem"');
+  }
+
+  if (!VALID_ECOSYSTEMS.has(dep.ecosystem)) {
+    throw new Error(
+      `validateDependency: invalid ecosystem "${dep.ecosystem}". ` +
+      `Must be one of: ${[...VALID_ECOSYSTEMS].join(', ')}`
+    );
+  }
+
   return {
     name: dep.name,
     version: dep.version,
@@ -62,5 +84,8 @@ export function validateDependency(dep) {
     hasInstallScripts: dep.hasInstallScripts != null ? !!dep.hasInstallScripts : null,
     sourceType: dep.sourceType,
     directDependency: !!dep.directDependency,
+    ecosystem: dep.ecosystem,
+    pinned: dep.pinned != null ? !!dep.pinned : true,
+    via: dep.via != null ? dep.via : null,
   };
 }

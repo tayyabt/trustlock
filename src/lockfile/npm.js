@@ -5,7 +5,7 @@
  *   parseNpm(lockfileContent, packageJsonContent) → ResolvedDependency[]
  */
 
-import { validateDependency, SOURCE_TYPES } from './models.js';
+import { validateDependency, SOURCE_TYPES, ECOSYSTEMS } from './models.js';
 
 /**
  * Classify the source type of a dependency from its resolved URL.
@@ -65,6 +65,7 @@ function _parseV1(dependencies, directSet, devSet) {
       hasInstallScripts: null,
       sourceType,
       directDependency: directSet.has(name),
+      ecosystem: ECOSYSTEMS.npm,
     }));
 
     // Recurse into nested dependencies
@@ -124,6 +125,7 @@ function _parseV2V3(packages, directSet, devSet, version) {
       hasInstallScripts,
       sourceType,
       directDependency: directSet.has(name),
+      ecosystem: ECOSYSTEMS.npm,
     }));
   }
 

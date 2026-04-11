@@ -11,6 +11,8 @@ import { basename } from 'node:path';
 import { parseNpm } from './npm.js';
 import { parsePnpm, _parseLockfileVersion as _parsePnpmVersion } from './pnpm.js';
 import { parseYarn } from './yarn.js';
+import { parseRequirements } from './requirements.js';
+import { parseUv } from './uv.js';
 
 const SUPPORTED_NPM_VERSIONS = new Set([1, 2, 3]);
 const SUPPORTED_PNPM_VERSIONS = new Set([5, 6, 9]);
@@ -76,6 +78,16 @@ export async function detectFormat(lockfilePath) {
     return { format: 'yarn', version: isBerry ? 2 : 1 };
   }
 
+  // requirements.txt branch — Python pip format
+  if (filename === 'requirements.txt' || filename.endsWith('.txt')) {
+    return { format: 'requirements', version: 1 };
+  }
+
+  // uv.lock branch — Python uv format (TOML)
+  if (filename === 'uv.lock') {
+    return { format: 'uv', version: 1 };
+  }
+
   let parsed;
   try {
     parsed = JSON.parse(content);
@@ -130,6 +142,17 @@ export async function parseLockfile(lockfilePath, packageJsonPathOrProjectRoot) 
       }
     }
     return parseYarn(lockfileContent, packageJsonContent);
+  }
+
+  // requirements.txt branch — Python pip format; no companion file needed
+  // Detection order: package-lock.json > pnpm-lock.yaml > yarn.lock > requirements.txt > uv.lock
+  if (filename === 'requirements.txt' || filename.endsWith('.txt')) {
+    return parseRequirements(lockfileContent);
+  }
+
+  // uv.lock branch — Python uv TOML format; no companion file needed
+  if (filename === 'uv.lock') {
+    return parseUv(lockfileContent);
   }
 
   // npm branch — Parse JSON

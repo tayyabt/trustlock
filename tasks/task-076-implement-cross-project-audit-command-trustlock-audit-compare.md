@@ -18,3 +18,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F17-S1-approach.md
 review_artifact: docs/reviews/task-076-review.md
+source_files: src/cli/args.js, src/cli/index.js, src/cli/commands/cross-audit.js
+test_files: src/cli/commands/__tests__/cross-audit.test.js, test/integration/cross-audit.test.js
+docs_updates: docs/design-notes/F17-S1-approach.md, docs/reviews/task-076-review.md

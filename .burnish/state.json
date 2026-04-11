@@ -4,13 +4,13 @@
   "project_root": "/Users/tayyabtariq/Documents/projects/trustlock",
   "has_ui": false,
   "bootstrap_complete": true,
-  "current_sprint": 3,
+  "current_sprint": 4,
   "orchestrator_mode": "manual",
   "specs_seeded": [
     "2026-04-07-trustlock-full-spec",
     "2026-04-10-trustlock-v0.2-v0.4-spec"
   ],
-  "next_task_id": 72,
+  "next_task_id": 74,
   "git_policy": {
     "branch_mode": "per_task",
     "branch_pattern": "burnish/{work_id}-{slug}",

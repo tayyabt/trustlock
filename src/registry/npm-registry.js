@@ -38,6 +38,10 @@ export async function fetchFullMetadata(name, opts = {}) {
  * Includes `scripts` and `_npmUser` fields needed for install-script and
  * publisher-identity checks.
  *
+ * The returned object is augmented with a `publisherAccount` field extracted
+ * from `_npmUser.name` — the npm account that published this version. Absent
+ * or missing `_npmUser.name` yields `null`.
+ *
  * Throws a classified error on HTTP failures or network problems.
  *
  * @param {string} name - Package name (scoped or unscoped)
@@ -49,5 +53,6 @@ export async function fetchFullMetadata(name, opts = {}) {
  */
 export async function fetchVersionMetadata(name, version, opts = {}) {
   const url = `${REGISTRY_BASE}/${encodePackageName(name)}/${version}`;
-  return httpGetJson(url, opts);
+  const data = await httpGetJson(url, opts);
+  return { ...data, publisherAccount: data._npmUser?.name ?? null };
 }

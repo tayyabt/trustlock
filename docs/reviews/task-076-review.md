@@ -1,59 +1,79 @@
-# Review Handoff: task-076 — F17-S1 Cross-Project Audit Command
-
-## Status
-Ready for review.
+# Code Review: task-076 — F17-S1 Cross-Project Audit Command (`trustlock audit --compare`)
 
 ## Summary
-Implements `trustlock audit --compare <dir1> <dir2> ...` — a new cross-project audit command that reads lockfiles from multiple project directories and produces a unified report of version drift, provenance inconsistency, and allowlist inconsistency.
+Complete, well-structured implementation of the cross-project audit command. All 14 acceptance criteria pass with real test evidence; no stubs, no policy-engine coupling, and no baseline writes.
 
-## Files Changed
+## Verdict
+Approved
 
-### Source
-- `src/cli/args.js` — added `--compare: { type: 'boolean', default: false }` flag
-- `src/cli/index.js` — imports `runCrossAudit` and dispatches to it when `args.values['compare']` is true
-- `src/cli/commands/cross-audit.js` — new command handler (all comparison logic, output formatting)
+## Findings
 
-### Tests
-- `src/cli/commands/__tests__/cross-audit.test.js` — 24 unit tests for pure comparison functions
-- `test/integration/cross-audit.test.js` — 17 integration tests with real fixture directories
+### Observation: `_parsePnpmVersion` is a private-prefixed export
+- **Severity:** suggestion
+- **Finding:** `cross-audit.js:21` imports `_parseLockfileVersion as _parsePnpmVersion` from `../../lockfile/pnpm.js`. The underscore prefix signals a semi-private API.
+- **Proposed Judgment:** The usage is pragmatic — it avoids the `process.exit(2)` inside `parseLockfile` for unsupported pnpm versions while still delegating actual parsing to the router. It is well-documented in the design note (Key Decision 2). No change needed; future pnpm refactors should be aware of this coupling.
+- **Reference:** Design note §Key Design Decisions #2; ADR-004 §Consequences
 
-## Verification Summary
+### Observation: Inline ANSI helpers vs. `terminal.js`
+- **Severity:** suggestion
+- **Finding:** `cross-audit.js:38–59` duplicates ANSI constants already present in `src/output/terminal.js`. `terminal.js` does not export individual color helpers (it exports formatted report renderers), so reuse is not straightforward.
+- **Proposed Judgment:** Pattern is intentional and explicitly documented in the design note as "inline ANSI helpers matching `src/output/terminal.js` conventions". `terminal.js` itself notes "no imports from other src/ modules" for ADR-001 consistency. Acceptable.
+- **Reference:** ADR-001; `src/output/terminal.js` header
 
-All acceptance criteria PASS:
+## Checks Performed
+- [x] Correctness (each acceptance criterion verified individually)
+- [x] Workflow completeness / blocked-state guidance — workflow coverage not required per feature brief; confirmed
+- [x] Architecture compliance (ADR-001: zero runtime deps, inline ANSI; ADR-004: router-pattern parser delegation)
+- [x] Design compliance — CLI-only; no UI/preview artifacts required
+- [x] Behavioral / interaction rule compliance (exit codes, error messages, clean-section confirmations, source.path exclusion all verified)
+- [x] Integration completeness (args.js --compare flag, index.js dispatch branch, cross-audit.js callee-side — all wiring owned and complete)
+- [x] Pitfall avoidance — no module pitfalls registered for `cli`
+- [x] Convention compliance (naming, error handling, imports, file structure match existing commands)
+- [x] Test coverage (all 14 ACs have tests; pure-function unit tests + fixture-based integration tests)
+- [x] Code quality & documentation (no dead code; design note complete; no env vars or interfaces changed)
 
-| AC | Description | Status | Evidence |
-|---|---|---|---|
-| AC1 | Three report sections in stdout | PASS | Integration test `AC1+AC5+AC12` |
-| AC2 | No loadPolicy import | PASS | `grep -r 'loadPolicy' src/cli/commands/cross-audit.js` → no matches |
-| AC3 | fs.readFile for .trustlockrc.json, scripts.allowlist only | PASS | Code + AC13 test |
-| AC4 | No baseline writes | PASS | `grep -r 'writeAndStage\|writeBaseline' src/cli/commands/cross-audit.js` → no matches |
-| AC5 | Exit code 0 on success | PASS | Integration tests + smoke test |
-| AC6 | < 2 dirs → error + exit 2 | PASS | Integration tests AC6 |
-| AC7 | Dir not found → error + exit 2 | PASS | Integration test AC7 |
-| AC8 | No lockfile → warning + skip + continues | PASS | Integration test AC8 |
-| AC9 | npm + pnpm multi-format | PASS | Integration tests AC9 |
-| AC10 | source.path entries excluded (C12) | PASS | Unit tests filterSourcePathEntries |
-| AC11 | Packages in 1 dir not in drift section | PASS | Unit tests + integration test AC11 |
-| AC12 | Clean sections show confirmation | PASS | Integration test AC1+AC5+AC12 |
-| AC13 | Malformed extends no network call | PASS | Integration test AC3+AC13 |
-| AC14 | Absolute and relative paths accepted | PASS | Integration tests AC14 |
+## Acceptance Criteria Judgment
+- AC1: three report sections in stdout → PASS — integration test `AC1+AC5+AC12` verifies VERSION DRIFT, PROVENANCE INCONSISTENCY, ALLOWLIST INCONSISTENCY headers
+- AC2: no `loadPolicy` import → PASS — `grep -r 'loadPolicy' src/cli/commands/cross-audit.js` → no matches; integration test also asserts this
+- AC3: `.trustlockrc.json` via `fs.readFile`, `scripts.allowlist` only → PASS — code review + AC13 integration test with malformed `extends`
+- AC4: no baseline modification → PASS — `grep -r 'writeAndStage\|writeBaseline' src/cli/commands/cross-audit.js` → no matches; integration test asserts same
+- AC5: exit code 0 on success → PASS — integration tests assert `exitCode === 0` for success and drift-found cases
+- AC6: fewer than 2 dirs → error + exit 2 → PASS — integration tests for 0 and 1 directory
+- AC7: directory not found → error + exit 2 → PASS — integration test with nonexistent path
+- AC8: no lockfile dir → warning + skip + run continues → PASS — integration test verifies warning on stderr and report on stdout
+- AC9: npm + pnpm multi-format → PASS — two integration tests with real npm+pnpm fixture directories
+- AC10: `source.path` entries excluded → PASS — unit tests for `filterSourcePathEntries` (npm `file:` kept, bare-path uv.lock-style excluded)
+- AC11: packages in only one dir not in drift → PASS — unit test + integration test with `only-frontend`/`only-backend` packages
+- AC12: clean sections show confirmation → PASS — integration test checks "No version drift detected", "No provenance inconsistencies", "No allowlist inconsistencies"
+- AC13: malformed `extends` no network call → PASS — integration test with `https://bad-url-that-should-not-be-fetched.invalid`; run completes without error
+- AC14: absolute and relative paths accepted → PASS — two integration tests; relative paths use `_cwd` injection
+
+## Deferred Verification
+- none
+
+## Regression Risk
+- Risk level: low
+- Why: New command isolated in `cross-audit.js`; no modification to `audit.js`. The only changes to shared files are additive: one `--compare` boolean flag in `args.js` and one dispatch branch in `index.js`. The mutual-exclusion check in `args.js` and all existing command dispatch paths are untouched. Integration tests verified the npm+pnpm parser paths in isolation from the rest of the audit command.
+
+## Integration / Boundary Judgment
+- Boundary: `src/cli/index.js` → `src/cli/commands/cross-audit.js`; `cross-audit.js` → `src/lockfile/parser.js`; `cross-audit.js` → `src/baseline/manager.js`
+- Judgment: complete
+- Notes: All three seams verified. `index.js` branches on `args.values['compare']` before falling through to the normal handler map. `parseLockfile` called per directory via the format-detection router. `readBaseline` called per directory with a `.trustlock/baseline.json` path; absent baseline returns an error-shaped object and provenance defaults to `unknown` (excluded from inconsistency reporting). No deferred wiring.
 
 ## Test Results
-- Unit tests: 24 pass, 0 fail (`node --test src/cli/commands/__tests__/cross-audit.test.js`)
-- Integration tests: 17 pass, 0 fail (`node --test test/integration/cross-audit.test.js`)
-- Anti-stub check: OK (`.burnish/check-no-stubs.sh`)
-- grep AC2: no loadPolicy → PASS
-- grep AC4: no writeAndStage/writeBaseline → PASS
+- Command run: `node --test src/cli/commands/__tests__/cross-audit.test.js`
+- Result: 24 pass, 0 fail
+- Command run: `node --test test/integration/cross-audit.test.js`
+- Result: 17 pass, 0 fail
+- Command run: `.burnish/check-no-stubs.sh`
+- Result: OK
 
-## Design Decisions
-See `docs/design-notes/F17-S1-approach.md` for full design rationale.
+## Context Updates Made
+No context updates needed. No module guidance or pitfalls registered for the `cli` module. The `_parseLockfileVersion` coupling observation is documented in this review; if it becomes a recurring pattern across future commands, module pitfalls should be added at that time.
 
-Key decisions:
-1. `--compare` is a boolean flag; directories are positionals[1..n] after `audit`
-2. Manual lockfile detection before calling `parseLockfile` to avoid `process.exit(2)` on missing/unsupported files — allows graceful skip-with-warning
-3. Provenance data sourced from `.trustlock/baseline.json` (no registry calls)
-4. `filterSourcePathEntries` implements C12 uv.lock path exclusion (no-op for currently supported formats)
-
-## Notes for Reviewer
-- The `computeProvenanceInconsistency` function intentionally excludes packages where either directory has "unknown" provenance — consistent with the story spec: "inconsistency requires same name but different versions where provenance state differs."
-- Python/uv.lock support is not yet available; directories without npm or pnpm lockfiles are skipped with a warning (correct per F16 dependency note in the story).
+## Metadata
+- Agent: reviewer
+- Date: 2026-04-11
+- Task: task-076
+- Branch: burnish/task-076-implement-cross-project-audit-command-trustlock-audit-compare
+- Artifacts cited: docs/stories/F17-S1-cross-project-audit-command.md, docs/feature-briefs/F17-cross-project-audit.md, docs/design-notes/F17-S1-approach.md, docs/adrs/ADR-001-zero-runtime-dependencies.md, docs/adrs/ADR-004-lockfile-parser-architecture.md

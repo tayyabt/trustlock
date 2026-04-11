@@ -471,14 +471,16 @@ describe('Integration — parseLockfile() with v3 fixture', () => {
     assert.equal(lodash.directDependency, true);
     assert.equal(lodash.isDev, false);
     assert.equal(lodash.hasInstallScripts, false);
+    assert.equal(lodash.ecosystem, 'npm', 'AC11: ecosystem must be npm');
 
-    // All items are valid ResolvedDependency shapes
+    // All items are valid ResolvedDependency shapes; every npm entry must set ecosystem: 'npm'
     for (const dep of result) {
       assert.ok(dep.name, 'name must be set');
       assert.ok(dep.version, 'version must be set');
       assert.ok(['registry', 'git', 'file', 'url'].includes(dep.sourceType), 'sourceType must be valid');
       assert.equal(typeof dep.isDev, 'boolean', 'isDev must be boolean');
       assert.equal(typeof dep.directDependency, 'boolean', 'directDependency must be boolean');
+      assert.equal(dep.ecosystem, 'npm', `AC11: ${dep.name} ecosystem must be npm`);
     }
   });
 });

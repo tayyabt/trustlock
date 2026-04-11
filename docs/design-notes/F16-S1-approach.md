@@ -76,7 +76,7 @@ The work is entirely within the `lockfile` module. Both new parsers are pure fun
 - AC8 (source.path → sourceType: file, in output) → PASS — my-local-lib present with sourceType: file
 - AC9 (source.git → sourceType: git) → PASS — my-git-dep with sourceType: git
 - AC10 (ecosystem: pypi on all entries) → PASS — verified for both requirements.js and uv.js parsers
-- AC11 (existing npm/pnpm parsers set ecosystem: npm) → PASS — parseNpm+parsePnpm all pass; `parseLockfile(package-lock.json)` all entries have ecosystem: npm; `parseNpm(npm-v3.json)` all entries npm
+- AC11 (existing npm/pnpm parsers set ecosystem: npm) → PASS — `test/lockfile/npm.test.js` Integration test now asserts `lodash.ecosystem === 'npm'` and loops over all entries asserting `dep.ecosystem === 'npm'`; 39/39 pass
 - AC12 (no registry imports) → PASS — grep test in both requirements.test.js and uv.test.js passes
 - AC13 (import resolves without error) → PASS — `node --input-type=module -e "import './src/lockfile/requirements.js'"` and uv.js both OK
 - AC14 (C-NEW-3 ecosystem field in models) → PASS — `node --test test/lockfile/models.test.js` (25/25 pass); ecosystem validation added

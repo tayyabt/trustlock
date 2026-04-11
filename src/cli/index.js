@@ -5,6 +5,7 @@ import { run as runInit } from './commands/init.js';
 import { run as runCheck } from './commands/check.js';
 import { run as runApprove } from './commands/approve.js';
 import { run as runAudit } from './commands/audit.js';
+import { run as runCrossAudit } from './commands/cross-audit.js';
 import { run as runClean } from './commands/clean.js';
 import { run as runInstallHook } from './commands/install-hook.js';
 
@@ -33,6 +34,12 @@ async function main() {
   if (!handler) {
     process.stderr.write(`Unknown command: ${command}. Available commands: ${AVAILABLE_COMMANDS}\n`);
     process.exitCode = 2;
+    return;
+  }
+
+  // Cross-project audit: dispatch to cross-audit handler when --compare is present.
+  if (command === 'audit' && args.values['compare']) {
+    await runCrossAudit(args);
     return;
   }
 

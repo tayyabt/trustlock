@@ -44,3 +44,4 @@
 2026-04-10 16:51 | task-071 | DEV_BUG_FIX | done | review approved
 2026-04-11 06:52 | task-066 | DEV_STORY | done | review approved
 2026-04-11 07:16 | task-072 | DEV_STORY | done | review approved
+2026-04-11 07:30 | task-074 | DEV_STORY | revision_requested | changes requested: AC11 missing explicit ecosystem: npm assertion in npm/pnpm tests

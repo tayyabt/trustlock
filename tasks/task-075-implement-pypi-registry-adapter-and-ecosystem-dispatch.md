@@ -18,3 +18,6 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/F16-S2-approach.md
 review_artifact: docs/reviews/task-075-review.md
+source_files: src/registry/pypi.js, src/registry/client.js, src/registry/http.js
+test_files: test/registry/pypi.test.js, test/registry/cache-namespace.test.js, test/registry/client.test.js
+docs_updates: docs/design-notes/F16-S2-approach.md

@@ -30,6 +30,8 @@ export function parseArgs(argv = process.argv.slice(2)) {
       'as':          { type: 'string' },
       // install-hook / init flags
       'force':       { type: 'boolean', default: false },
+      // cross-project audit flag (F17)
+      'compare':     { type: 'boolean', default: false },
     },
   });
 

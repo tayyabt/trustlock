@@ -30,6 +30,7 @@ import { evaluate as newDepEval } from './rules/new-dependency.js';
 import { evaluate as transitiveEval } from './rules/transitive-surprise.js';
 import { decide, uncoveredBlockingRules } from './decision.js';
 import { generateApprovalCommand } from '../approvals/generator.js';
+import { comparePublisher } from '../registry/publisher.js';
 
 /**
  * Normalize finding severity from the historical rule convention to the model convention.
@@ -126,6 +127,39 @@ export async function evaluate(delta, policy, baseline, approvals, registryData,
 
     // 7. delta:transitive-surprise (sync) — warning only
     rawFindings.push(...transitiveEval(dep, previousProfile, transitiveRegistryData, policy));
+
+    // 8. trust-continuity:publisher (sync) — changed packages only, step 5b
+    // Only runs for changed packages (previousProfile !== null).
+    // Skip when old-version fetch already failed (warning emitted in check.js step 9).
+    if (previousProfile !== null && !meta.oldPublisherFetchFailed) {
+      // Use the already-migrated publisher if known (v2 non-null entry),
+      // otherwise fall back to what check.js fetched for the old version (lazy migration).
+      const oldEntry = {
+        publisherAccount: (previousProfile.publisherAccount != null)
+          ? previousProfile.publisherAccount
+          : (meta.effectiveOldPublisherAccount ?? null),
+      };
+      const newVersionMeta = { publisherAccount: meta.newPublisherAccount ?? null };
+      const publisherResult = comparePublisher(oldEntry, newVersionMeta, policy);
+
+      if (publisherResult.warning) {
+        process.stderr.write(publisherResult.warning + '\n');
+      }
+
+      if (publisherResult.blocked) {
+        rawFindings.push({
+          rule: 'trust-continuity:publisher',
+          severity: 'error',
+          message: `${dep.name}@${dep.version} publisher changed`,
+          detail: {
+            name: dep.name,
+            version: dep.version,
+            oldPublisher: oldEntry.publisherAccount,
+            newPublisher: publisherResult.newPublisherAccount,
+          },
+        });
+      }
+    }
 
     // Normalize severity to match the model contract ('error' → 'block', 'skipped' → 'warn').
     const findings = rawFindings.map((f) => ({

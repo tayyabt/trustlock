@@ -210,22 +210,57 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   const metadataMap = new Map();
   await Promise.all(
     depsToEvaluate.map(async (dep) => {
-      const [fullMeta, attestResult] = await Promise.all([
+      const [fullMeta, attestResult, versionMetaResult] = await Promise.all([
         client.fetchPackageMetadata(dep.name),
         client.getAttestations(dep.name, dep.version),
+        client.getVersionMetadata(dep.name, dep.version),
       ]);
 
       const publishedAt = fullMeta.data?.time?.[dep.version] ?? null;
       const hasProvenance = attestResult.data !== null;
       const warnings = [...new Set([...fullMeta.warnings, ...attestResult.warnings])];
+      // Extract publisher from version metadata; fall back to raw _npmUser for old cache entries.
+      const versionData = versionMetaResult.data;
+      const newPublisherAccount = versionData?.publisherAccount ?? versionData?._npmUser?.name ?? null;
 
-      metadataMap.set(dep.name, { publishedAt, hasProvenance, warnings });
+      metadataMap.set(dep.name, { publishedAt, hasProvenance, warnings, newPublisherAccount });
 
       if (progress) progress.tick();
     })
   );
 
   if (progress) progress.done();
+
+  // ── 9b. Lazy migration: fetch old-version publisher for changed v1/null-publisher packages ──
+  // For each changed package whose baseline entry has no publisherAccount (v1 legacy or prior
+  // fetch failure), attempt to fetch the old version's metadata to populate the old publisher
+  // before rule evaluation (ADR-006).
+  for (const { dep, previousProfile } of delta.changed) {
+    const meta = metadataMap.get(dep.name);
+
+    if (previousProfile?.publisherAccount != null) {
+      // Already migrated — use existing publisher from baseline directly in the engine.
+      // effectiveOldPublisherAccount is not needed (engine reads previousProfile).
+      continue;
+    }
+
+    // v1 or null-publisher entry — try to fetch old version.
+    const oldVersion = previousProfile?.version;
+    if (!oldVersion) continue;
+
+    const oldVersionResult = await client.getVersionMetadata(dep.name, oldVersion);
+    if (oldVersionResult.data === null) {
+      // Registry unreachable for old version — warn and mark fetch failed.
+      process.stderr.write(
+        `Warning: Could not fetch publisher for ${dep.name}@${oldVersion} — registry unreachable. Publisher comparison skipped.\n`
+      );
+      metadataMap.set(dep.name, { ...meta, effectiveOldPublisherAccount: null, oldPublisherFetchFailed: true });
+    } else {
+      const oldData = oldVersionResult.data;
+      const oldPublisher = oldData?.publisherAccount ?? oldData?._npmUser?.name ?? null;
+      metadataMap.set(dep.name, { ...meta, effectiveOldPublisherAccount: oldPublisher, oldPublisherFetchFailed: false });
+    }
+  }
 
   // ── 10. Evaluate policy ───────────────────────────────────────────────────
   const { results, allAdmitted } = await evaluate(
@@ -346,7 +381,18 @@ export async function run(args, { _writeAndStage = writeAndStage, _registryClien
   // D10: --enforce → never advance
   // --dry-run: never advance
   if (!anyBlocked && !enforce && !dryRun) {
-    const newBaseline = advanceBaseline(baseline, currentDeps, lockfileHash);
+    // Build publisherAccounts map: package name → new-version publisher account.
+    // All evaluated packages (added + changed) contribute their newPublisherAccount.
+    // Unchanged packages are not in depsToEvaluate; they receive null in advanceBaseline.
+    const publisherAccounts = {};
+    for (const dep of depsToEvaluate) {
+      const meta = metadataMap.get(dep.name);
+      if (meta) {
+        publisherAccounts[dep.name] = meta.newPublisherAccount ?? null;
+      }
+    }
+
+    const newBaseline = advanceBaseline(baseline, currentDeps, lockfileHash, publisherAccounts);
     await _writeAndStage(newBaseline, baselinePath, { gitRoot });
   }
 

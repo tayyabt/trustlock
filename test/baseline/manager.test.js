@@ -129,26 +129,59 @@ test('readBaseline returns { error: "unsupported_schema", version } for unknown 
   t.after(() => rm(dir, { recursive: true, force: true }));
 
   const filePath = join(dir, 'baseline.json');
-  const futureBaseline = { schema_version: 2, created_at: new Date().toISOString(), lockfile_hash: FAKE_HASH, packages: {} };
+  // Use schema_version 99 — schema_version 2 is now accepted (ADR-006).
+  const futureBaseline = { schema_version: 99, created_at: new Date().toISOString(), lockfile_hash: FAKE_HASH, packages: {} };
   await writeFile(filePath, JSON.stringify(futureBaseline), 'utf8');
 
   const result = await readBaseline(filePath);
-  assert.deepEqual(result, { error: 'unsupported_schema', version: 2 });
+  assert.deepEqual(result, { error: 'unsupported_schema', version: 99 });
+});
+
+// Schema v2 baseline: readBaseline must accept it without error (ADR-006)
+test('readBaseline accepts schema_version 2 baseline without error', async (t) => {
+  const dir = join(tmpdir(), `trustlock-test-${process.pid}-${Date.now()}`);
+  await mkdir(dir, { recursive: true });
+  t.after(() => rm(dir, { recursive: true, force: true }));
+
+  const filePath = join(dir, 'baseline.json');
+  const v2Baseline = {
+    schema_version: 2,
+    created_at: new Date().toISOString(),
+    lockfile_hash: FAKE_HASH,
+    packages: {
+      lodash: {
+        name: 'lodash',
+        version: '4.17.21',
+        admittedAt: new Date().toISOString(),
+        provenanceStatus: 'unknown',
+        hasInstallScripts: false,
+        sourceType: 'registry',
+        publisherAccount: 'john-doe',
+      },
+    },
+  };
+  await writeFile(filePath, JSON.stringify(v2Baseline), 'utf8');
+
+  const result = await readBaseline(filePath);
+  assert.ok(!result.error, `should not return an error, got: ${result.error}`);
+  assert.equal(result.schema_version, 2);
+  assert.equal(result.packages.lodash.publisherAccount, 'john-doe');
 });
 
 // ---------------------------------------------------------------------------
 // advanceBaseline — AC1–AC4
 // ---------------------------------------------------------------------------
 
-// AC1: returns Baseline with merged packages, updated lockfile_hash, updated_at
-test('advanceBaseline returns updated baseline with new lockfile_hash and updated_at', () => {
+// AC1: returns Baseline with merged packages, updated lockfile_hash, updated_at; schema_version 2
+test('advanceBaseline returns updated baseline with new lockfile_hash, updated_at, and schema_version 2', () => {
   const baseline = createBaseline([makeDep({ name: 'lodash', version: '4.17.21' })], FAKE_HASH);
   const newHash = 'b'.repeat(64);
   const newDeps = [makeDep({ name: 'lodash', version: '4.17.21' })];
 
   const advanced = advanceBaseline(baseline, newDeps, newHash);
 
-  assert.equal(advanced.schema_version, 1);
+  // advanceBaseline always writes schema_version 2 (ADR-006).
+  assert.equal(advanced.schema_version, 2);
   assert.equal(advanced.created_at, baseline.created_at);
   assert.ok(typeof advanced.updated_at === 'string', 'updated_at must be a string');
   assert.ok(advanced.updated_at.endsWith('Z'), 'updated_at must be UTC ISO 8601');
@@ -197,7 +230,8 @@ test('advanceBaseline with empty admittedDeps produces empty packages map', () =
   assert.deepEqual(advanced.packages, {});
 });
 
-// AC4: unchanged packages (same name+version) retain original TrustProfile
+// AC4: unchanged packages (same name+version) retain original TrustProfile fields
+// (note: advanceBaseline adds publisherAccount: null for v1 entries per ADR-006)
 test('advanceBaseline retains original TrustProfile for unchanged packages', () => {
   const deps = [makeDep({ name: 'lodash', version: '4.17.21' })];
   const baseline = createBaseline(deps, FAKE_HASH);
@@ -206,8 +240,13 @@ test('advanceBaseline retains original TrustProfile for unchanged packages', () 
   // Advance with same dep — same name + same version
   const advanced = advanceBaseline(baseline, deps, 'c'.repeat(64));
 
-  assert.deepEqual(advanced.packages['lodash'], originalProfile,
-    'unchanged package must retain its original TrustProfile');
+  // Core identity fields must be preserved.
+  assert.equal(advanced.packages['lodash'].name, originalProfile.name);
+  assert.equal(advanced.packages['lodash'].version, originalProfile.version);
+  assert.equal(advanced.packages['lodash'].admittedAt, originalProfile.admittedAt);
+  assert.equal(advanced.packages['lodash'].provenanceStatus, originalProfile.provenanceStatus);
+  // v1 entry gets publisherAccount: null on advance (ADR-006 lazy migration for unchanged packages).
+  assert.equal(advanced.packages['lodash'].publisherAccount, null);
 });
 
 // Version changed → fresh TrustProfile (admittedAt overwritten, old one discarded)
@@ -224,13 +263,88 @@ test('advanceBaseline replaces TrustProfile when version changes', () => {
   assert.notDeepEqual(newProfile, oldProfile, 'changed-version package must get fresh TrustProfile');
 });
 
-// AC1 extended: schema_version and created_at are preserved from old baseline
-test('advanceBaseline preserves schema_version and created_at from old baseline', () => {
-  const baseline = createBaseline([makeDep()], FAKE_HASH);
-  const advanced = advanceBaseline(baseline, [makeDep()], FAKE_HASH);
+// AC1 extended: advanceBaseline always writes schema_version 2 (ADR-006); created_at preserved
+test('advanceBaseline always writes schema_version 2 regardless of input schema_version', () => {
+  const baseline = createBaseline([makeDep()], FAKE_HASH); // v1 baseline
+  assert.equal(baseline.schema_version, 1, 'createBaseline produces v1');
 
-  assert.equal(advanced.schema_version, baseline.schema_version);
+  const advanced = advanceBaseline(baseline, [makeDep()], FAKE_HASH);
+  assert.equal(advanced.schema_version, 2, 'advanceBaseline must output schema_version 2');
   assert.equal(advanced.created_at, baseline.created_at);
+});
+
+// ---------------------------------------------------------------------------
+// advanceBaseline — schema v2: publisherAccount field (ADR-006)
+// ---------------------------------------------------------------------------
+
+// AC3: advanceBaseline writes publisherAccount from publisherAccounts map
+test('advanceBaseline writes publisherAccount for changed/new packages from publisherAccounts map', () => {
+  const baseline = createBaseline([], FAKE_HASH);
+  const newDeps = [makeDep({ name: 'lodash', version: '4.17.21' })];
+  const publisherAccounts = { lodash: 'alice' };
+
+  const advanced = advanceBaseline(baseline, newDeps, FAKE_HASH, publisherAccounts);
+
+  assert.equal(advanced.schema_version, 2);
+  assert.equal(advanced.packages.lodash.publisherAccount, 'alice');
+});
+
+// AC12: Unchanged packages receive publisherAccount: null if not in map (deferred migration)
+test('advanceBaseline writes publisherAccount: null for changed packages absent from publisherAccounts map', () => {
+  const baseline = createBaseline([makeDep({ name: 'lodash', version: '4.17.20' })], FAKE_HASH);
+  // lodash version changes — not in publisherAccounts map
+  const newDeps = [makeDep({ name: 'lodash', version: '4.17.21' })];
+
+  const advanced = advanceBaseline(baseline, newDeps, FAKE_HASH, {});
+  assert.equal(advanced.packages.lodash.publisherAccount, null);
+});
+
+// AC12: Unchanged packages preserve existing publisherAccount (null → null, string → string)
+test('advanceBaseline preserves publisherAccount for unchanged packages (same name+version)', () => {
+  const baseline = createBaseline([makeDep({ name: 'lodash', version: '4.17.21' })], FAKE_HASH);
+  // Manually set publisherAccount on the existing profile
+  baseline.packages.lodash.publisherAccount = 'alice';
+
+  const newDeps = [makeDep({ name: 'lodash', version: '4.17.21' })];
+  const advanced = advanceBaseline(baseline, newDeps, FAKE_HASH, {});
+
+  assert.equal(advanced.packages.lodash.publisherAccount, 'alice',
+    'unchanged package retains existing publisherAccount');
+});
+
+test('advanceBaseline sets publisherAccount: null for unchanged v1 packages (absent field → null)', () => {
+  const baseline = createBaseline([makeDep({ name: 'lodash', version: '4.17.21' })], FAKE_HASH);
+  // v1 entry — no publisherAccount field at all
+
+  const newDeps = [makeDep({ name: 'lodash', version: '4.17.21' })];
+  const advanced = advanceBaseline(baseline, newDeps, FAKE_HASH, {});
+
+  assert.equal(advanced.packages.lodash.publisherAccount, null,
+    'v1 unchanged entry must receive publisherAccount: null on advance');
+});
+
+// Mixed advance: some packages changed (with publisher), some unchanged (v1)
+test('advanceBaseline handles mixed v1 and v2 entries in a single advance run', () => {
+  const deps = [
+    makeDep({ name: 'lodash', version: '4.17.21' }),
+    makeDep({ name: 'chalk', version: '5.3.0' }),
+  ];
+  const baseline = createBaseline(deps, FAKE_HASH);
+  // chalk has a v2 publisherAccount already; lodash does not
+  baseline.packages.chalk.publisherAccount = 'sindre';
+
+  // lodash changes version; chalk stays the same
+  const newDeps = [
+    makeDep({ name: 'lodash', version: '4.17.22' }),
+    makeDep({ name: 'chalk', version: '5.3.0' }),
+  ];
+  const publisherAccounts = { lodash: 'alice' };
+
+  const advanced = advanceBaseline(baseline, newDeps, FAKE_HASH, publisherAccounts);
+
+  assert.equal(advanced.schema_version, 2);
+  assert.equal(advanced.packages.lodash.publisherAccount, 'alice', 'changed dep gets publisher from map');
+  assert.equal(advanced.packages.chalk.publisherAccount, 'sindre', 'unchanged dep retains existing publisher');
 });
 
 // ---------------------------------------------------------------------------

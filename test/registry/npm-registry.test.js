@@ -220,7 +220,29 @@ test('fetchVersionMetadata returns parsed JSON for a 200 response', async () => 
   const payload = { name: 'express', version: '4.18.2', scripts: {}, _npmUser: {} };
   const { mock } = makeMockHttps({ body: payload });
   const result = await fetchVersionMetadata('express', '4.18.2', { _https: mock });
-  assert.deepEqual(result, payload);
+  // Result includes all original fields plus publisherAccount extracted from _npmUser.name.
+  assert.equal(result.name, payload.name);
+  assert.equal(result.version, payload.version);
+  assert.deepEqual(result.scripts, payload.scripts);
+  assert.deepEqual(result._npmUser, payload._npmUser);
+  // _npmUser has no name → publisherAccount is null
+  assert.equal(result.publisherAccount, null);
+});
+
+// AC1: _npmUser.name present → publisherAccount extracted correctly
+test('fetchVersionMetadata extracts _npmUser.name as publisherAccount', async () => {
+  const payload = { name: 'express', version: '4.18.2', _npmUser: { name: 'alice', email: 'alice@example.com' } };
+  const { mock } = makeMockHttps({ body: payload });
+  const result = await fetchVersionMetadata('express', '4.18.2', { _https: mock });
+  assert.equal(result.publisherAccount, 'alice');
+});
+
+// AC1: _npmUser absent entirely → publisherAccount is null
+test('fetchVersionMetadata sets publisherAccount to null when _npmUser is absent', async () => {
+  const payload = { name: 'express', version: '4.18.2', scripts: {} };
+  const { mock } = makeMockHttps({ body: payload });
+  const result = await fetchVersionMetadata('express', '4.18.2', { _https: mock });
+  assert.equal(result.publisherAccount, null);
 });
 
 test('fetchVersionMetadata constructs the correct URL path', async () => {

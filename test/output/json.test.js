@@ -1,10 +1,10 @@
 /**
- * Unit tests for src/output/json.js
+ * Unit tests for src/output/json.js — schema_version 2 (updated for F10-S3)
  *
- * Covers:
- *   - formatCheckResults: JSON validity, round-trip fidelity, empty array
- *   - formatAuditReport: JSON validity, round-trip fidelity
- *   - Unusual characters: scoped package names, quotes, backslashes, Unicode
+ * This file mirrors the canonical tests in src/output/__tests__/json.test.js
+ * and validates the new grouped-input API introduced in the schema_version 2
+ * rewrite. The v1 pass-through tests (flat results[] round-trip) are removed
+ * because the v1 flat-array API no longer exists (C5: no backward-compat shim).
  */
 
 import { describe, it } from 'node:test';
@@ -12,38 +12,26 @@ import assert from 'node:assert/strict';
 import { formatCheckResults, formatAuditReport } from '../../src/output/json.js';
 
 // ---------------------------------------------------------------------------
-// Test fixtures
+// Fixtures
 // ---------------------------------------------------------------------------
 
-const sampleResults = [
-  {
-    name: 'lodash',
-    version: '4.17.21',
-    checkResult: {
-      decision: 'admitted',
-      findings: [],
-      approvalCommand: null,
+const blockedResults = {
+  blocked: [
+    {
+      name: 'express',
+      version: '4.18.2',
+      from_version: '4.17.3',
+      rules: ['cooldown'],
+      approve_command: "trustlock approve 'express@4.18.2' --override 'cooldown'",
     },
-  },
-  {
-    name: 'express',
-    version: '4.18.2',
-    checkResult: {
-      decision: 'blocked',
-      findings: [
-        {
-          rule: 'cooldown',
-          severity: 'block',
-          message: 'Package released less than 72 hours ago',
-          detail: { clears_at: '2026-04-10T12:00:00.000Z' },
-        },
-      ],
-      approvalCommand: "trustlock approve 'express@4.18.2' --override 'cooldown'",
-    },
-  },
-];
+  ],
+  admitted_with_approval: [],
+  new_packages: [],
+  admitted: [{ name: 'lodash', version: '4.17.21' }],
+  summary: { changed: 2, blocked: 1, admitted: 1, wall_time_ms: 300 },
+};
 
-const sampleAuditReport = {
+const auditReport = {
   totalPackages: 42,
   provenancePct: 55,
   packagesWithInstallScripts: ['esbuild', 'fsevents'],
@@ -58,127 +46,54 @@ const sampleAuditReport = {
 // ---------------------------------------------------------------------------
 
 describe('formatCheckResults', () => {
-  it('returns a string parseable by JSON.parse', () => {
-    const result = formatCheckResults(sampleResults);
-    assert.doesNotThrow(() => JSON.parse(result), 'output must be valid JSON');
+  it('returns valid JSON parseable by JSON.parse', () => {
+    assert.doesNotThrow(() => JSON.parse(formatCheckResults(blockedResults)));
   });
 
-  it('parsed output is structurally identical to the input array', () => {
-    const result = formatCheckResults(sampleResults);
-    const parsed = JSON.parse(result);
-    assert.deepStrictEqual(parsed, sampleResults);
+  it('schema_version is 2', () => {
+    const parsed = JSON.parse(formatCheckResults(blockedResults));
+    assert.strictEqual(parsed.schema_version, 2);
   });
 
-  it('returns "[]" for an empty array', () => {
-    const result = formatCheckResults([]);
-    assert.strictEqual(result, '[]');
+  it('all four group keys are always present', () => {
+    const emptyRun = { blocked: [], admitted_with_approval: [], new_packages: [], admitted: [] };
+    const parsed = JSON.parse(formatCheckResults(emptyRun));
+    assert.ok(Object.hasOwn(parsed, 'blocked'));
+    assert.ok(Object.hasOwn(parsed, 'admitted_with_approval'));
+    assert.ok(Object.hasOwn(parsed, 'new_packages'));
+    assert.ok(Object.hasOwn(parsed, 'admitted'));
   });
 
-  it('round-trip fidelity: re-serializing the parsed output equals the original', () => {
-    const result = formatCheckResults(sampleResults);
-    const reparsed = JSON.parse(result);
-    assert.deepStrictEqual(reparsed, JSON.parse(result));
+  it('no v1 flat results[] array in output', () => {
+    const parsed = JSON.parse(formatCheckResults(blockedResults));
+    assert.ok(!Object.hasOwn(parsed, 'results'), 'v1 results[] must not exist');
+  });
+
+  it('approve_command present on blocked entry', () => {
+    const parsed = JSON.parse(formatCheckResults(blockedResults));
+    assert.ok(Object.hasOwn(parsed.blocked[0], 'approve_command'));
+    assert.strictEqual(typeof parsed.blocked[0].approve_command, 'string');
   });
 
   it('handles @scope/name package names without breaking JSON', () => {
-    const results = [
-      {
-        name: '@anthropic/very-long-scoped-package-name',
-        version: '1.2.3',
-        checkResult: { decision: 'admitted', findings: [], approvalCommand: null },
-      },
-    ];
-    const output = formatCheckResults(results);
-    assert.doesNotThrow(() => JSON.parse(output), 'scoped package name must produce valid JSON');
-    const parsed = JSON.parse(output);
-    assert.strictEqual(parsed[0].name, '@anthropic/very-long-scoped-package-name');
-  });
-
-  it('handles slashes and hyphens in package names without breaking JSON', () => {
-    const results = [
-      {
-        name: '@scope/pkg-name/sub-path',
-        version: '0.1.0',
-        checkResult: { decision: 'admitted', findings: [], approvalCommand: null },
-      },
-    ];
+    const results = {
+      blocked: [
+        {
+          name: '@anthropic/very-long-scoped-package-name',
+          version: '1.2.3',
+          from_version: '1.2.2',
+          rules: ['cooldown'],
+          approve_command: "trustlock approve '@anthropic/very-long-scoped-package-name@1.2.3' --override 'cooldown'",
+        },
+      ],
+      admitted_with_approval: [],
+      new_packages: [],
+      admitted: [],
+    };
     const output = formatCheckResults(results);
     assert.doesNotThrow(() => JSON.parse(output));
-  });
-
-  it('handles double-quotes in message strings without breaking JSON', () => {
-    const results = [
-      {
-        name: 'some-pkg',
-        version: '1.0.0',
-        checkResult: {
-          decision: 'blocked',
-          findings: [
-            {
-              rule: 'cooldown',
-              severity: 'block',
-              message: 'Package "some-pkg" was released recently',
-              detail: {},
-            },
-          ],
-          approvalCommand: null,
-        },
-      },
-    ];
-    const output = formatCheckResults(results);
-    assert.doesNotThrow(() => JSON.parse(output), 'embedded quotes must produce valid JSON');
     const parsed = JSON.parse(output);
-    assert.strictEqual(parsed[0].checkResult.findings[0].message, 'Package "some-pkg" was released recently');
-  });
-
-  it('handles backslashes in message strings without breaking JSON', () => {
-    const results = [
-      {
-        name: 'some-pkg',
-        version: '1.0.0',
-        checkResult: {
-          decision: 'blocked',
-          findings: [
-            {
-              rule: 'scripts',
-              severity: 'block',
-              message: 'Install script path: C:\\Users\\project\\node_modules',
-              detail: {},
-            },
-          ],
-          approvalCommand: null,
-        },
-      },
-    ];
-    const output = formatCheckResults(results);
-    assert.doesNotThrow(() => JSON.parse(output), 'backslashes must produce valid JSON');
-    const parsed = JSON.parse(output);
-    assert.strictEqual(parsed[0].checkResult.findings[0].message, 'Install script path: C:\\Users\\project\\node_modules');
-  });
-
-  it('handles Unicode characters in message strings without breaking JSON', () => {
-    const results = [
-      {
-        name: 'some-pkg',
-        version: '1.0.0',
-        checkResult: {
-          decision: 'blocked',
-          findings: [
-            {
-              rule: 'cooldown',
-              severity: 'block',
-              message: 'Package released \u2022 check timestamp \u00e9\u00e0\u00fc',
-              detail: {},
-            },
-          ],
-          approvalCommand: null,
-        },
-      },
-    ];
-    const output = formatCheckResults(results);
-    assert.doesNotThrow(() => JSON.parse(output), 'Unicode must produce valid JSON');
-    const parsed = JSON.parse(output);
-    assert.strictEqual(parsed[0].checkResult.findings[0].message, 'Package released \u2022 check timestamp \u00e9\u00e0\u00fc');
+    assert.strictEqual(parsed.blocked[0].name, '@anthropic/very-long-scoped-package-name');
   });
 });
 
@@ -187,24 +102,22 @@ describe('formatCheckResults', () => {
 // ---------------------------------------------------------------------------
 
 describe('formatAuditReport', () => {
-  it('returns a string parseable by JSON.parse', () => {
-    const result = formatAuditReport(sampleAuditReport);
-    assert.doesNotThrow(() => JSON.parse(result), 'output must be valid JSON');
+  it('returns valid JSON parseable by JSON.parse', () => {
+    assert.doesNotThrow(() => JSON.parse(formatAuditReport(auditReport)));
   });
 
-  it('parsed output is structurally identical to the input object', () => {
-    const result = formatAuditReport(sampleAuditReport);
-    const parsed = JSON.parse(result);
-    assert.deepStrictEqual(parsed, sampleAuditReport);
+  it('round-trip fidelity: parsed output equals input object', () => {
+    const parsed = JSON.parse(formatAuditReport(auditReport));
+    assert.deepStrictEqual(parsed, auditReport);
   });
 
-  it('round-trip fidelity: re-serializing the parsed output equals the original', () => {
-    const result = formatAuditReport(sampleAuditReport);
-    const reparsed = JSON.parse(result);
-    assert.deepStrictEqual(reparsed, sampleAuditReport);
+  it('result is an object (named keys), not an array', () => {
+    const parsed = JSON.parse(formatAuditReport(auditReport));
+    assert.ok(!Array.isArray(parsed));
+    assert.strictEqual(typeof parsed, 'object');
   });
 
-  it('handles an empty audit report object without breaking JSON', () => {
+  it('handles an empty audit report object', () => {
     const output = formatAuditReport({});
     assert.doesNotThrow(() => JSON.parse(output));
     assert.deepStrictEqual(JSON.parse(output), {});

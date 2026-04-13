@@ -17,3 +17,5 @@ adrs: docs/adrs/ADR-*.md
 ## Outputs
 design_note: docs/design-notes/task-080-approach.md
 review_artifact: docs/reviews/task-080-review.md
+source_files: src/utils/paths.js, src/cli/commands/init.js, src/cli/commands/audit.js
+test_files: test/integration/monorepo-init.test.js, test/integration/monorepo-audit.test.js

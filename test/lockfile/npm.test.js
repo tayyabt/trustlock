@@ -452,6 +452,88 @@ describe('parseNpm — directDependency and isDev', () => {
   });
 });
 
+// ── Workspace link entries (BUG-002 regression) ───────────────────────────────
+
+describe('parseNpm — v2 workspace link entries are skipped', () => {
+  function makeV2WithLinks() {
+    return JSON.stringify({
+      name: 'monorepo', version: '1.0.0', lockfileVersion: 2,
+      packages: {
+        '': { name: 'monorepo', version: '1.0.0', workspaces: ['apps/*'], dependencies: { lodash: '^4.17.21' } },
+        'apps/frontend': { resolved: 'apps/frontend', link: true },
+        'apps/backend': { resolved: 'apps/backend', link: true },
+        'node_modules/lodash': {
+          version: '4.17.21',
+          resolved: 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
+          integrity: 'sha512-test',
+        },
+      },
+    });
+  }
+  const pkgJson = JSON.stringify({
+    name: 'monorepo', version: '1.0.0',
+    dependencies: { lodash: '^4.17.21' }, devDependencies: {},
+  });
+
+  test('v2: link entries are not included in result', () => {
+    const result = parseNpm(makeV2WithLinks(), pkgJson);
+    assert.equal(result.find((d) => d.name === 'apps/frontend'), undefined, 'apps/frontend must be excluded');
+    assert.equal(result.find((d) => d.name === 'apps/backend'), undefined, 'apps/backend must be excluded');
+  });
+
+  test('v2: normal packages are still included when link entries are present', () => {
+    const result = parseNpm(makeV2WithLinks(), pkgJson);
+    const lodash = result.find((d) => d.name === 'lodash');
+    assert.ok(lodash, 'lodash must be present');
+    assert.equal(lodash.version, '4.17.21');
+  });
+
+  test('v2: parseNpm does not throw on lockfile with link entries', () => {
+    assert.doesNotThrow(() => parseNpm(makeV2WithLinks(), pkgJson));
+  });
+});
+
+describe('parseNpm — v3 workspace link entries are skipped', () => {
+  function makeV3WithLinks() {
+    return JSON.stringify({
+      name: 'monorepo', version: '1.0.0', lockfileVersion: 3,
+      packages: {
+        '': { name: 'monorepo', version: '1.0.0', workspaces: ['apps/*'], dependencies: { lodash: '^4.17.21' } },
+        'apps/frontend': { resolved: 'apps/frontend', link: true },
+        'apps/backend': { resolved: 'apps/backend', link: true },
+        'node_modules/lodash': {
+          version: '4.17.21',
+          resolved: 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
+          integrity: 'sha512-test',
+          hasInstallScripts: false,
+        },
+      },
+    });
+  }
+  const pkgJson = JSON.stringify({
+    name: 'monorepo', version: '1.0.0',
+    dependencies: { lodash: '^4.17.21' }, devDependencies: {},
+  });
+
+  test('v3: link entries are not included in result', () => {
+    const result = parseNpm(makeV3WithLinks(), pkgJson);
+    assert.equal(result.find((d) => d.name === 'apps/frontend'), undefined, 'apps/frontend must be excluded');
+    assert.equal(result.find((d) => d.name === 'apps/backend'), undefined, 'apps/backend must be excluded');
+  });
+
+  test('v3: normal packages are still included when link entries are present', () => {
+    const result = parseNpm(makeV3WithLinks(), pkgJson);
+    const lodash = result.find((d) => d.name === 'lodash');
+    assert.ok(lodash, 'lodash must be present');
+    assert.equal(lodash.version, '4.17.21');
+    assert.equal(lodash.hasInstallScripts, false);
+  });
+
+  test('v3: parseNpm does not throw on lockfile with link entries', () => {
+    assert.doesNotThrow(() => parseNpm(makeV3WithLinks(), pkgJson));
+  });
+});
+
 // ── Integration test via parseLockfile() ─────────────────────────────────────
 
 describe('Integration — parseLockfile() with v3 fixture', () => {

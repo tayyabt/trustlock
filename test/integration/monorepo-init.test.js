@@ -196,3 +196,73 @@ test('AC10: init from two different sub-packages — each gets its own .trustloc
   assert.ok('express' in backendBaseline.packages, 'Backend baseline should include express');
   assert.ok(!('react' in backendBaseline.packages), 'Backend baseline should not include react');
 });
+
+// ---------------------------------------------------------------------------
+// BUG-003: No-lockfile error must mention --project-dir
+// ---------------------------------------------------------------------------
+
+test('BUG-003: no-lockfile error at repo root includes --project-dir hint (no workspaces)', async () => {
+  // Repo root has no package-lock.json and no workspaces field in package.json
+  await writeFile(
+    join(repoRoot, 'package.json'),
+    JSON.stringify({ name: 'my-app', version: '1.0.0' })
+  );
+
+  const cap = captureOutput();
+  try {
+    await run(
+      { values: { strict: false, 'no-baseline': false }, positionals: ['init'] },
+      { _registryClient: mockRegistry(), _cwd: repoRoot }
+    );
+  } finally {
+    cap.restore();
+  }
+
+  assert.equal(process.exitCode, 2, 'Expected exit code 2 when lockfile absent');
+  const stderr = cap.captured.stderr.join('');
+  assert.ok(
+    stderr.includes('--project-dir'),
+    `Expected stderr to mention --project-dir; got: ${stderr}`
+  );
+});
+
+test('BUG-003: no-lockfile error names workspace packages when workspaces field present', async () => {
+  // Repo root has no package-lock.json but has workspaces
+  await writeFile(
+    join(repoRoot, 'package.json'),
+    JSON.stringify({ name: 'my-monorepo', version: '1.0.0', workspaces: ['apps/*'] })
+  );
+
+  // Create sub-packages under apps/
+  const frontendDir = join(repoRoot, 'apps', 'frontend');
+  const backendDir  = join(repoRoot, 'apps', 'backend');
+  await mkdir(frontendDir, { recursive: true });
+  await mkdir(backendDir,  { recursive: true });
+  await writeFile(join(frontendDir, 'package.json'), JSON.stringify({ name: 'frontend' }));
+  await writeFile(join(backendDir,  'package.json'), JSON.stringify({ name: 'backend' }));
+
+  const cap = captureOutput();
+  try {
+    await run(
+      { values: { strict: false, 'no-baseline': false }, positionals: ['init'] },
+      { _registryClient: mockRegistry(), _cwd: repoRoot }
+    );
+  } finally {
+    cap.restore();
+  }
+
+  assert.equal(process.exitCode, 2, 'Expected exit code 2 when lockfile absent');
+  const stderr = cap.captured.stderr.join('');
+  assert.ok(
+    stderr.includes('--project-dir'),
+    `Expected stderr to mention --project-dir; got: ${stderr}`
+  );
+  assert.ok(
+    stderr.includes('apps/frontend'),
+    `Expected stderr to name apps/frontend; got: ${stderr}`
+  );
+  assert.ok(
+    stderr.includes('apps/backend'),
+    `Expected stderr to name apps/backend; got: ${stderr}`
+  );
+});

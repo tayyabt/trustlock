@@ -19,7 +19,7 @@ import { createHash } from 'node:crypto';
 import { parseLockfile } from '../../lockfile/parser.js';
 import { createRegistryClient } from '../../registry/client.js';
 import { createBaseline, writeAndStage } from '../../baseline/manager.js';
-import { resolvePaths } from '../../utils/paths.js';
+import { resolvePaths, detectMonorepoWorkspaces } from '../../utils/paths.js';
 import { createProgress } from '../../utils/progress.js';
 
 const SUPPORTED_NPM_VERSIONS = new Set([1, 2, 3]);
@@ -92,9 +92,19 @@ export async function run(args, { _registryClient, _cwd } = {}) {
     lockfileContent = await readFile(lockfilePath, 'utf8');
   } catch (err) {
     if (err.code === 'ENOENT') {
-      process.stderr.write(
-        'No lockfile found. Run `npm install` first to generate package-lock.json.\n'
-      );
+      const workspaces = await detectMonorepoWorkspaces(projectRoot);
+      if (workspaces.length > 0) {
+        const examples = workspaces.map((w) => `  trustlock init --project-dir ${w}`).join('\n');
+        process.stderr.write(
+          `No lockfile found at project root. This looks like a monorepo workspace.\n` +
+          `Run trustlock per package instead:\n${examples}\n`
+        );
+      } else {
+        process.stderr.write(
+          'No lockfile found. Run `npm install` first to generate package-lock.json.\n' +
+          'For monorepo sub-packages, use: trustlock init --project-dir <path/to/package>\n'
+        );
+      }
       process.exitCode = 2;
       return;
     }

@@ -11,7 +11,7 @@
 
 import { join } from 'node:path';
 import { readFile } from 'node:fs/promises';
-import { resolvePaths } from '../../utils/paths.js';
+import { resolvePaths, detectMonorepoWorkspaces } from '../../utils/paths.js';
 
 import { parseLockfile } from '../../lockfile/parser.js';
 import { loadPolicy } from '../../policy/config.js';
@@ -76,9 +76,19 @@ export async function run(args, { _registryClient = null, _cwd } = {}) {
     }
   }
   if (!lockfilePath) {
-    process.stderr.write(
-      `No lockfile found. Expected: ${EXPECTED_LOCKFILES.join(', ')}\n`
-    );
+    const workspaces = await detectMonorepoWorkspaces(projectRoot);
+    if (workspaces.length > 0) {
+      const examples = workspaces.map((w) => `  trustlock audit --project-dir ${w}`).join('\n');
+      process.stderr.write(
+        `No lockfile found at project root. This looks like a monorepo workspace.\n` +
+        `Run trustlock per package instead:\n${examples}\n`
+      );
+    } else {
+      process.stderr.write(
+        `No lockfile found. Expected: ${EXPECTED_LOCKFILES.join(', ')}\n` +
+        `For monorepo sub-packages, use: trustlock audit --project-dir <path/to/package>\n`
+      );
+    }
     process.exitCode = 2;
     return;
   }

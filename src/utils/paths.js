@@ -7,7 +7,7 @@
  * All file operations use `projectRoot`; all git operations use `gitRoot`.
  */
 
-import { stat } from 'node:fs/promises';
+import { stat, readFile, readdir } from 'node:fs/promises';
 import { join, resolve, isAbsolute, relative } from 'node:path';
 
 /**
@@ -23,6 +23,61 @@ import { join, resolve, isAbsolute, relative } from 'node:path';
  */
 export function getRelativePath(absolutePath, projectRoot) {
   return relative(projectRoot, absolutePath).replace(/\\/g, '/');
+}
+
+/**
+ * Detect workspace sub-packages in a monorepo.
+ *
+ * Reads `package.json` at `projectRoot`, extracts the `workspaces` field,
+ * and expands `dir/*` glob patterns to concrete sub-package paths (directories
+ * that contain their own `package.json`). Non-`*` patterns are included verbatim.
+ *
+ * @param {string} projectRoot  Absolute path to the project root.
+ * @returns {Promise<string[]>} Relative paths of detected workspace packages (may be empty).
+ */
+export async function detectMonorepoWorkspaces(projectRoot) {
+  let pkg;
+  try {
+    const content = await readFile(join(projectRoot, 'package.json'), 'utf8');
+    pkg = JSON.parse(content);
+  } catch {
+    return [];
+  }
+
+  let patterns = pkg.workspaces;
+  if (!patterns) return [];
+  // Support Yarn-style { packages: [...] }
+  if (!Array.isArray(patterns) && patterns.packages) patterns = patterns.packages;
+  if (!Array.isArray(patterns) || patterns.length === 0) return [];
+
+  const workspaceDirs = [];
+  for (const pattern of patterns) {
+    const parts = pattern.split('/');
+    if (parts[parts.length - 1] === '*') {
+      // Expand "dir/*" by listing directories that contain a package.json
+      const parentDir = join(projectRoot, ...parts.slice(0, -1));
+      let entries;
+      try {
+        entries = await readdir(parentDir, { withFileTypes: true });
+      } catch {
+        workspaceDirs.push(pattern); // can't expand — show the pattern verbatim
+        continue;
+      }
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue;
+        try {
+          await stat(join(parentDir, entry.name, 'package.json'));
+          workspaceDirs.push([...parts.slice(0, -1), entry.name].join('/'));
+        } catch {
+          // no package.json in this dir — skip
+        }
+      }
+    } else {
+      workspaceDirs.push(pattern);
+    }
+  }
+
+  return workspaceDirs;
 }
 
 /**

@@ -101,6 +101,11 @@ function _parseV2V3(packages, directSet, devSet, version) {
       continue;
     }
 
+    // Skip workspace link entries — they are local path aliases with no version
+    if (entry.link === true) {
+      continue;
+    }
+
     // Strip "node_modules/" prefix (handles nested like "node_modules/a/node_modules/b")
     const lastSlash = key.lastIndexOf('node_modules/');
     const name = lastSlash >= 0 ? key.slice(lastSlash + 'node_modules/'.length) : key;

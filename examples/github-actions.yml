@@ -1,0 +1,39 @@
+# github-actions.yml
+# GitHub Actions workflow for trustlock dependency admission checks.
+# Use this when: you want trustlock to run in CI on every push and pull request.
+#
+# To use: copy to .github/workflows/trustlock.yml in your repository.
+# trustlock must be initialized in your project first (trustlock init).
+name: trustlock
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  trustlock:
+    name: Dependency admission check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need previous commit to compute the dependency diff
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install trustlock
+        run: npm install -g trustlock
+
+      - name: Run trustlock check
+        run: trustlock check --enforce
+        # Exits 1 if any dependency is blocked by policy.
+        # Never advances the baseline in CI.
+        env:
+          NO_COLOR: '1'

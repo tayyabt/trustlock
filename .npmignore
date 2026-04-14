@@ -1,0 +1,22 @@
+# Test files
+test/
+**/__tests__/
+**/*.test.js
+
+# Development artifacts
+demo/
+docs/
+design/
+specs/
+context/
+tasks/
+logs/
+scripts/
+
+# Config / tooling
+.github/
+.burnish/
+.burnish-viewer/
+.claude/
+.trustlock/
+.gitignore

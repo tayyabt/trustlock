@@ -1,0 +1,48 @@
+{
+  "name": "test-project",
+  "version": "1.0.0",
+  "lockfileVersion": 1,
+  "requires": true,
+  "dependencies": {
+    "lodash": {
+      "version": "4.17.21",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
+      "integrity": "sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZkFekkLKFiJCMSBB69A=="
+    },
+    "my-git-pkg": {
+      "version": "1.2.3",
+      "resolved": "git+https://github.com/owner/my-git-pkg.git#abc123def456"
+    },
+    "my-local-pkg": {
+      "version": "0.1.0",
+      "resolved": "file:../my-local-pkg"
+    },
+    "no-resolved-pkg": {
+      "version": "2.0.0"
+    },
+    "@scope/transitive": {
+      "version": "3.1.0",
+      "resolved": "https://registry.npmjs.org/@scope/transitive/-/transitive-3.1.0.tgz",
+      "integrity": "sha512-transitive000",
+      "dependencies": {
+        "deep-transitive": {
+          "version": "1.0.0",
+          "resolved": "https://registry.npmjs.org/deep-transitive/-/deep-transitive-1.0.0.tgz",
+          "integrity": "sha512-deep000"
+        }
+      }
+    },
+    "mocha": {
+      "version": "10.2.0",
+      "resolved": "https://registry.npmjs.org/mocha/-/mocha-10.2.0.tgz",
+      "integrity": "sha512-mocha000",
+      "dev": true
+    },
+    "@scope/dev-tool": {
+      "version": "1.0.5",
+      "resolved": "https://registry.npmjs.org/@scope/dev-tool/-/dev-tool-1.0.5.tgz",
+      "integrity": "sha512-devtool000",
+      "dev": true
+    }
+  }
+}

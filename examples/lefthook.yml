@@ -1,0 +1,12 @@
+# lefthook.yml
+# Lefthook configuration for trustlock pre-commit hook.
+# Use this when: your project uses Lefthook for Git hook management.
+#
+# To use: copy or merge into lefthook.yml in your project root,
+# then run `lefthook install`.
+pre-commit:
+  commands:
+    trustlock:
+      run: trustlock check
+      # Advisory mode: warns on violations but does not block the commit.
+      # To block commits on violations, change to: run: trustlock check --enforce

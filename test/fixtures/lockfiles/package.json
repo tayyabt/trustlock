@@ -1,0 +1,13 @@
+{
+  "name": "test-project",
+  "version": "1.0.0",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "my-local-pkg": "file:../my-local-pkg",
+    "my-git-pkg": "github:owner/my-git-pkg"
+  },
+  "devDependencies": {
+    "mocha": "^10.0.0",
+    "@scope/dev-tool": "^1.0.0"
+  }
+}

@@ -1,0 +1,14 @@
+#!/bin/sh
+# husky-pre-commit
+# Husky pre-commit hook for trustlock dependency admission checks.
+# Use this when: your project uses Husky for Git hook management.
+#
+# To use:
+#   1. Copy this file to .husky/pre-commit in your project root.
+#   2. Make it executable: chmod +x .husky/pre-commit
+#   3. Ensure Husky is initialized: npx husky install
+#
+# Advisory mode: warns on blocked packages but does not block the commit.
+# To block commits on violations, add --enforce to the command below.
+
+trustlock check

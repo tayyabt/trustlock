@@ -1,0 +1,28 @@
+// trustlockrc-relaxed.json
+// Permissive policy for greenfield projects, internal tools, and local development.
+// Use this when: you want trustlock running for awareness without blocking workflows,
+// you're just getting started and want to onboard gradually, or you're working on
+// an internal tool where the threat model is lower.
+//
+// To use: copy to .trustlockrc.json in your project root and adjust as needed.
+// NOT recommended for production services or public-facing applications.
+{
+  "cooldown_hours": 0,
+  "pinning": {
+    "required": false
+  },
+  "scripts": {
+    "allowlist": []
+  },
+  "sources": {
+    "allowed": ["registry", "git", "file"]
+  },
+  "provenance": {
+    "required_for": []
+  },
+  "transitive": {
+    "max_new": 20
+  },
+  "require_reason": false,
+  "max_expiry_days": 90
+}

@@ -1,0 +1,32 @@
+name: trustlock
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  trustlock:
+    name: Dependency admission check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'   # trustlock requires Node.js >= 18.3
+
+      - name: Install trustlock
+        run: npm install -g trustlock
+
+      - name: Run trustlock check
+        run: trustlock check --enforce
+        # Exits 1 if any dependency is blocked by policy.
+        # Never advances the baseline in CI (D10).
+        # Set NO_COLOR=1 for cleaner CI log output.
+        env:
+          NO_COLOR: '1'

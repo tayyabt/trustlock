@@ -1,0 +1,27 @@
+// trustlockrc-production.json
+// Strict policy for production services and public-facing applications.
+// Use this when: you want maximum supply-chain protection, your team has
+// a review process for dependency changes, and compliance or audit requirements
+// apply. Every override requires a reason and expires within 14 days.
+//
+// To use: copy to .trustlockrc.json in your project root and adjust as needed.
+{
+  "cooldown_hours": 24,
+  "pinning": {
+    "required": true
+  },
+  "scripts": {
+    "allowlist": []
+  },
+  "sources": {
+    "allowed": ["registry"]
+  },
+  "provenance": {
+    "required_for": ["*"]
+  },
+  "transitive": {
+    "max_new": 3
+  },
+  "require_reason": true,
+  "max_expiry_days": 14
+}

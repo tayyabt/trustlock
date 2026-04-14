@@ -1,0 +1,18 @@
+{
+  "cooldown_hours": 72,
+  "pinning": {
+    "required": false
+  },
+  "scripts": {
+    "allowlist": []
+  },
+  "sources": {
+    "allowed": ["registry"]
+  },
+  "provenance": {
+    "required_for": []
+  },
+  "transitive": {
+    "max_new": 5
+  }
+}

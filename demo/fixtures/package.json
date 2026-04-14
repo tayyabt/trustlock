@@ -1,0 +1,9 @@
+{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "description": "trustlock demo project",
+  "dependencies": {
+    "lodash": "4.17.21"
+  },
+  "lockfileVersion": 3
+}

@@ -1,0 +1,38 @@
+{
+  "name": "trustlock",
+  "version": "0.1.1",
+  "description": "A Git-native dependency admission controller. Evaluates trust signals on every dependency change.",
+  "type": "module",
+  "bin": {
+    "trustlock": "src/cli/index.js"
+  },
+  "keywords": [
+    "supply-chain-security",
+    "dependency-management",
+    "npm-security",
+    "git-hooks",
+    "cli",
+    "provenance",
+    "slsa",
+    "lockfile",
+    "admission-controller"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tayyabt/trustlock.git"
+  },
+  "engines": {
+    "node": ">=18.3"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "files": [
+    "src/**/*.js",
+    "!src/**/__tests__/**",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ]
+}

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Husky pre-commit hook — trustlock dependency admission check
+#
+# Advisory mode: warns on blocked packages but does not block the commit.
+# To enforce strict mode (block commits on violations), add --enforce:
+#   trustlock check --enforce
+
+trustlock check

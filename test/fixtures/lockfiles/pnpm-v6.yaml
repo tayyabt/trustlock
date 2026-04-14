@@ -1,0 +1,18 @@
+lockfileVersion: '6.0'
+
+packages:
+
+  /lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZkFekkLKFiJCMSBB69A==}
+    engines: {node: '>=8'}
+    dev: false
+
+  /@babel/core@7.24.0:
+    resolution: {integrity: sha512-guv9-Qjcp0O+u5TkGAOojtylsAkWzaW5kFJP7GKKFsYlbUHbhzFSMaGJoIrQ7h3aFBQu7C+6Rfp2lPTkIb5A==}
+    requiresBuild: true
+    dev: false
+
+  /express@4.18.2:
+    resolution: {integrity: sha512-5/PsL6iGOs/rsbKmhMbRSL2YDutNq7FxlMT3jJSIhQCBlp/z1dM+xbRpLtMBlPTk2mGqFMM8XGMeMU6yLNdg==}
+    hasBin: true
+    dev: false

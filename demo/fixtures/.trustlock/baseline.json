@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-14T10:00:00.000Z",
+  "lockfile_hash": "e8510da08f5fcfbfe40b01e7c53201619c2a91cb5f74807476be148049f1ffaf",
+  "packages": {
+    "lodash": {
+      "name": "lodash",
+      "version": "4.17.21",
+      "admittedAt": "2026-04-14T10:00:00.000Z",
+      "provenanceStatus": "unknown",
+      "hasInstallScripts": false,
+      "sourceType": "registry"
+    }
+  }
+}

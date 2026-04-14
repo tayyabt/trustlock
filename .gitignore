@@ -1,0 +1,35 @@
+# trustlock runtime artifacts
+.trustlock/.cache/
+*.tgz
+
+# Demo GIF is committed; regenerate with: vhs demo/demo.tape
+# Burnish repo-local assets (managed by Burnish)
+.claude/hooks/
+.claude/settings.json
+.claude/settings.local.json
+.burnish-viewer/
+.burnish/lib/
+.burnish/process/
+.burnish/templates/
+.burnish/config.md
+.burnish/csv-reference.md
+.burnish/.burnish-version
+.burnish/runtime/loaded_context_files.txt
+.burnish/runtime/session-history.jsonl
+.burnish/runtime/context-loader-log.jsonl
+.burnish/runtime/run-events.jsonl
+.burnish/runtime/current-session-id.txt
+.burnish/runtime/active-run.json
+.burnish/runtime/*-dispatch-prompt.md
+.burnish/runtime/completions/
+.burnish/*.sh
+scripts/check-no-stubs.sh
+scripts/check-review-integrity.sh
+.burnish/assistant-notes/**/.local/
+.env
+.DS_Store
+.burnish/runtime/usage-snapshot.json
+.burnish/runtime/bridge-info.json
+.burnish/runtime/bridge-session.json
+.burnish/runtime/bridge.log
+.burnish/*.mjs

@@ -1,0 +1,22 @@
+{
+  "meta": { "api-version": "1.1" },
+  "name": "requests",
+  "files": [
+    {
+      "filename": "requests-2.28.0-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/ca/03/requests-2.28.0-py3-none-any.whl",
+      "hashes": { "sha256": "e5549aa9c300c8fb9e3b5e3a5b6a7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4" },
+      "requires-python": ">=3.7",
+      "attestations": {
+        "url": "https://files.pythonhosted.org/packages/ca/03/requests-2.28.0-py3-none-any.whl.attestation",
+        "provenance": "https://github.com/psf/requests"
+      }
+    },
+    {
+      "filename": "requests-2.28.0.tar.gz",
+      "url": "https://files.pythonhosted.org/packages/de/04/requests-2.28.0.tar.gz",
+      "hashes": { "sha256": "b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6" },
+      "requires-python": ">=3.7"
+    }
+  ]
+}

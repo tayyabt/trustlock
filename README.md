@@ -164,9 +164,14 @@ Add trustlock to your CI pipeline:
 
 See [`examples/`](examples/) for GitHub Actions, Lefthook, and Husky configurations.
 
+##Where trustlock sits in the timeline
+
+Trustlock evaluates lockfile changes at commit time. It doesn't intercept or sandbox npm install. If a malicious package runs a postinstall script, that executes before trustlock sees it. Trustlock prevents the compromised lockfile from being committed and merged, containing blast radius to a single developer machine instead of the entire team and production. For install-time script blocking, use --ignore-scripts or pnpm's default lifecycle script controls.
+
 ## What trustlock does NOT do
 
 - **Not a malware scanner** — trustlock does not inspect package source code or detect known-malicious signatures. Use a dedicated scanner for that.
+- It's not an **install-time sandbox** - trustlock doesn't intercept npm install. Use --ignore-scripts for that.
 - **Not a CVE tracker** — use `npm audit` or Snyk for vulnerability databases.
 - **Not a license checker** — use `license-checker` or similar.
 - **Not a replacement for pnpm trustPolicy or npm's min-release-age** — those are server-side controls enforced by the registry. trustlock is a client-side admission gate at the repo boundary.
